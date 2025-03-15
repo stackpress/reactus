@@ -37,14 +37,15 @@ export const doc = `
 `.trim();
 
 export const client = `
-import { StrictMode } from 'react'
-import { hydrateRoot } from 'react-dom/client'
-import App from '{entry}'
+import { StrictMode } from 'react';
+import { hydrateRoot } from 'react-dom/client';
+import App from '{entry}';
 
-hydrateRoot(
-  document.getElementById('root') as HTMLElement,
+const root = document.getElementById('root') as HTMLElement;
+
+await hydrateRoot(root, (
   <StrictMode>
     <App />
-  </StrictMode>,
-)
+  </StrictMode>
+));
 `.trim();
