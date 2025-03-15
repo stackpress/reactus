@@ -1,4 +1,4 @@
-import '../assets/home.css';
+import './home.css';
 
 export default function AboutPage() {
   return (

@@ -4,10 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
 export default defineConfig({
+  root: '.',
   plugins: [ react(), tailwindcss() ],
   server: { 
     watch: { 
-      ignored: [ '**/.build/**' ] 
+      ignored: [ '**/.reactus/**' ] 
     }
    }
 })

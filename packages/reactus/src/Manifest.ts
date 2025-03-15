@@ -1,51 +1,54 @@
 //node
 import fs from 'node:fs/promises';
 import path from 'node:path';
+//modules
+import type { ViteDevServer } from 'vite';
 //stackpress
 import type { FileLoader } from '@stackpress/lib';
-//engine
-import FileEngine from './engines/FileEngine';
 //local
-import type { EngineInterface, ManifestOptions } from './types';
-import Build from './Build';
+import type { BuildMode, ViteConnect, ManifestOptions } from './types';
+import Page from './Page';
 import Exception from './Exception';
 
 export default class Manifest {
-  //engine
-  public readonly engine: EngineInterface;
+  //callback to lazily connect to vite dev server
+  public readonly connect: ViteConnect;
   //file loader options
   public readonly loader: FileLoader;
-  //manifest map
-  public readonly builds = new Set<Build>();
-  //template strings
-  protected _template: {
-    client: string,
-    document: string
-  };
+  //location to where to put the manifest file (json)
+  public readonly manifest: string;
+  //page map
+  public readonly pages = new Set<Page>();
+  //client script route prefix used in the document markup
+  //ie. /client/[id][extname]
+  //<script type="module" src="/client/[id][extname]"></script>
+  //<script type="module" src="/client/abc123.tsx"></script>
+  public readonly route: string;
+  //page processing mode
+  public readonly mode: BuildMode;
+  //cached vite resource
+  protected _resource: ViteDevServer|null = null;
   //build paths
   protected _path: {
+    //location to where to put the final client scripts (js)
     client: string,
-    document: string
+    //location to where to put the final page entry (js)
+    page: string,
+    //location to where to put the client scripts for dev and build (tsx)
+    src: string
   };
-  
-  /**
-   * Returns true if the build is in development mode
-   */
-  public get development() {
-    return this.mode !== 'production';
-  }
+  //static templates
+  protected _template: {
+    //template wrapper for the client script (tsx)
+    client: string,
+    //template wrapper for the document markup (html)
+    document: string,
+    //template wrapper for the page script (tsx)
+    pageTemplate: string
+  };
 
   /**
-   * Determines the mode of the build
-   */
-  public get mode() {
-    return this.engine instanceof FileEngine 
-      ? 'production'
-      : 'development';
-  }
-
-  /**
-   * Returns the build paths
+   * Returns all the build paths
    */
   public get path() {
     return Object.freeze(this._path);
@@ -55,91 +58,130 @@ export default class Manifest {
    * Returns the size of the manifest
    */
   public get size() {
-    return this.builds.size;
+    return this.pages.size;
   }
 
   /**
-   * Returns the templates
+   * Returns all the static templates
    */
   public get template() {
     return Object.freeze(this._template);
   }
 
   /**
-   * Set vite dev server
+   * Consume all the options
    */
   public constructor(
-    engine: EngineInterface,
+    mode: BuildMode,
     loader: FileLoader,
     options: ManifestOptions
   ) {
-    this.engine = engine;
+    this.mode = mode;
     this.loader = loader;
+    this.connect = options.connect;
+    //location to where to put the manifest file (json)
+    this.manifest = options.manifestPath;
+    //client script route prefix used in the document markup
+    //ie. /client/[id][extname]
+    //<script type="module" src="/client/[id][extname]"></script>
+    //<script type="module" src="/client/abc123.tsx"></script>
+    this.route = options.clientRoute;
+    //build paths
     this._path = {
+      //location to where to put the final client scripts (js)
       client: options.clientPath,
-      document: options.documentPath,
-    }
+      //location to where to put the final page entry (js)
+      page: options.pagePath,
+      //location to where to put the client scripts for dev and build (tsx)
+      src: options.sourcePath
+    };
+    //static templates
     this._template = {
+      //template wrapper for the client script (tsx)
       client: options.clientTemplate,
-      document: options.documentTemplate
+      //template wrapper for the document markup (html)
+      document: options.documentTemplate,
+      //template wrapper for the page script (tsx)
+      pageTemplate: options.pageTemplate
     };
   }
 
   /**
-   * Create a new build
+   * Create a new page
    */
   public add(entry: string) {
-    entry = this.toEntry(entry);
+    entry = this._toEntryPath(entry);
     if (!this.has(entry)) {
-      const build = new Build(this, entry);
-      this.builds.add(build);
+      const page = new Page(this, entry);
+      this.pages.add(page);
     }
-    return this.get(entry) as Build;
+    return this.get(entry) as Page;
+  }
+
+  /**
+   * Builds all the client scripts (js) from the pages in the manifest
+   */
+  public async buildClient() {
+    const results: Record<string, string> = {};
+    for (const page of this.values()) {
+      results[page.id] = await page.saveClient();
+    }
+    return results;
+  }
+
+  /**
+   * Builds all the page scripts (js) from the pages in the manifest
+   */
+  public async buildPages() {
+    const results: Record<string, string> = {};
+    for (const page of this.values()) {
+      results[page.id] = await page.savePage();
+    }
+    return results;
   }
 
   /**
    * Returns a list of map entries
    */
   public entries() {
-    return this.map<[ Build, number ]>((build, index) => [ build, index ]);
+    return this.map<[ Page, number ]>((page, index) => [ page, index ]);
   }
 
   /**
-   * Find a build by id
+   * Find a page by id
    */
   public find(id: string) {
-    return this.values().find(build => build.id === id) ?? null;
+    return this.values().find(page => page.id === id) ?? null;
   }
 
   /**
    * Loop through the manifest
    */
-  public forEach(callback: (build: Build, index?: number) => unknown) {
+  public forEach(callback: (page: Page, index?: number) => unknown) {
     this.values().forEach(callback);
   }
 
   /**
-   * Get a build by entry
+   * Get a page by entry
    */
   public get(entry: string) {
-    entry = this.toEntry(entry);
-    return this.values().find(build => build.entry === entry) ?? null;
+    entry = this._toEntryPath(entry);
+    return this.values().find(page => page.entry === entry) ?? null;
   }
 
   /**
-   * Returns true if the build exists
+   * Returns true if the page exists
    */
   public has(entry: string) {
-    entry = this.toEntry(entry);
+    entry = this._toEntryPath(entry);
     return this.get(entry) !== null;
   }
 
   /**
    * Loads the manifest from disk
    */
-  public async load(filename = 'manifest.json') {
-    const file = path.join(this.path.client, filename);
-    const json = await fs.readFile(file, 'utf8');
+  public async load() {
+    const json = await fs.readFile(this.manifest, 'utf8');
     const hash = JSON.parse(json) as Record<string, string>;
     return this.set(hash);
   }
@@ -147,18 +189,27 @@ export default class Manifest {
   /**
    * Loop through the manifest
    */
-  public map<T = unknown>(callback: (build: Build, index: number) => T) {
+  public map<T = unknown>(callback: (page: Page, index: number) => T) {
     return this.values().map(callback);
+  }
+
+  /**
+   * Tries to return the vite resource
+   */
+  public async resource() {
+    if (!this._resource) {
+      this._resource = (await this.connect()) ?? null;
+    }
+    return this._resource;
   }
 
   /**
    * Saves the manifest to disk
    */
-  public async save(filename = 'manifest.json') {
+  public async save() {
     const hash = this.toJSON();
     const json = JSON.stringify(hash, null, 2);
-    const file = path.join(this.path.client, filename);
-    await fs.writeFile(file, json);
+    await fs.writeFile(this.manifest, json);
     return this;
   }
 
@@ -177,15 +228,15 @@ export default class Manifest {
    */
   public toJSON() {
     return Object.fromEntries(
-      this.values().map(build => [ build.id, build.entry ])
+      this.values().map(page => [ page.id, page.entry ])
     );
   }
 
   /**
-   * Returns a list of builds
+   * Returns a list of pages
    */
   public values() {
-    return Array.from(this.builds.values());
+    return Array.from(this.pages.values());
   }
 
   /**
@@ -194,7 +245,7 @@ export default class Manifest {
    * - module/path/to/file
    * Throws an Exception if the entry is invalid
    */
-  protected toEntry(entry: string) {
+  protected _toEntryPath(entry: string) {
     const original = entry;
     //get last position of node_modules
     //ie. /path/to/node_modules/to/node_modules/module

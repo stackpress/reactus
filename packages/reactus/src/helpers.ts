@@ -19,9 +19,11 @@ export function hash(string: string, length = 64) {
     .substring(0, length);
 }
 
-export const reference = '/// <reference types="vite/client" />';
+export const HASH_LENGTH = 16;
 
-export const doc = `
+export const REFERENCE = '/// <reference types="vite/client" />';
+
+export const DOCUMENT_TEMPLATE = `
 <!doctype html>
 <html lang="en">
   <head>
@@ -36,16 +38,30 @@ export const doc = `
 </html>
 `.trim();
 
-export const client = `
+export const PAGE_TEMPLATE = `
+import { StrictMode } from 'react';
+import { renderToString } from 'react-dom/server';
+import Page from '{entry}';
+
+export function render(_url: string) {
+  return renderToString(
+    <StrictMode>
+      <App />
+    </StrictMode>,
+  );
+  return { html };
+}
+`.trim();
+
+export const CLIENT_TEMPLATE = `
 import { StrictMode } from 'react';
 import { hydrateRoot } from 'react-dom/client';
-import App from '{entry}';
+import Page from '{entry}';
 
-const root = document.getElementById('root') as HTMLElement;
-
-await hydrateRoot(root, (
+await hydrateRoot(
+  document.getElementById('root') as HTMLElement, 
   <StrictMode>
-    <App />
+    <Page />
   </StrictMode>
-));
+);
 `.trim();

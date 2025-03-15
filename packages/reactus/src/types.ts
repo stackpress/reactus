@@ -1,97 +1,53 @@
 //modules
 import type { ElementType } from 'react';
-import type { ViteDevServer, InlineConfig } from 'vite';
+import type { ViteDevServer } from 'vite';
 //stackpress
-import type { 
-  FileSystem, 
-  FileLoader, 
-  UnknownNest 
-} from '@stackpress/lib';
+import type { FileSystem } from '@stackpress/lib';
 //local
-import type Build from './Build';
-import type Manifest from './Manifest';
+import type Build from './Page';
 
+//--------------------------------------------------------------------//
+// Build Types
+
+export type ForEachCallback = (build: Build, index?: number) => unknown;
+export type MapCallback<T> = (build: Build, index: number) => T;
+export type BuildMode = 'development' | 'build' | 'production';
 export type PageImport = { default: ElementType, Head?: ElementType };
 
-export interface EngineInterface {
-  //Returns the client script
-  getClientScript(file: string): Promise<string|null>;
-  //Returns the document markup
-  getDocumentMarkup(
-    entry: string, 
-    clientScriptRoute: string, 
-    documentTemplate: string,
-    props?: UnknownNest
-  ): Promise<string>;
-  //Loads a tsx (server) file in runtime
-  import<T = unknown>(url: string): Promise<T>;
-  //Vite tsx (server) renderer
-  render(entry: string, props?: UnknownNest): Promise<{
-    head: string | undefined;
-    body: string;
-  }>
-};
+//--------------------------------------------------------------------//
+// Loader Types
 
-export type ViteEngineConfig = InlineConfig|ViteDevServer;
-export type FileEngineConfig = {};
+export type LoaderOptions = { cwd: string, fs: FileSystem };
 
-export type LoaderOptions = {
-  cwd?: string,
-  fs?: FileSystem
-};
+//--------------------------------------------------------------------//
+// Manifest Types
 
+export type ViteConnect = () => Promise<ViteDevServer|null>;
 export type ManifestOptions = {
-  clientPath: string,
+  //callback to lazily connect to vite dev server
+  connect: ViteConnect,
+  //location to where to put the final client scripts (js)
+  clientPath: string, //ie. .reactus/client
+  //client script route prefix used in the document markup
+  //ie. /client/[id][extname]
+  //<script type="module" src="/client/[id][extname]"></script>
+  //<script type="module" src="/client/abc123.tsx"></script>
+  clientRoute: string,
+  //template wrapper for the client script (tsx)
   clientTemplate: string,
-  documentPath: string,
-  documentTemplate: string
+  //template wrapper for the document markup (html)
+  documentTemplate: string,
+  //location to where to put the manifest file (json)
+  manifestPath: string, //ie. .reactus/manifest.json
+  //location to where to put the final page entry (js)
+  pagePath: string, //ie. .reactus/page
+  //template wrapper for the page script (tsx)
+  pageTemplate: string,
+  //location to where to put the client scripts for dev and build (tsx)
+  sourcePath: string //ie. .reactus/src
 };
 
-export type ReactusDevOptions = ReactusLiveOptions & { vite?: ViteEngineConfig };
-export type ReactusLiveOptions = LoaderOptions & Partial<ManifestOptions>;
+//--------------------------------------------------------------------//
+// Reactus Types
 
-export type ApiHandlers<E> = {
-  manifest: Manifest,
-  engine: E,
-  loader: FileLoader,
-  template: { client: string, document: string },
-  builds: Set<Build>,
-  //Returns true if the build is in development mode
-  development: boolean,
-  //Determines the mode of the build
-  mode(): string,
-  //Returns the size of the manifest
-  size: number,
-  //Create a new build
-  add(entry: string): Build,
-  //Returns the client script
-  client(entry: string): Promise<string|null>,
-  //Returns the document markup
-  document(entry: string, props?: UnknownNest): Promise<string>,
-  //Returns a list of map entries
-  entries(): [string, Build][],
-  //Find a build by id
-  find(id: string): Build|null,
-  //Loop through the manifest
-  forEach(callback: (build: Build, index?: number) => unknown): void,
-  //Get a build by entry
-  get(entry: string): Build,
-  //Loads a tsx (server) file in runtime
-  import<T = unknown>(entry: string): Promise<T>,
-  //Returns true if the build exists
-  has(entry: string): boolean,
-  //Loads the manifest from disk
-  load(filename?: string): Promise<Manifest>,
-  //Loop through the manifest
-  map<T = unknown>(callback: (build: Build, index: number) => T): T[],
-  //Vite tsx (server) renderer
-  render(entry: string, props?: UnknownNest): Promise<{ head: string|undefined, body: string }>,
-  //Saves the manifest to disk
-  save(filename?: string): Promise<Manifest>,
-  //Sets the manifest from hash
-  set(hash: Record<string, string>): Manifest,
-  //Converts the manifest to hash
-  toJSON(): Record<string, string>,
-  //Returns a list of builds
-  values(): Build[]
-};
+export type ReactusOptions = Partial<LoaderOptions & ManifestOptions>;
