@@ -1,0 +1,15 @@
+{
+  "extends": "./tsconfig.client",
+  "compilerOptions": {
+    "allowImportingTsExtensions": false,
+    "declaration": true,
+    "outDir": "./dist/",
+    "noEmit": false,
+    "removeComments": true,
+    "sourceMap": false,
+    "target": "ES2020"
+  },
+  "include": [ "src/**/*.ts" ],
+  "exclude": [ "dist", "docs", "node_modules", "tests" ]
+}
+

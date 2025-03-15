@@ -1,0 +1,26 @@
+{
+  "name": "reactus",
+  "version": "0.1.1",
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.js",
+    "./tsconfig": "./tsconfig.client.json"
+  },
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@stackpress/lib": "0.4.6"
+  },
+  "devDependencies": {
+    "@types/node": "22.9.3",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "@vitejs/plugin-react": "4.3.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "ts-node": "10.9.2",
+    "typescript": "5.7.2",
+    "vite": "6.1.1"
+  }
+}

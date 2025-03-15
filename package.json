@@ -1,0 +1,17 @@
+{
+  "private": true,
+  "workspaces": [
+    "examples/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "yarn --cwd packages/reactus build",
+    "http:build": "yarn --cwd examples/with-http build",
+    "http:dev": "yarn --cwd examples/with-http dev",
+    "report": "nyc yarn test && nyc report -r lcov",
+    "test": "yarn --cwd packages/reactus test"
+  },
+  "devDependencies": {
+    "nyc": "17.1.0"
+  }
+}
