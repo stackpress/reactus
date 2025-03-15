@@ -35,7 +35,7 @@ async function start() {
       const id = req.url.slice(8, -4);
       const page = dev.find(id);
       if (page) {
-        const client = await page.getClient();
+        const client = await page.getClientBuild();
         if (client) {
           res.setHeader('Content-Type', 'text/javascript');
           res.end(client);

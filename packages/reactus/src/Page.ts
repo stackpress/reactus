@@ -65,13 +65,13 @@ export default class Page {
    *  - Let vite transform the file to js
    *  - Return the transformed code
    */
-  public async getClient() {
+  public async getClientBuild() {
     //for production mode
     if (this.manifest.mode === 'production') {
-      //get the client path
-      const clientPath = this.manifest.path.client;
-      //determine the client file name
-      const file = path.join(clientPath, `${this.id}.js`);
+      //get the client build path
+      const clientBuildPath = this.manifest.path.build.client;
+      //determine the client build file name
+      const file = path.join(clientBuildPath, `${this.id}.js`);
       return await fs.readFile(file, 'utf8');
     }
     //for development and build modes
@@ -79,8 +79,8 @@ export default class Page {
     if (!resource) {
       throw Exception.for('Vite resource not found');
     }
-    //save the source tsx
-    const file = await this.saveSource();
+    //save the client source tsx
+    const file = await this.saveClientSource();
     //then let vite transform the file to js
     const results = await resource.transformRequest(
       `file://${file}`, 
@@ -90,6 +90,26 @@ export default class Page {
       throw Exception.for('File tsx to js transformation failed');
     }
     return results.code;
+  }
+
+  /**
+   * Returns the client source code (tsx)
+   * 
+   * - Determine the relative source file path (tsx)
+   * - Bind relative entry path with client template
+   * - Return the final source script
+   */
+  public async getClientSource() {
+    //get the client source path
+    const clientSourcePath = this.manifest.path.source.client;
+    //determine the root entry file where entry would be imported from
+    const fromFile = path.join(clientSourcePath, `${this.id}.tsx`);
+    //now make the entry file relative to the root entry file
+    const relative = this._entryToRelativeFile(fromFile);
+    //get the client script template (tsx)
+    const clientScript = this.manifest.template.client;
+    //add the relative entry to the document script
+    return clientScript.replace('{entry}', relative);
   }
 
   /**
@@ -160,13 +180,13 @@ export default class Page {
    *  - Let vite transform the file to js
    *  - Return the transformed code
    */
-  public async getPage() {
+  public async getPageBuild() {
     //for production mode
     if (this.manifest.mode === 'production') {
-      //get the page path
-      const pagePath = this.manifest.path.page;
-      //determine the page file name
-      const file = path.join(pagePath, `${this.id}.js`);
+      //get the page build path
+      const pageBuildPath = this.manifest.path.build.page;
+      //determine the page build file name
+      const file = path.join(pageBuildPath, `${this.id}.js`);
       return await fs.readFile(file, 'utf8');
     }
     //for development and build modes
@@ -188,26 +208,6 @@ export default class Page {
   }
 
   /**
-   * Returns the client source code (tsx)
-   * 
-   * - Determine the relative source file path (tsx)
-   * - Bind relative entry path with client template
-   * - Return the final source script
-   */
-  public async getSource() {
-    //get the client source path
-    const sourcePath = this.manifest.path.src;
-    //determine the root entry file where entry would be imported from
-    const fromFile = path.join(sourcePath, `${this.id}.tsx`);
-    //now make the entry file relative to the root entry file
-    const relative = this._entryToRelativeFile(fromFile);
-    //get the client script template (tsx)
-    const clientScript = this.manifest.template.client;
-    //add the relative entry to the document script
-    return clientScript.replace('{entry}', relative);
-  }
-
-  /**
    * Loads the page source in runtime (node)
    * 
    * if production,
@@ -219,10 +219,10 @@ export default class Page {
    */
   public async loadPage() {
     if (this.manifest.mode === 'production') {
-      //get the page path
-      const pagePath = this.manifest.path.page;
+      //get the page build path
+      const pageBuildPath = this.manifest.path.build.page;
       //determine the page file name
-      const file = path.join(pagePath, `${this.id}.js`);
+      const file = path.join(pageBuildPath, `${this.id}.js`);
       //use native import to load the page export
       return await import(file) as PageImport;
     }
@@ -244,13 +244,31 @@ export default class Page {
    * - Gets the client source code from `getClientScript` 
    * - Saves source code as a js file
    */
-  public async saveClient() {
-    //get the client path
-    const clientPath = this.manifest.path.client;
-    //determine the client file name
-    const file = path.join(clientPath, `${this.id}.js`);
+  public async saveClientBuild() {
+    //get the client build path
+    const clientBuildPath = this.manifest.path.build.client;
+    //determine the client build file name
+    const file = path.join(clientBuildPath, `${this.id}.js`);
     //get the client script (js)
-    const code = await this.getClient();
+    const code = await this.getClientBuild();
+    //write to disk
+    return this._writeFile(file, code);
+  }
+
+  /**
+   * Compiles and saves the client source code (tsx)
+   * 
+   * - Locate the dev file from `path.src` (/.reactus/src/[id].tsx)
+   * - Gets the client source code from `getSourceScript` 
+   * - Saves source code as a tsx file
+   */
+  public async saveClientSource() {
+    //get the client source path
+    const clientSourcePath = this.manifest.path.source.client;
+    //determine the client source file name
+    const file = path.join(clientSourcePath, `${this.id}.tsx`);
+    //get the client source script (tsx)
+    const code = await this.getClientSource();
     //write to disk
     return this._writeFile(file, code);
   }
@@ -277,31 +295,13 @@ export default class Page {
    * - Gets the page source code from `getPageScript` 
    * - Saves source code as a js file
    */
-  public async savePage() {
-    //get the page path
-    const pagePath = this.manifest.path.page;
-    //determine the page file name
-    const file = path.join(pagePath, `${this.id}.js`);
-    //get the page script (js)
-    const code = await this.getPage();
-    //write to disk
-    return this._writeFile(file, code);
-  }
-
-  /**
-   * Compiles and saves the client source code (tsx)
-   * 
-   * - Locate the dev file from `path.src` (/.reactus/src/[id].tsx)
-   * - Gets the client source code from `getSourceScript` 
-   * - Saves source code as a tsx file
-   */
-  public async saveSource() {
-    //get the client source path
-    const sourcePath = this.manifest.path.src;
-    //determine the client source file name
-    const file = path.join(sourcePath, `${this.id}.tsx`);
-    //get the client source script (tsx)
-    const code = await this.getSource();
+  public async savePageBuild() {
+    //get the page build path
+    const pageBuildPath = this.manifest.path.build.page;
+    //determine the page build file name
+    const file = path.join(pageBuildPath, `${this.id}.js`);
+    //get the page build script (js)
+    const code = await this.getPageBuild();
     //write to disk
     return this._writeFile(file, code);
   }

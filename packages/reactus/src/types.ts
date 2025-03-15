@@ -27,12 +27,14 @@ export type ManifestOptions = {
   //callback to lazily connect to vite dev server
   connect: ViteConnect,
   //location to where to put the final client scripts (js)
-  clientPath: string, //ie. .reactus/client
+  clientBuildPath: string, //ie. .reactus/build/client
   //client script route prefix used in the document markup
   //ie. /client/[id][extname]
   //<script type="module" src="/client/[id][extname]"></script>
   //<script type="module" src="/client/abc123.tsx"></script>
   clientRoute: string,
+  //location to where to put the client scripts for dev and build (tsx)
+  clientSourcePath: string, //ie. .reactus/src/client
   //template wrapper for the client script (tsx)
   clientTemplate: string,
   //template wrapper for the document markup (html)
@@ -40,11 +42,11 @@ export type ManifestOptions = {
   //location to where to put the manifest file (json)
   manifestPath: string, //ie. .reactus/manifest.json
   //location to where to put the final page entry (js)
-  pagePath: string, //ie. .reactus/page
+  pageBuildPath: string, //ie. .reactus/build/page
+  //location to where to put the page scripts for build (tsx)
+  pageSourcePath: string //ie. .reactus/src/page
   //template wrapper for the page script (tsx)
-  pageTemplate: string,
-  //location to where to put the client scripts for dev and build (tsx)
-  sourcePath: string //ie. .reactus/src
+  pageTemplate: string
 };
 
 //--------------------------------------------------------------------//

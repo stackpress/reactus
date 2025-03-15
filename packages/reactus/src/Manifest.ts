@@ -30,12 +30,18 @@ export default class Manifest {
   protected _resource: ViteDevServer|null = null;
   //build paths
   protected _path: {
-    //location to where to put the final client scripts (js)
-    client: string,
-    //location to where to put the final page entry (js)
-    page: string,
-    //location to where to put the client scripts for dev and build (tsx)
-    src: string
+    build: {
+      //location to where to put the final client scripts (js)
+      client: string, //ie. .reactus/build/client
+      //location to where to put the final page entry (js)
+      page: string //ie. .reactus/build/page
+    },
+    source: {
+      //location to where to put the client scripts for dev and build (tsx)
+      client: string, //ie. .reactus/src/client
+      //location to where to put the page scripts for build (tsx)
+      page: string //ie. .reactus/src/page
+    }
   };
   //static templates
   protected _template: {
@@ -44,7 +50,7 @@ export default class Manifest {
     //template wrapper for the document markup (html)
     document: string,
     //template wrapper for the page script (tsx)
-    pageTemplate: string
+    page: string
   };
 
   /**
@@ -88,12 +94,18 @@ export default class Manifest {
     this.route = options.clientRoute;
     //build paths
     this._path = {
-      //location to where to put the final client scripts (js)
-      client: options.clientPath,
-      //location to where to put the final page entry (js)
-      page: options.pagePath,
-      //location to where to put the client scripts for dev and build (tsx)
-      src: options.sourcePath
+      build: {
+        //location to where to put the final client scripts (js)
+        client: options.clientBuildPath,
+        //location to where to put the final page entry (js)
+        page: options.pageBuildPath
+      },
+      source: {
+        //location to where to put the client scripts for dev and build (tsx)
+        client: options.clientSourcePath,
+        //location to where to put the page scripts for build (tsx)
+        page: options.pageSourcePath
+      }
     };
     //static templates
     this._template = {
@@ -102,7 +114,7 @@ export default class Manifest {
       //template wrapper for the document markup (html)
       document: options.documentTemplate,
       //template wrapper for the page script (tsx)
-      pageTemplate: options.pageTemplate
+      page: options.pageTemplate
     };
   }
 
@@ -124,7 +136,7 @@ export default class Manifest {
   public async buildClient() {
     const results: Record<string, string> = {};
     for (const page of this.values()) {
-      results[page.id] = await page.saveClient();
+      results[page.id] = await page.saveClientBuild();
     }
     return results;
   }
@@ -135,7 +147,7 @@ export default class Manifest {
   public async buildPages() {
     const results: Record<string, string> = {};
     for (const page of this.values()) {
-      results[page.id] = await page.savePage();
+      results[page.id] = await page.savePageBuild();
     }
     return results;
   }

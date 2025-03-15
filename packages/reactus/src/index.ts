@@ -33,36 +33,39 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     //callback to lazily connect to vite dev server
     connect = async () => null,
     //location to where to put the final client scripts (js)
-    clientPath = path.join(loader.cwd, '.reactus/client'),
+    clientBuildPath = path.join(loader.cwd, '.reactus/build/client'),
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute = '/client',
+    //location to where to put the client scripts for dev and build (tsx)
+    clientSourcePath = path.join(loader.cwd, '.reactus/src/client'),
     //template wrapper for the client script (tsx)
     clientTemplate = CLIENT_TEMPLATE,
     //template wrapper for the document markup (html)
-    documentTemplate = DOCUMENT_TEMPLATE, 
+    documentTemplate = DOCUMENT_TEMPLATE,
     //location to where to put the manifest file (json)
     manifestPath = path.join(loader.cwd, '.reactus/manifest.json'),
     //location to where to put the final page entry (js)
-    pagePath = path.join(loader.cwd, '.reactus/page'),
+    pageBuildPath = path.join(loader.cwd, '.reactus/build/page'),
+    //location to where to put the page scripts for build (tsx)
+    pageSourcePath = path.join(loader.cwd, '.reactus/src/page'),
     //template wrapper for the page script (tsx)
-    pageTemplate = PAGE_TEMPLATE,
-    //location to where to put the client scripts for dev and build (tsx)
-    sourcePath = path.join(loader.cwd, '.reactus/src')
+    pageTemplate = PAGE_TEMPLATE
   } = options;
 
   const manifest = new Manifest(mode, loader, {
     connect,
-    clientPath,
+    clientBuildPath,
     clientRoute,
+    clientSourcePath,
     clientTemplate,
     documentTemplate,
     manifestPath,
-    pagePath,
-    pageTemplate,
-    sourcePath
+    pageBuildPath,
+    pageSourcePath,
+    pageTemplate
   });
 
   const handlers = {
@@ -176,8 +179,15 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     /**
      * Returns the final client source code (js)
      */
-    getClient(entry: string) {
-      return manifest.add(entry).getClient();
+    getClientBuild(entry: string) {
+      return manifest.add(entry).getClientBuild();
+    },
+  
+    /**
+     * Returns the client source code (tsx)
+     */
+    getClientSource(entry: string) {
+      return manifest.add(entry).getClientSource();
     },
   
     /**
@@ -190,15 +200,8 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     /**
      * Returns the final page source code (js)
      */
-    getPage(entry: string) {
-      return manifest.add(entry).getPage();
-    },
-  
-    /**
-     * Returns the client source code (tsx)
-     */
-    getSource(entry: string) {
-      return manifest.add(entry).getSource();
+    getPageBuild(entry: string) {
+      return manifest.add(entry).getPageBuild();
     },
 
     /**
@@ -218,8 +221,22 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     /**
      * Compiles and saves the final client source code (js)
      */
-    saveClient(entry: string) {
-      return manifest.add(entry).saveClient();
+    saveClientBuild(entry: string) {
+      return manifest.add(entry).saveClientBuild();
+    },
+  
+    /**
+     * Compiles and saves the client source code (tsx)
+     */
+    saveClientSource(entry: string) {
+      return manifest.add(entry).saveClientSource();
+    },
+  
+    /**
+     * Compiles and saves the final page source code (js)
+     */
+    savePageBuild(entry: string) {
+      return manifest.add(entry).savePageBuild();
     },
   
     /**
@@ -231,20 +248,6 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
       props: UnknownNest = {}
     ) {
       return manifest.add(entry).saveMarkup(destination, props);
-    },
-  
-    /**
-     * Compiles and saves the final page source code (js)
-     */
-    savePage(entry: string) {
-      return manifest.add(entry).savePage();
-    },
-  
-    /**
-     * Compiles and saves the client source code (tsx)
-     */
-    saveSource(entry: string) {
-      return manifest.add(entry).saveSource();
     }
   };
   return handlers;
