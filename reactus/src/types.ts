@@ -1,12 +1,9 @@
+//node
+import type { IncomingMessage, ServerResponse } from 'node:http';
 //modules
 import type { ElementType } from 'react';
 import type { InlineConfig } from 'vite';
-import type { 
-  OutputChunk, 
-  OutputAsset,
-  RollupOutput, 
-  RollupWatcher
-} from 'rollup';
+import type { OutputChunk, OutputAsset } from 'rollup';
 //stackpress
 import type { 
   FileSystem, 
@@ -47,9 +44,8 @@ export type DocumentIterator<T = unknown> = (
 //--------------------------------------------------------------------//
 // Server Types
 
-export type ViteBuildAction = (
-  inlineConfig?: InlineConfig
-) => Promise<RollupOutput | RollupOutput[] | RollupWatcher>
+export type IM = IncomingMessage;
+export type SR = ServerResponse<IM>;
 
 export type ViteConfig = InlineConfig;
 

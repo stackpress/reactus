@@ -3,7 +3,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 //modules
-import { ViteDevServer } from 'vite';
+import type { ViteDevServer } from 'vite';
 //local
 import { HASH_LENGTH, BASE62_ALPHABET } from './constants';
 

@@ -32,11 +32,9 @@ async function develop() {
     pagePath: path.join(cwd, '.reactus')
   });
 
-  const dev = await engine.dev();
-
   const server = createServer(async (req, res) => {
-    //handles public assets and hmr
-    await new Promise(r => dev.middlewares(req, res, r));
+    //handles public, assets and hmr
+    await engine.http(req, res);
     //if middleware was triggered
     if (res.headersSent) return;
     // home page
@@ -51,18 +49,6 @@ async function develop() {
       res.setHeader('Content-Type', 'text/html');
       res.end(await document.getMarkup());
       return;
-    //client scripts
-    } else if (req.url && /^\/client\/[a-zA-Z0-9\-]+\.tsx$/.test(req.url)) {
-      const id = req.url.slice(8, -4);
-      const document = engine.find(id);
-      if (document) {
-        const client = await document.getHMR();
-        if (client) {
-          res.setHeader('Content-Type', 'text/javascript');
-          res.end(client);
-          return;
-        }
-      }
     }
     res.end('404 Not Found');
   });

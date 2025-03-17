@@ -4,12 +4,14 @@ export * from './helpers';
 
 import { FileLoader, NodeFS } from '@stackpress/lib';
 
+import Builder from './Builder';
 import Document from './Document';
 import Manifest from './Manifest';
 import Server from './Server';
 import Exception from './Exception';
 
 export { 
+  Builder,
   Document, 
   Manifest, 
   Server, 
@@ -27,6 +29,7 @@ import type {
   UnknownNest 
 } from '@stackpress/lib/dist/types';
 import type { 
+  IM, SR,
   ViteConfig, 
   ServerConfig, 
   BuildResults,
@@ -66,8 +69,7 @@ export default function engine(options: Partial<ServerConfig>) {
     //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
     styleRoute: options.styleRoute || '/assets'
   }
-  const server = new Server(config);
-  const manifest = new Manifest(server);
+  const builder = new Builder(config);
 
   return {
     //----------------------------------------------------------------//
@@ -76,28 +78,27 @@ export default function engine(options: Partial<ServerConfig>) {
     //the final configuration
     config,
     //Returns the paths
-    paths: server.paths,
+    paths: builder.paths,
     //Returns true if production mode
-    production: server.production,
+    production: builder.production,
     //Returns the route prefixes
-    routes: server.routes,
+    routes: builder.routes,
     //Returns the templates
-    templates: server.templates,
+    templates: builder.templates,
     //Returns the vite configuration
-    viteConfig: server.viteConfig,
+    viteConfig: builder.viteConfig,
 
     /**
      * Returns the size of the manifest
      */
     get size() {
-      return manifest.size;
+      return builder.size;
     },
 
     //----------------------------------------------------------------//
     // Class Instances
 
-    server,
-    manifest,
+    builder,
 
     //----------------------------------------------------------------//
     // Server Methods
@@ -105,12 +106,27 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Tries to return the vite build callback
      */
-    build: (config: ViteConfig) => server.build(config),
+    build: (config: ViteConfig) => builder.build(config),
   
     /**
      * Tries to return the vite dev server
      */
-    dev: () => server.dev(),
+    dev: () => builder.dev(),
+
+    /**
+     * HTTP middleware
+     */
+    http: (req: IM, res: SR) => builder.http(req, res),
+
+    /**
+     * Returns the middleware stack
+     */
+    middlewares: () => builder.middlewares(),
+  
+    /**
+     * Returns the default vite plugins
+     */
+    plugins: (plugins: PluginOption[] = []) => builder.plugins(plugins),
 
     //----------------------------------------------------------------//
     // Manifest Methods
@@ -118,83 +134,83 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Create a new build
      */
-    add: (entry: string) => manifest.add(entry),
+    add: (entry: string) => builder.add(entry),
 
     /**
      * Builds and saves the assets used from all the documents
      */
     buildAssets: (
       plugins: PluginOption[] = []
-    ) => manifest.buildAssets(plugins),
+    ) => builder.buildAssets(plugins),
 
     /**
      * Builds and saves the client entries from all the documents
      */
     buildClient: (
       plugins: PluginOption[] = []
-    ) => manifest.buildClient(plugins),
+    ) => builder.buildClient(plugins),
 
     /**
      * Builds and saves the pages scripts from all the documents
      */
     buildPages: (
       plugins: PluginOption[] = []
-    ) => manifest.buildPages(plugins),
+    ) => builder.buildPages(plugins),
   
     /**
      * Returns a list of map entries
      */
-    entries: () => manifest.entries(),
+    entries: () => builder.entries(),
 
     /**
      * Find a build by id
      */
-    find: (id: string) => manifest.find(id),
+    find: (id: string) => builder.find(id),
   
     /**
      * Loop through the manifest
      */
-    forEach: (callback: DocumentIterator<unknown>) =>  manifest.forEach(callback),
+    forEach: (callback: DocumentIterator<unknown>) =>  builder.forEach(callback),
   
     /**
      * Get a build by entry
      */
-    get: (entry: string) => manifest.get(entry),
+    get: (entry: string) => builder.get(entry),
   
     /**
      * Returns true if the build exists
      */
-    has: (entry: string) => manifest.has(entry),
+    has: (entry: string) => builder.has(entry),
   
     /**
      * Loads the manifest from disk
      */
-    load: (file: string) =>  manifest.load(file),
+    load: (file: string) =>  builder.load(file),
   
     /**
      * Loop through the manifest
      */
-    map: <T = unknown>(callback: DocumentIterator<T>) => manifest.map<T>(callback),
+    map: <T = unknown>(callback: DocumentIterator<T>) => builder.map<T>(callback),
   
     /**
      * Saves the manifest to disk
      */
-    save: (file: string) => manifest.save(file),
+    save: (file: string) => builder.save(file),
   
     /**
      * Sets the manifest from hash
      */
-    set: (hash: Record<string, string>) => manifest.set(hash),
+    set: (hash: Record<string, string>) => builder.set(hash),
   
     /**
      * Converts the manifest to hash
      */
-    toJSON: () => manifest.toJSON(),
+    toJSON: () => builder.toJSON(),
   
     /**
      * Returns a list of builds
      */
-    values: () => manifest.values(),
+    values: () => builder.values(),
 
     //----------------------------------------------------------------//
     // Document Methods
@@ -206,7 +222,7 @@ export default function engine(options: Partial<ServerConfig>) {
     getAssets: (
       entry: string, 
       plugins: PluginOption[] = []
-    ) => manifest.add(entry).getAssets(plugins),
+    ) => builder.add(entry).getAssets(plugins),
 
     /**
      * Returns the final client entry 
@@ -215,12 +231,12 @@ export default function engine(options: Partial<ServerConfig>) {
     getClient: (
       entry: string, 
       plugins: PluginOption[] = []
-    ) => manifest.add(entry).getClient(plugins),
+    ) => builder.add(entry).getClient(plugins),
   
     /**
      * Returns the client entry for HMR (js)
      */
-    getHMR: (entry: string) => manifest.add(entry).getHMR(),
+    getHMR: (entry: string) => builder.add(entry).getHMR(),
     
     /**
      * Returns the final document markup (html)
@@ -228,7 +244,7 @@ export default function engine(options: Partial<ServerConfig>) {
     getMarkup: (
       entry: string, 
       props: UnknownNest = {}
-    ) => manifest.add(entry).getMarkup(props),
+    ) => builder.add(entry).getMarkup(props),
   
     /**
      * Returns the final page component source code (js)
@@ -237,21 +253,21 @@ export default function engine(options: Partial<ServerConfig>) {
       entry: string, 
       plugins: PluginOption[] = [],
       assets?: BuildResults
-    ) => manifest.add(entry).getPage(plugins, assets),
+    ) => builder.add(entry).getPage(plugins, assets),
 
     /**
      * Generates an id for the entry file
      */
-    id: (entry: string) => manifest.add(entry).id,
+    id: (entry: string) => builder.add(entry).id,
   
     /**
      * Imports the page component to runtime
      */
-    importPage: (entry: string) => manifest.add(entry).importPage(),
+    importPage: (entry: string) => builder.add(entry).importPage(),
   
     /**
      * Returns the absolute path to the entry file
      */
-    source: (entry: string) => manifest.add(entry).source,
+    source: (entry: string) => builder.add(entry).source,
   };
 }

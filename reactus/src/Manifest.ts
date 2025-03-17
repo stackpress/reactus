@@ -1,18 +1,14 @@
 //node
 import fs from 'node:fs/promises';
 import path from 'node:path';
-//modules
-import type { PluginOption } from 'vite';
 //local
-import type { DocumentIterator, BuildStatus } from './types';
-import type Server from './Server';
+import type { DocumentIterator } from './types';
+import Server from './Server';
 import Document from './Document';
 import Exception from './Exception';
 import { writeFile } from './helpers';
 
-export default class Manifest {
-  //file server
-  public readonly server: Server;
+export default class Manifest extends Server {
   //document map
   public readonly documents = new Set<Document>();
 
@@ -24,191 +20,15 @@ export default class Manifest {
   }
 
   /**
-   * Sets the file loader
-   */
-  public constructor(server: Server) {
-    this.server = server;
-  }
-
-  /**
    * Create a new document
    */
   public add(entry: string) {
     entry = this._toEntryPath(entry);
     if (!this.has(entry)) {
-      const document = new Document(entry, this.server);
+      const document = new Document(entry, this);
       this.documents.add(document);
     }
     return this.get(entry) as Document;
-  }
-
-  /**
-   * Builds and saves the assets used from all the documents
-   */
-  public async buildAssets(plugins: PluginOption[] = []) {
-    //buffer for the build status results
-    const results: BuildStatus[] = [];
-    //loop through all the documents
-    for (const document of this.values()) {
-      //this gives the page component source code (js) and assets
-      const page = await document.getAssets(plugins);
-      //if the output is not an array
-      if (!Array.isArray(page)) {
-        //push an error
-        results.push(Exception.for(
-          `Assets for '${document.entry}' was not generated`
-        ).withCode(500).toResponse());
-        //dont do anything else
-        continue;
-      }
-      //loop through all the outputs
-      for (const output of page) {
-        //if the output is not an asset
-        if (output.type !== 'asset') continue;
-        //if output does not start with assets/
-        if (!output.fileName.startsWith('assets/')) {
-          //push an error
-          results.push(Exception.for(
-            `${output.type} '${output.fileName}' was not saved`
-          ).withCode(404).toResponse());
-          continue;
-        }
-        //determine the file path
-        const file = path.join(
-          this.server.paths.asset, 
-          output.fileName.substring(7)
-        );
-        //write the file to disk
-        await writeFile(file, output.source);
-        //push the result
-        results.push({
-          code: 200,
-          status: 'OK',
-          results: {
-            type: 'asset',
-            id: document.id,
-            entry: document.entry,
-            contents: output.source,
-            destination: file
-          }
-        });
-      }
-    }
-    return results;
-  }
-
-  /**
-   * Builds and saves the client entries from all the documents
-   */
-  public async buildClient(plugins: PluginOption[] = []) {
-    //buffer for the build status results
-    const results: BuildStatus[] = [];
-    //loop through all the documents
-    for (const document of this.values()) {
-      //this just gives the entry code (js) (chunk)
-      const client = await document.getClient(plugins);
-      //if the output is not an array
-      if (!Array.isArray(client)) {
-        //push an error
-        results.push(Exception.for(
-          `Client '${document.entry}' was not generated`
-        ).withCode(500).toResponse());
-        //do not do anything else
-        continue;
-      }
-      //find the output with type chunk
-      const chunk = client.find(
-        output => output.type === 'chunk'
-      );
-      //if a chunk was not found
-      if (!chunk) {
-        //push an error
-        results.push(Exception.for(
-          `Client '${document.entry}' was not generated`
-        ).withCode(404).toResponse());
-        //skip the rest...
-        continue;
-      }
-      //determine the file path
-      const file = path.join(
-        this.server.paths.client, 
-        `${document.id}.js`
-      );
-      //write the file to disk
-      await writeFile(file, chunk.code);
-      //push the result
-      results.push({
-        code: 200,
-        status: 'OK',
-        results: {
-          type: 'client',
-          id: document.id,
-          entry: document.entry,
-          contents: chunk.code,
-          source: this.server.loader.absolute(document.entry),
-          destination: file
-        }
-      });
-    }
-    //return the results
-    return results;
-  }
-
-  /**
-   * Builds and saves the pages scripts from all the documents
-   */
-  public async buildPages(plugins: PluginOption[] = []) {
-    //buffer for the build status results
-    const results: BuildStatus[] = [];
-    //loop through all the documents
-    for (const document of this.values()) {
-      //this gives the page component source code (js) and assets
-      const page = await document.getPage(plugins);
-      //if the output is not an array
-      if (!Array.isArray(page)) {
-        //push an error
-        results.push(Exception.for(
-          `Page '${document.entry}' was not generated`
-        ).withCode(500).toResponse());
-        //dont do anything else
-        continue;
-      }
-      //find the output with type chunk
-      const chunk = page.find(
-        output => output.type === 'chunk'
-      );
-      //if a chunk was not found
-      if (!chunk) {
-        //push an error
-        results.push(Exception.for(
-          `Page '${document.entry}' was not generated`
-        ).withCode(404).toResponse());
-        //skip the rest...
-        continue;
-      }
-      //determine the file path
-      const file = path.join(
-        this.server.paths.page, 
-        `${document.id}.js`
-      );
-      //write the file to disk
-      await writeFile(file, chunk.code);
-      //push the result
-      results.push({
-        code: 200,
-        status: 'OK',
-        results: {
-          type: 'page',
-          id: document.id,
-          entry: document.entry,
-          contents: chunk.code,
-          source: this.server.loader.absolute(document.entry),
-          destination: file
-        }
-      });
-    }
-    //return the results
-    return results;
   }
 
   /**
@@ -334,14 +154,52 @@ export default class Manifest {
       return entry;
     }
     //make it an absolute path
-    entry = this.server.loader.absolute(entry);
+    entry = this.loader.absolute(entry);
     //if the entry is a root of the project
     //ie. /path/to/project/file
-    if (entry.startsWith(this.server.loader.cwd)) {
+    if (entry.startsWith(this.loader.cwd)) {
       //ie. @/file
-      return entry.replace(this.server.loader.cwd, '@');
+      return entry.replace(this.loader.cwd, '@');
     }
     //it's not valid
     throw new Exception(`Invalid entry file: ${original}`);
+  }
+
+  /**
+   * Create vite dev server logic
+   */
+  protected async _createServer() {
+    const server = await super._createServer();
+    //add client asset middleware
+    server.middlewares.use(async (req, res, next) => {
+      //if no url
+      if (!req.url 
+        //or request is not for client assets
+        || !req.url.startsWith(this._routes.client) 
+        //or not a tsx request
+        || !req.url.endsWith('.tsx') 
+        //or response was already sent
+        || res.headersSent
+      ) {
+        //skip
+        next();
+        return;
+      }
+      //example url: /client/abc-123.tsx
+      const id = req.url.slice(8, -4);
+      const document = this.find(id);
+      if (document) {
+        const client = await document.getHMR();
+        if (client) {
+          res.setHeader('Content-Type', 'text/javascript');
+          res.end(client);
+          return;
+        }
+      }
+      //nothing caught
+      next();
+    });
+
+    return server;
   }
 }

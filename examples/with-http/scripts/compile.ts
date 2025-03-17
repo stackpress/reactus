@@ -22,8 +22,8 @@ async function develop() {
     pagePath: path.join(cwd, '.reactus')
   });
   
-  engine.manifest.add('@/pages/home');
-  engine.manifest.add('@/pages/about');
+  engine.add('@/pages/home');
+  engine.add('@/pages/about');
 
   const responses = [
     ...await engine.buildClient([ tailwindcss() ]),

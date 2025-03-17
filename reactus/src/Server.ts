@@ -1,13 +1,9 @@
 //modules
-import type { ViteDevServer } from 'vite';
+import type { ViteDevServer, PluginOption } from 'vite';
 //stackpress
 import { FileLoader, NodeFS } from '@stackpress/lib';
 //local
-import type { 
-  ViteBuildAction, 
-  ViteConfig, 
-  ServerConfig 
-} from './types';
+import type { IM, SR, ViteConfig, ServerConfig } from './types';
 import Exception from './Exception';
 import { imfs } from './helpers';
 
@@ -16,8 +12,6 @@ export default class Server {
   public readonly loader: FileLoader;
   //cached vite dev server
   protected _dev: ViteDevServer|null = null;
-  //cached vite build callback
-  protected _build: ViteBuildAction|null = null;
   //build paths
   protected _paths: {
     //path where to save assets (css, images, etc)
@@ -120,24 +114,14 @@ export default class Server {
    * Tries to return the vite build callback
    */
   public async build(config: ViteConfig) {
-    if (!this._build) {
-      const { build } = await import('vite');
-      this._build = build;
-    }
+    //rely on import cache
+    const { build } = await import('vite');
     //shallow copy the vite config
     const settings = { ...config }; 
-    //make sure the plugins array exists
-    if (!settings.plugins) settings.plugins = [];
-    //add react plugin
-    const react = await import('@vitejs/plugin-react');
-    //add the imfs plugin
-    settings.plugins = [ 
-      imfs(), 
-      react.default(),
-      ...settings.plugins
-    ];
+    //organize plugins
+    settings.plugins = await this.plugins(settings.plugins);
     //vite build now
-    return this._build(settings);
+    return build(settings);
   }
 
   /**
@@ -145,25 +129,50 @@ export default class Server {
    */
   public async dev() {
     if (!this._dev) {
-      if (!this._viteConfig) {
-        throw Exception.for('Vite resource not found');
-      }
-      const { createServer } = await import('vite');
-      //shallo copy the vite config
-      const settings = { ...this._viteConfig }; 
-      //make sure the plugins array exists
-      if (!settings.plugins) settings.plugins = [];
-      //add react plugin
-      const react = await import('@vitejs/plugin-react');
-      //add the imfs plugin
-      settings.plugins = [ 
-        imfs(), 
-        react.default(),
-        ...settings.plugins
-      ];
-      //create the vite resource
-      this._dev = await createServer(settings);
+      this._dev = await this._createServer();
     }
     return this._dev;
+  }
+
+  /**
+   * HTTP middleware
+   */
+  public async http(req: IM, res: SR) {
+    const middlewares = await this.middlewares();
+    return await new Promise(r => middlewares(req, res, r));
+  }
+
+  /**
+   * Returns the middleware stack
+   */
+  public async middlewares() {
+    const dev = await this.dev();
+    return dev.middlewares;
+  }
+
+  /**
+   * Returns the default vite plugins
+   */
+  public async plugins(plugins: PluginOption[] = []) {
+    //add react plugin
+    const react = await import('@vitejs/plugin-react');
+    //add the imfs plugin
+    return [ imfs(), react.default(), ...plugins ];
+  }
+
+  /**
+   * Create vite dev server logic
+   */
+  protected async _createServer() {
+    if (!this._viteConfig) {
+      throw Exception.for('Vite resource not found');
+    }
+    const { createServer } = await import('vite');
+    //shallow copy the vite config
+    const settings = { ...this._viteConfig }; 
+    //organize plugins
+    settings.plugins = await this.plugins(settings.plugins);
+    //create the vite resource
+    return await createServer(settings);
   }
 }
