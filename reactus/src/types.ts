@@ -1,7 +1,12 @@
 //modules
 import type { ElementType } from 'react';
 import type { InlineConfig } from 'vite';
-import type { RollupOutput, RollupWatcher } from 'rollup';
+import type { 
+  OutputChunk, 
+  OutputAsset,
+  RollupOutput, 
+  RollupWatcher
+} from 'rollup';
 //stackpress
 import type { 
   FileSystem, 
@@ -26,9 +31,12 @@ export type BuildStatus = Partial<ErrorResponse & SuccessResponse<{
 //--------------------------------------------------------------------//
 // Document Types
 
+export type BuildResults = [OutputChunk, ...(OutputChunk | OutputAsset)[]]
+
 export type DocumentImport = { 
   default: ElementType, 
-  Head?: ElementType 
+  Head?: ElementType,
+  styles?: string[]
 };
 
 export type DocumentIterator<T = unknown> = (
@@ -63,5 +71,12 @@ export type ServerConfig = {
   //template wrapper for the document markup (html)
   documentTemplate: string,
   //path where to save and load (live) the server script (js)
-  pagePath: string
+  pagePath: string,
+  //template wrapper for the page script (tsx)
+  pageTemplate: string,
+  //style route prefix used in the document markup
+  //ie. /assets/[id][extname]
+  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+  styleRoute: string
 };

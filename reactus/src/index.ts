@@ -29,9 +29,11 @@ import type {
 import type { 
   ViteConfig, 
   ServerConfig, 
+  BuildResults,
   DocumentIterator 
 } from './types';
 import { 
+  PAGE_TEMPLATE,
   CLIENT_TEMPLATE, 
   DOCUMENT_TEMPLATE 
 } from './constants';
@@ -55,7 +57,14 @@ export default function engine(options: Partial<ServerConfig>) {
     //template wrapper for the document markup (html)
     documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
     //path where to save and load (live) the server script (js)
-    pagePath: options.pagePath || path.join(cwd, '.reactus/page')
+    pagePath: options.pagePath || path.join(cwd, '.reactus/page'),
+    //template wrapper for the page script (tsx)
+    pageTemplate: options.pageTemplate || PAGE_TEMPLATE,
+    //style route prefix used in the document markup
+    //ie. /assets/[id][extname]
+    //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+    //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+    styleRoute: options.styleRoute || '/assets'
   }
   const server = new Server(config);
   const manifest = new Manifest(server);
@@ -70,6 +79,8 @@ export default function engine(options: Partial<ServerConfig>) {
     paths: server.paths,
     //Returns true if production mode
     production: server.production,
+    //Returns the route prefixes
+    routes: server.routes,
     //Returns the templates
     templates: server.templates,
     //Returns the vite configuration
@@ -224,8 +235,9 @@ export default function engine(options: Partial<ServerConfig>) {
      */
     getPage: (
       entry: string, 
-      plugins: PluginOption[] = []
-    ) => manifest.add(entry).getPage(plugins),
+      plugins: PluginOption[] = [],
+      assets?: BuildResults
+    ) => manifest.add(entry).getPage(plugins, assets),
 
     /**
      * Generates an id for the entry file

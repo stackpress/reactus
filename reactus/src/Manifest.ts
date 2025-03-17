@@ -43,6 +43,61 @@ export default class Manifest {
   }
 
   /**
+   * Builds and saves the assets used from all the documents
+   */
+  public async buildAssets(plugins: PluginOption[] = []) {
+    //buffer for the build status results
+    const results: BuildStatus[] = [];
+    //loop through all the documents
+    for (const document of this.values()) {
+      //this gives the page component source code (js) and assets
+      const page = await document.getAssets(plugins);
+      //if the output is not an array
+      if (!Array.isArray(page)) {
+        //push an error
+        results.push(Exception.for(
+          `Assets for '${document.entry}' was not generated`
+        ).withCode(500).toResponse());
+        //dont do anything else
+        continue;
+      }
+      //loop through all the outputs
+      for (const output of page) {
+        //if the output is not an asset
+        if (output.type !== 'asset') continue;
+        //if output does not start with assets/
+        if (!output.fileName.startsWith('assets/')) {
+          //push an error
+          results.push(Exception.for(
+            `${output.type} '${output.fileName}' was not saved`
+          ).withCode(404).toResponse());
+          continue;
+        }
+        //determine the file path
+        const file = path.join(
+          this.server.paths.asset, 
+          output.fileName.substring(7)
+        );
+        //write the file to disk
+        await writeFile(file, output.source);
+        //push the result
+        results.push({
+          code: 200,
+          status: 'OK',
+          results: {
+            type: 'asset',
+            id: document.id,
+            entry: document.entry,
+            contents: output.source,
+            destination: file
+          }
+        });
+      }
+    }
+    return results;
+  }
+
+  /**
    * Builds and saves the client entries from all the documents
    */
   public async buildClient(plugins: PluginOption[] = []) {
@@ -53,7 +108,7 @@ export default class Manifest {
       //this just gives the entry code (js) (chunk)
       const client = await document.getClient(plugins);
       //if the output is not an array
-      if (!Array.isArray(client.output)) {
+      if (!Array.isArray(client)) {
         //push an error
         results.push(Exception.for(
           `Client '${document.entry}' was not generated`
@@ -62,7 +117,7 @@ export default class Manifest {
         continue;
       }
       //find the output with type chunk
-      const chunk = client.output.find(
+      const chunk = client.find(
         output => output.type === 'chunk'
       );
       //if a chunk was not found
@@ -110,7 +165,7 @@ export default class Manifest {
       //this gives the page component source code (js) and assets
       const page = await document.getPage(plugins);
       //if the output is not an array
-      if (!Array.isArray(page.output)) {
+      if (!Array.isArray(page)) {
         //push an error
         results.push(Exception.for(
           `Page '${document.entry}' was not generated`
@@ -119,7 +174,7 @@ export default class Manifest {
         continue;
       }
       //find the output with type chunk
-      const chunk = page.output.find(
+      const chunk = page.find(
         output => output.type === 'chunk'
       );
       //if a chunk was not found
@@ -153,61 +208,6 @@ export default class Manifest {
       });
     }
     //return the results
-    return results;
-  }
-
-  /**
-   * Builds and saves the assets used from all the documents
-   */
-  public async buildAssets(plugins: PluginOption[] = []) {
-    //buffer for the build status results
-    const results: BuildStatus[] = [];
-    //loop through all the documents
-    for (const document of this.values()) {
-      //this gives the page component source code (js) and assets
-      const page = await document.getAssets(plugins);
-      //if the output is not an array
-      if (!Array.isArray(page.output)) {
-        //push an error
-        results.push(Exception.for(
-          `Assets for '${document.entry}' was not generated`
-        ).withCode(500).toResponse());
-        //dont do anything else
-        continue;
-      }
-      //loop through all the outputs
-      for (const output of page.output) {
-        //if the output is not an asset
-        if (output.type !== 'asset') continue;
-        //if output does not start with assets/
-        if (!output.fileName.startsWith('assets/')) {
-          //push an error
-          results.push(Exception.for(
-            `${output.type} '${output.fileName}' was not saved`
-          ).withCode(404).toResponse());
-          continue;
-        }
-        //determine the file path
-        const file = path.join(
-          this.server.paths.asset, 
-          output.fileName.substring(7)
-        );
-        //write the file to disk
-        await writeFile(file, output.source);
-        //push the result
-        results.push({
-          code: 200,
-          status: 'OK',
-          results: {
-            type: 'asset',
-            id: document.id,
-            entry: document.entry,
-            contents: output.source,
-            destination: file
-          }
-        });
-      }
-    }
     return results;
   }
 

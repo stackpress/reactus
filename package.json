@@ -5,12 +5,12 @@
     "reactus"
   ],
   "scripts": {
-    "build": "yarn --cwd packages/reactus build",
+    "build": "yarn --cwd reactus build",
     "http:compile": "yarn --cwd examples/with-http compile",
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
     "report": "nyc yarn test && nyc report -r lcov",
-    "test": "yarn --cwd packages/reactus test"
+    "test": "yarn --cwd reactus test"
   },
   "devDependencies": {
     "nyc": "17.1.0"

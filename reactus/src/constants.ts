@@ -18,6 +18,13 @@ export const DOCUMENT_TEMPLATE = `
 </html>
 `.trim();
 
+export const PAGE_TEMPLATE = `
+import Body from '{entry}';
+export * from '{entry}';
+export const styles = {styles};
+export default Body;
+`.trim();
+
 export const CLIENT_TEMPLATE = `
 import React from 'react';
 import { hydrateRoot } from 'react-dom/client';

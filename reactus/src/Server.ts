@@ -14,8 +14,6 @@ import { imfs } from './helpers';
 export default class Server {
   //file loader
   public readonly loader: FileLoader;
-  //client route
-  public readonly route: string;
   //cached vite dev server
   protected _dev: ViteDevServer|null = null;
   //cached vite build callback
@@ -29,10 +27,21 @@ export default class Server {
     //location to where to put the final page script (js)
     page: string
   };
+  //route prefixes
+  protected _routes: {
+    //style route prefix used in the document markup
+    style: string,
+    //client route prefix used in the document markup
+    client: string
+  };
   //template wrappers for the client, document, and server
   protected _templates: {
+    //template wrapper for the client script (tsx)
     client: string,
-    document: string
+    //template wrapper for the document markup (html)
+    document: string,
+    //template wrapper for the page script (tsx)
+    page: string
   };
   //configuration for vite
   protected _viteConfig?: ViteConfig;
@@ -49,6 +58,13 @@ export default class Server {
    */
   public get production() {
     return typeof this._viteConfig === 'undefined';
+  }
+
+  /**
+   * Returns the routes
+   */
+  public get routes() {
+    return Object.freeze(this._routes);
   }
 
   /**
@@ -71,16 +87,32 @@ export default class Server {
   constructor(config: ServerConfig) {
     const { fs = new NodeFS(), cwd = process.cwd() } = config;
     this.loader = new FileLoader(fs, cwd);
-    this.route = config.clientRoute;
     this._viteConfig = config.vite;
+
+    //build paths
+    this._routes = {
+      //style route prefix used in the document markup
+      style: config.styleRoute,
+      //client route prefix used in the document markup
+      client: config.clientRoute
+    };
+    //route paths
     this._paths = {
+      //path where to save assets (css, images, etc)
       asset: config.assetPath,
+      //location to where to put the final client scripts (js)
       client: config.clientPath,
+      //location to where to put the final page script (js)
       page: config.pagePath
     };
+    //template wrappers
     this._templates = {
+      //template wrapper for the client script (tsx)
       client: config.clientTemplate,
-      document: config.documentTemplate
+      //template wrapper for the document markup (html)
+      document: config.documentTemplate,
+      //template wrapper for the page script (tsx)
+      page: config.pageTemplate
     };
   }
 

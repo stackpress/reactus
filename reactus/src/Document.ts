@@ -3,13 +3,14 @@ import path from 'node:path';
 //modules
 import type { PluginOption } from 'vite';
 import type { RollupOutput } from 'rollup';
+import type { ElementType } from 'react';
 import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { jsx } from 'react/jsx-runtime';
 //stackpress
 import type { UnknownNest } from '@stackpress/lib/dist/types';
 //local
-import type { DocumentImport } from './types';
+import type { DocumentImport, BuildResults } from './types';
 import type Server from './Server';
 import Exception from './Exception';
 import { id } from './helpers';
@@ -52,7 +53,7 @@ export default class Document {
    * source code (js) and assets
    */
   async getAssets(plugins: PluginOption[] = []) {
-    return await this.server.build({
+    const results = await this.server.build({
       configFile: false,
       //this is used to resolve node modules
       root: this.server.loader.cwd,
@@ -69,6 +70,8 @@ export default class Document {
         }
       }
     }) as RollupOutput;
+
+    return results.output;
   }
 
   /**
@@ -87,7 +90,7 @@ export default class Document {
     //convert to data url
     const data = Buffer.from(code).toString('base64');
     const url = `imfs:text/typescript;base64,${data};${file}`;
-    return await this.server.build({
+    const results = await this.server.build({
       configFile: false,
       //this is used to resolve node modules
       root: this.server.loader.cwd,
@@ -98,12 +101,15 @@ export default class Document {
         rollupOptions: {
           input: url,
           output: {
+            //Ensures ES module output
             format: 'es',
+            //Preserves output structure
             entryFileNames: '[name].js',
           }
         }
       }
     }) as RollupOutput;
+    return results.output;
   }
 
   /**
@@ -137,15 +143,6 @@ export default class Document {
   async getMarkup(props: UnknownNest = {}) {
     //import the page
     const document = await this.importPage();
-    //organize the markup elements
-    const elements = {
-      head: document.Head ? renderToString(
-        jsx(StrictMode, { children: jsx(document.Head, props) })
-      ): undefined,
-      body: renderToString(
-        jsx(StrictMode, { children: jsx(document.default, props) })
-      )
-    };
     //get the document script template (tsx)
     const documentTemplate = this.server.templates.document;
     //if mode is development (not production, not build)
@@ -153,7 +150,7 @@ export default class Document {
       //for development and build modes
       const dev = await this.server.dev();
       //determine the client route
-      const clientRoute = `${this.server.route}/${this.id}.tsx`;
+      const clientRoute = `${this.server.routes.client}/${this.id}.tsx`;
       //add the following script tags to the document template
       // <script type="module">
       //   import RefreshRuntime from "/@react-refresh"
@@ -164,19 +161,34 @@ export default class Document {
       // </script>
       // <script type="module" src="/@vite/client"></script>
       const html = await dev.transformIndexHtml('', documentTemplate);
+      //render the body
+      const body = this._render(document.default, props);
+      //render the head
+      const head = this._render(document.Head, props);
       //return the final html
       return html
-        .replace(`<!--document-head-->`, elements.head ?? '')
-        .replace(`<!--document-body-->`, elements.body ?? '')
+        .replace(`<!--document-head-->`, head ?? '')
+        .replace(`<!--document-body-->`, body ?? '')
         .replace(`<!--document-props-->`, JSON.stringify(props))
         .replace(`<!--document-client-->`, clientRoute);
     }
     //determine the client route
-    const clientRoute = `${this.server.route}/${this.id}.js`;
+    const clientRoute = `${this.server.routes.client}/${this.id}.js`;
+    //determine style routes
+    const stylesRoutes = (document.styles || []).map(
+      style => `${this.server.routes.style}/${style}`
+    );
+    //render the body
+    const body = this._render(document.default, props);
+    //render the head
+    const head = this._render(document.Head, { 
+      ...props, 
+      styles: stylesRoutes
+    });
     //return the final html
     return documentTemplate
-      .replace(`<!--document-head-->`, elements.head ?? '')
-      .replace(`<!--document-body-->`, elements.body ?? '')
+      .replace(`<!--document-head-->`, head ?? '')
+      .replace(`<!--document-body-->`, body ?? '')
       .replace(`<!--document-props-->`, JSON.stringify(props))
       .replace(`<!--document-client-->`, clientRoute);
   }
@@ -184,7 +196,30 @@ export default class Document {
   /**
    * Returns the final page component source code (js)
    */
-  async getPage(plugins: PluginOption[] = []) {
+  async getPage(plugins: PluginOption[] = [], assets?: BuildResults) {
+    //if assets are not provided, build for them
+    assets = assets || await this.getAssets(plugins);
+    //only get the style file names
+    //ie. /assets/abc-123.css -> abc-123.css
+    const styles = assets
+      .filter(asset => asset.type === 'asset')
+      .filter(asset => asset.fileName.startsWith('assets/'))
+      .filter(asset => path.extname(asset.fileName) === '.css')
+      .map(asset => asset.fileName.substring(7));
+    //calculate file path relative to the page file
+    const file = `${this.source}.page.tsx`;
+    //now make the entry file relative to the root entry file
+    const relative = this._entryToRelativeFile(file);
+    //get the client script template (tsx)
+    const pageScript = this.server.templates.page;
+    //add the relative entry to the document script
+    const code = pageScript
+      .replace('{entry}', relative)
+      .replace('{entry}', relative)
+      .replace('{styles}', JSON.stringify(styles));
+    //convert to data url
+    const data = Buffer.from(code).toString('base64');
+    const url = `imfs:text/typescript;base64,${data};${file}`;
     const results = await this.server.build({
       configFile: false,
       //this is used to resolve node modules
@@ -193,25 +228,31 @@ export default class Document {
       build: {
         //Prevents writing to disk
         write: false, 
-        //sure, minify it...
-        minify: true, 
-        lib: {
-          entry: `${this.source}.tsx`,
-          // Output only ES module
-          formats: ['es'], 
-        },
+        //dont minify yet..
+        minify: false, 
         rollupOptions: {
-          external: ['react', 'react-dom'], // Do not bundle React
+          // 🔥 Preserve all exports
+          preserveEntrySignatures: 'exports-only', 
+          input: url,
+          // Do not bundle React
+          external: [ 'react', 'react-dom', 'react/jsx-runtime' ],
           output: {
+            // Ensures ES module output
+            format: 'es', 
+            // Preserves output structure
+            entryFileNames: '[name].js', 
+            // Ensures named exports are available
+            exports: 'named', 
             globals: {
               react: 'React',
               'react-dom': 'ReactDOM',
-            },
+              'react/jsx-runtime': 'jsxRuntime'
+            }
           }
         }
       }
-    }) as RollupOutput[];
-    return results[0];
+    }) as RollupOutput;
+    return results.output;
   }
 
   /**
@@ -250,5 +291,14 @@ export default class Document {
       return this.server.loader.relative(fromFile, absolute);
     }
     return this.entry;
+  }
+
+  /**
+   * Shortcut for renderToString
+   */
+  protected _render(element?: ElementType, props: UnknownNest = {}) {
+    return element ? renderToString(
+      jsx(StrictMode, { children: jsx(element, { ...props }) })
+    ): '';
   }
 }

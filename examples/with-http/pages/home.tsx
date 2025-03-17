@@ -2,13 +2,16 @@ import './home.css';
 import { useState } from 'react';
 import reactLogo from '../assets/react.svg';
 
-export function Head() {
+export function Head({ styles = [] }: { styles?: string[] }) {
   return (
     <>
       <title>Vite + React + Reactus</title>
       <meta name="description" content="Vite + React + Reactus" />
       <link rel="icon" type="image/svg+xml" href="/vite.svg" />
       <link rel="stylesheet" type="text/css" href="/index.css" />
+      {styles.map((href, index) => (
+        <link key={index} rel="stylesheet" type="text/css" href={href} />
+      ))}
     </>
   )
 }
