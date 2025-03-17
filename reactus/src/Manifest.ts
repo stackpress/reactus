@@ -121,6 +121,44 @@ export default class Manifest extends Server {
   }
 
   /**
+   * Create vite dev server logic
+   */
+  protected async _createServer() {
+    const server = await super._createServer();
+    //add client asset middleware
+    server.middlewares.use(async (req, res, next) => {
+      //if no url
+      if (!req.url 
+        //or request is not for client assets
+        || !req.url.startsWith(this._routes.client) 
+        //or not a tsx request
+        || !req.url.endsWith('.tsx') 
+        //or response was already sent
+        || res.headersSent
+      ) {
+        //skip
+        next();
+        return;
+      }
+      //example url: /client/abc-123.tsx
+      const id = req.url.slice(8, -4);
+      const document = this.find(id);
+      if (document) {
+        const client = await document.getHMR();
+        if (client) {
+          res.setHeader('Content-Type', 'text/javascript');
+          res.end(client);
+          return;
+        }
+      }
+      //nothing caught
+      next();
+    });
+
+    return server;
+  }
+
+  /**
    * Transforms entries to
    * - @/path/to/file
    * - module/path/to/file
@@ -163,43 +201,5 @@ export default class Manifest extends Server {
     }
     //it's not valid
     throw new Exception(`Invalid entry file: ${original}`);
-  }
-
-  /**
-   * Create vite dev server logic
-   */
-  protected async _createServer() {
-    const server = await super._createServer();
-    //add client asset middleware
-    server.middlewares.use(async (req, res, next) => {
-      //if no url
-      if (!req.url 
-        //or request is not for client assets
-        || !req.url.startsWith(this._routes.client) 
-        //or not a tsx request
-        || !req.url.endsWith('.tsx') 
-        //or response was already sent
-        || res.headersSent
-      ) {
-        //skip
-        next();
-        return;
-      }
-      //example url: /client/abc-123.tsx
-      const id = req.url.slice(8, -4);
-      const document = this.find(id);
-      if (document) {
-        const client = await document.getHMR();
-        if (client) {
-          res.setHeader('Content-Type', 'text/javascript');
-          res.end(client);
-          return;
-        }
-      }
-      //nothing caught
-      next();
-    });
-
-    return server;
   }
 }

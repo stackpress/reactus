@@ -141,56 +141,9 @@ export default class Document {
    * Returns the final document markup (html)
    */
   async getMarkup(props: UnknownNest = {}) {
-    //import the page
-    const document = await this.importPage();
-    //get the document script template (tsx)
-    const documentTemplate = this.server.templates.document;
-    //if mode is development (not production, not build)
-    if (!this.server.production) {
-      //for development and build modes
-      const dev = await this.server.dev();
-      //determine the client route
-      const clientRoute = `${this.server.routes.client}/${this.id}.tsx`;
-      //add the following script tags to the document template
-      // <script type="module">
-      //   import RefreshRuntime from "/@react-refresh"
-      //   RefreshRuntime.injectIntoGlobalHook(window)
-      //   window.$RefreshReg$ = () => {}
-      //   window.$RefreshSig$ = () => (type) => type
-      //   window.__vite_plugin_react_preamble_installed__ = true
-      // </script>
-      // <script type="module" src="/@vite/client"></script>
-      const html = await dev.transformIndexHtml('', documentTemplate);
-      //render the body
-      const body = this._render(document.default, props);
-      //render the head
-      const head = this._render(document.Head, props);
-      //return the final html
-      return html
-        .replace(`<!--document-head-->`, head ?? '')
-        .replace(`<!--document-body-->`, body ?? '')
-        .replace(`<!--document-props-->`, JSON.stringify(props))
-        .replace(`<!--document-client-->`, clientRoute);
-    }
-    //determine the client route
-    const clientRoute = `${this.server.routes.client}/${this.id}.js`;
-    //determine style routes
-    const stylesRoutes = (document.styles || []).map(
-      style => `${this.server.routes.style}/${style}`
-    );
-    //render the body
-    const body = this._render(document.default, props);
-    //render the head
-    const head = this._render(document.Head, { 
-      ...props, 
-      styles: stylesRoutes
-    });
-    //return the final html
-    return documentTemplate
-      .replace(`<!--document-head-->`, head ?? '')
-      .replace(`<!--document-body-->`, body ?? '')
-      .replace(`<!--document-props-->`, JSON.stringify(props))
-      .replace(`<!--document-client-->`, clientRoute);
+    return this.server.production 
+      ? await this._getMarkup(props)
+      : await this._getDevMarkup(props);
   }
 
   /**
@@ -259,23 +212,9 @@ export default class Document {
    * Imports the page component to runtime
    */
   async importPage() {
-    //if production mode
-    if (this.server.production) {
-      //get the page path
-      const pagePath = this.server.paths.page;
-      //determine the page file name
-      const file = path.join(pagePath, `${this.id}.js`);
-      //use native import to load the page export
-      return await import(file) as DocumentImport;
-    }
-    //for development and build modes
-    const dev = await this.server.dev();
-    //determine the server entry file name (page.tsx)
-    const file = this.source;
-    //use dev server to load the document export
-    return await dev.ssrLoadModule(
-      `file://${file}.tsx`
-    ) as DocumentImport;
+    return this.server.production 
+      ? await this._importPage()
+      : await this._importDevPage();
   }
 
   /**
@@ -291,6 +230,95 @@ export default class Document {
       return this.server.loader.relative(fromFile, absolute);
     }
     return this.entry;
+  }
+
+  /**
+   * Returns the document markup for dev mode
+   */
+  protected async _getDevMarkup(props: UnknownNest = {}) {
+    //import the page
+    const document = await this._importDevPage();
+    //get the document script template (tsx)
+    const documentTemplate = this.server.templates.document;
+    //for development and build modes
+    const dev = await this.server.dev();
+    //determine the client route
+    const clientRoute = `${this.server.routes.client}/${this.id}.tsx`;
+    //add the following script tags to the document template
+    // <script type="module">
+    //   import RefreshRuntime from "/@react-refresh"
+    //   RefreshRuntime.injectIntoGlobalHook(window)
+    //   window.$RefreshReg$ = () => {}
+    //   window.$RefreshSig$ = () => (type) => type
+    //   window.__vite_plugin_react_preamble_installed__ = true
+    // </script>
+    // <script type="module" src="/@vite/client"></script>
+    const html = await dev.transformIndexHtml('', documentTemplate);
+    //render the body
+    const body = this._render(document.default, props);
+    //render the head
+    const head = this._render(document.Head, props);
+    //return the final html
+    return html
+      .replace(`<!--document-head-->`, head ?? '')
+      .replace(`<!--document-body-->`, body ?? '')
+      .replace(`<!--document-props-->`, JSON.stringify(props))
+      .replace(`<!--document-client-->`, clientRoute);
+  }
+
+  /**
+   * Returns the final document markup (html)
+   */
+  protected async _getMarkup(props: UnknownNest = {}) {
+    //import the page
+    const document = await this._importPage();
+    //get the document script template (tsx)
+    const documentTemplate = this.server.templates.document;
+    //determine the client route
+    const clientRoute = `${this.server.routes.client}/${this.id}.js`;
+    //determine style routes
+    const stylesRoutes = (document.styles || []).map(
+      style => `${this.server.routes.style}/${style}`
+    );
+    //render the body
+    const body = this._render(document.default, props);
+    //render the head
+    const head = this._render(document.Head, { 
+      ...props, 
+      styles: stylesRoutes
+    });
+    //return the final html
+    return documentTemplate
+      .replace(`<!--document-head-->`, head ?? '')
+      .replace(`<!--document-body-->`, body ?? '')
+      .replace(`<!--document-props-->`, JSON.stringify(props))
+      .replace(`<!--document-client-->`, clientRoute);
+  }
+
+  /**
+   * Imports the page component to runtime for dev mode
+   */
+  protected async _importDevPage() {
+    //for development and build modes
+    const dev = await this.server.dev();
+    //determine the server entry file name (page.tsx)
+    const file = this.source;
+    //use dev server to load the document export
+    return await dev.ssrLoadModule(
+      `file://${file}.tsx`
+    ) as DocumentImport;
+  }
+
+  /**
+   * Imports the page component to runtime
+   */
+  protected async _importPage() {
+    //get the page path
+    const pagePath = this.server.paths.page;
+    //determine the page file name
+    const file = path.join(pagePath, `${this.id}.js`);
+    //use native import to load the page export
+    return await import(file) as DocumentImport;
   }
 
   /**
