@@ -1,99 +1,105 @@
 export type * from './types';
-
-import Build from './Page';
-import Exception from './Exception';
-import Manifest from './Manifest';
-
+export * from './constants';
 export * from './helpers';
 
-export { Build, Exception, Manifest };
+import { FileLoader, NodeFS } from '@stackpress/lib';
+
+import Document from './Document';
+import Manifest from './Manifest';
+import Server from './Server';
+import Exception from './Exception';
+
+export { 
+  Document, 
+  Manifest, 
+  Server, 
+  Exception, 
+  FileLoader, 
+  NodeFS 
+};
 
 //node
 import path from 'node:path';
-//stackpress
-import { type UnknownNest, NodeFS, FileLoader } from '@stackpress/lib';
+//modules
+import type { PluginOption } from 'vite';
 //local
 import type { 
-  BuildMode, 
-  ReactusOptions,
-  ForEachCallback,
-  MapCallback
+  UnknownNest 
+} from '@stackpress/lib/dist/types';
+import type { 
+  ViteConfig, 
+  ServerConfig, 
+  DocumentIterator 
 } from './types';
 import { 
-  PAGE_TEMPLATE,
   CLIENT_TEMPLATE, 
   DOCUMENT_TEMPLATE 
-} from './helpers';
+} from './constants';
 
-export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
-  const { fs = new NodeFS(), cwd = process.cwd() } = options;
-  const loader = new FileLoader(fs, cwd);
-
-  const { 
-    //callback to lazily connect to vite dev server
-    connect = async () => null,
-    //location to where to put the final client scripts (js)
-    clientBuildPath = path.join(loader.cwd, '.reactus/build/client'),
+export default function engine(options: Partial<ServerConfig>) {
+  const cwd = options.cwd || process.cwd();
+  const config = {
+    cwd: options.cwd || process.cwd(),
+    vite: options.vite,
+    //path where to save assets (css, images, etc)
+    assetPath: options.assetPath || path.join(cwd, '.reactus/assets'),
+    //path where to save and load (live) the client scripts (js)
+    clientPath: options.clientPath || path.join(cwd, '.reactus/client'),
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
-    clientRoute = '/client',
-    //location to where to put the client scripts for dev and build (tsx)
-    clientSourcePath = path.join(loader.cwd, '.reactus/src/client'),
+    clientRoute: options.clientRoute || '/client',
     //template wrapper for the client script (tsx)
-    clientTemplate = CLIENT_TEMPLATE,
+    clientTemplate: options.clientTemplate || CLIENT_TEMPLATE,
     //template wrapper for the document markup (html)
-    documentTemplate = DOCUMENT_TEMPLATE,
-    //location to where to put the manifest file (json)
-    manifestPath = path.join(loader.cwd, '.reactus/manifest.json'),
-    //location to where to put the final page entry (js)
-    pageBuildPath = path.join(loader.cwd, '.reactus/build/page'),
-    //location to where to put the page scripts for build (tsx)
-    pageSourcePath = path.join(loader.cwd, '.reactus/src/page'),
-    //template wrapper for the page script (tsx)
-    pageTemplate = PAGE_TEMPLATE
-  } = options;
+    documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
+    //path where to save and load (live) the server script (js)
+    pagePath: options.pagePath || path.join(cwd, '.reactus/page')
+  }
+  const server = new Server(config);
+  const manifest = new Manifest(server);
 
-  const manifest = new Manifest(mode, loader, {
-    connect,
-    clientBuildPath,
-    clientRoute,
-    clientSourcePath,
-    clientTemplate,
-    documentTemplate,
-    manifestPath,
-    pageBuildPath,
-    pageSourcePath,
-    pageTemplate
-  });
-
-  const handlers = {
+  return {
     //----------------------------------------------------------------//
-    // Class Instances
+    // Settings
 
-    manifest,
-    loader,
+    //the final configuration
+    config,
+    //Returns the paths
+    paths: server.paths,
+    //Returns true if production mode
+    production: server.production,
+    //Returns the templates
+    templates: server.templates,
+    //Returns the vite configuration
+    viteConfig: server.viteConfig,
 
-    //----------------------------------------------------------------//
-    // Manifest Settings
-
-    connect: manifest.connect,
-    file: manifest.manifest,
-    mode: manifest.mode,
-    pages: manifest.pages,
-    path: manifest.path,
-    template: manifest.template,
-
-    //----------------------------------------------------------------//
-    // Manifest Getters
-  
     /**
      * Returns the size of the manifest
      */
     get size() {
       return manifest.size;
     },
+
+    //----------------------------------------------------------------//
+    // Class Instances
+
+    server,
+    manifest,
+
+    //----------------------------------------------------------------//
+    // Server Methods
+
+    /**
+     * Tries to return the vite build callback
+     */
+    build: (config: ViteConfig) => server.build(config),
+  
+    /**
+     * Tries to return the vite dev server
+     */
+    dev: () => server.dev(),
 
     //----------------------------------------------------------------//
     // Manifest Methods
@@ -104,14 +110,25 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     add: (entry: string) => manifest.add(entry),
 
     /**
-     * Builds all the client scripts (js) from the pages in the manifest
+     * Builds and saves the assets used from all the documents
      */
-    buildClient: () => manifest.buildClient(),
+    buildAssets: (
+      plugins: PluginOption[] = []
+    ) => manifest.buildAssets(plugins),
 
     /**
-     * Builds all the pages (js) from the pages in the manifest
+     * Builds and saves the client entries from all the documents
      */
-    buildPages: () => manifest.buildPages(),
+    buildClient: (
+      plugins: PluginOption[] = []
+    ) => manifest.buildClient(plugins),
+
+    /**
+     * Builds and saves the pages scripts from all the documents
+     */
+    buildPages: (
+      plugins: PluginOption[] = []
+    ) => manifest.buildPages(plugins),
   
     /**
      * Returns a list of map entries
@@ -126,7 +143,7 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     /**
      * Loop through the manifest
      */
-    forEach: (callback: ForEachCallback) =>  manifest.forEach(callback),
+    forEach: (callback: DocumentIterator<unknown>) =>  manifest.forEach(callback),
   
     /**
      * Get a build by entry
@@ -141,22 +158,17 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     /**
      * Loads the manifest from disk
      */
-    load: () =>  manifest.load(),
+    load: (file: string) =>  manifest.load(file),
   
     /**
      * Loop through the manifest
      */
-    map: <T = unknown>(callback: MapCallback<T>) => manifest.map<T>(callback),
-
-    /**
-     * Tries to return the vite dev resource
-     */
-    resource: () => manifest.resource(),
+    map: <T = unknown>(callback: DocumentIterator<T>) => manifest.map<T>(callback),
   
     /**
      * Saves the manifest to disk
      */
-    save: () => manifest.save(),
+    save: (file: string) => manifest.save(file),
   
     /**
      * Sets the manifest from hash
@@ -174,81 +186,60 @@ export default function reactus(mode: BuildMode, options: ReactusOptions = {}) {
     values: () => manifest.values(),
 
     //----------------------------------------------------------------//
-    // Build Methods
+    // Document Methods
 
     /**
-     * Returns the final client source code (js)
+     * Returns the final client entry 
+     * source code (js) and assets
      */
-    getClientBuild(entry: string) {
-      return manifest.add(entry).getClientBuild();
-    },
+    getAssets: (
+      entry: string, 
+      plugins: PluginOption[] = []
+    ) => manifest.add(entry).getAssets(plugins),
+
+    /**
+     * Returns the final client entry 
+     * source code (js) and assets
+     */
+    getClient: (
+      entry: string, 
+      plugins: PluginOption[] = []
+    ) => manifest.add(entry).getClient(plugins),
   
     /**
-     * Returns the client source code (tsx)
+     * Returns the client entry for HMR (js)
      */
-    getClientSource(entry: string) {
-      return manifest.add(entry).getClientSource();
-    },
+    getHMR: (entry: string) => manifest.add(entry).getHMR(),
+    
+    /**
+     * Returns the final document markup (html)
+     */
+    getMarkup: (
+      entry: string, 
+      props: UnknownNest = {}
+    ) => manifest.add(entry).getMarkup(props),
   
     /**
-     * Returns the document markup (html)
+     * Returns the final page component source code (js)
      */
-    getMarkup(entry: string) {
-      return manifest.add(entry).getMarkup();
-    },
-  
-    /**
-     * Returns the final page source code (js)
-     */
-    getPageBuild(entry: string) {
-      return manifest.add(entry).getPageBuild();
-    },
+    getPage: (
+      entry: string, 
+      plugins: PluginOption[] = []
+    ) => manifest.add(entry).getPage(plugins),
 
     /**
      * Generates an id for the entry file
      */
-    id(entry: string) {
-      return manifest.add(entry).id;
-    },
+    id: (entry: string) => manifest.add(entry).id,
   
     /**
-     * Loads the page source in runtime (node)
+     * Imports the page component to runtime
      */
-    loadPage(entry: string) {
-      return manifest.add(entry).loadPage();
-    },
+    importPage: (entry: string) => manifest.add(entry).importPage(),
   
     /**
-     * Compiles and saves the final client source code (js)
+     * Returns the absolute path to the entry file
      */
-    saveClientBuild(entry: string) {
-      return manifest.add(entry).saveClientBuild();
-    },
-  
-    /**
-     * Compiles and saves the client source code (tsx)
-     */
-    saveClientSource(entry: string) {
-      return manifest.add(entry).saveClientSource();
-    },
-  
-    /**
-     * Compiles and saves the final page source code (js)
-     */
-    savePageBuild(entry: string) {
-      return manifest.add(entry).savePageBuild();
-    },
-  
-    /**
-     * Compiles and saves the page markup code (html)
-     */
-    saveMarkup(
-      entry: string, 
-      destination: string, 
-      props: UnknownNest = {}
-    ) {
-      return manifest.add(entry).saveMarkup(destination, props);
-    }
+    source: (entry: string) => manifest.add(entry).source,
   };
-  return handlers;
 }

@@ -1,59 +1,62 @@
 //node
-import type { IncomingMessage, ServerResponse } from 'node:http';
-import { createServer } from 'node:http';
 import path from 'node:path';
-import fs from 'node:fs/promises';
+import { createServer } from 'node:http';
+//modules
+import tailwindcss from '@tailwindcss/vite';
 //reactus
 import reactus from 'reactus';
 
-export type IM = IncomingMessage;
-export type SR = ServerResponse<IM>;
-
 async function develop() {
   const cwd = process.cwd();
-  const document = path.join(cwd, 'assets/document.html');
-
-  const dev = reactus('development', {
-    documentTemplate: await fs.readFile(document, 'utf8'),
-    connect: async () => {
-      const { createServer } = await import('vite');
-      return await createServer( {
-        server: { middlewareMode: true },
-        appType: 'custom',
-        base: '/',
-        root: cwd,
-        mode: 'development',
-        publicDir: path.join(cwd, 'public'),
-      });
-    }
+  const engine = reactus({
+    cwd,
+    vite: {
+      server: { middlewareMode: true },
+      appType: 'custom',
+      base: '/',
+      root: cwd,
+      mode: 'development',
+      publicDir: path.join(cwd, 'public'),
+      plugins: [ tailwindcss() ]
+    },
+    //path where to save assets (css, images, etc)
+    assetPath: path.join(cwd, 'public/assets'),
+    //path where to save and load (live) the client scripts (js)
+    clientPath: path.join(cwd, 'public/client'),
+    //client script route prefix used in the document markup
+    //ie. /client/[id][extname]
+    //<script type="module" src="/client/[id][extname]"></script>
+    //<script type="module" src="/client/abc123.tsx"></script>
+    clientRoute: '/client',
+    //path where to save and load (live) the server script (js)
+    pagePath: path.join(cwd, '.reactus')
   });
 
-  const resource = await dev.resource();
-  if (!resource) {
-    throw new Error('Failed to create resource');
-  }
+  const dev = await engine.dev();
 
   const server = createServer(async (req, res) => {
     //handles public assets and hmr
-    await new Promise(r => resource.middlewares(req, res, r));
+    await new Promise(r => dev.middlewares(req, res, r));
     //if middleware was triggered
     if (res.headersSent) return;
     // home page
     if (req.url === '/') {
+      const document = engine.add('@/pages/home');
       res.setHeader('Content-Type', 'text/html');
-      res.end(await dev.getMarkup('@/pages/home'));
+      res.end(await document.getMarkup());
       return;
     //about page
     } else if (req.url === '/about') {
+      const document = engine.add('@/pages/about');
       res.setHeader('Content-Type', 'text/html');
-      res.end(await dev.getMarkup('@/pages/about'));
+      res.end(await document.getMarkup());
       return;
     //client scripts
-    } else if (req.url && /^\/client\/[a-z0-9]+\.tsx$/.test(req.url)) {
+    } else if (req.url && /^\/client\/[a-zA-Z0-9\-]+\.tsx$/.test(req.url)) {
       const id = req.url.slice(8, -4);
-      const page = dev.find(id);
-      if (page) {
-        const client = await page.getClientBuild();
+      const document = engine.find(id);
+      if (document) {
+        const client = await document.getHMR();
         if (client) {
           res.setHeader('Content-Type', 'text/javascript');
           res.end(client);

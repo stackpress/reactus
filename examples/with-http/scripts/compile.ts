@@ -1,48 +1,46 @@
 //node
 import path from 'node:path';
-import fs from 'node:fs/promises';
+//modules
+import tailwindcss from '@tailwindcss/vite';
 //reactus
 import reactus from 'reactus';
 
-async function compile() {
+async function develop() {
   const cwd = process.cwd();
-  const docs = path.join(cwd, '.reactus');
-  const document = path.join(cwd, 'assets/document.html');
+  const engine = reactus({
+    cwd,
+    //path where to save assets (css, images, etc)
+    assetPath: path.join(cwd, 'public/assets'),
+    //path where to save and load (live) the client scripts (js)
+    clientPath: path.join(cwd, 'public/client'),
+    //client script route prefix used in the document markup
+    //ie. /client/[id][extname]
+    //<script type="module" src="/client/[id][extname]"></script>
+    //<script type="module" src="/client/abc123.tsx"></script>
+    clientRoute: '/client',
+    //path where to save and load (live) the server script (js)
+    pagePath: path.join(cwd, '.reactus')
+  });
+  
+  engine.manifest.add('@/pages/home');
+  engine.manifest.add('@/pages/about');
 
-  const build = reactus('build', {
-    documentTemplate: await fs.readFile(document, 'utf8'),
-    connect: async () => {
-      const { createServer } = await import('vite');
-      return await createServer( {
-        server: { middlewareMode: true },
-        appType: 'custom',
-        base: '/',
-        root: cwd,
-        mode: 'development',
-        publicDir: path.join(cwd, 'public'),
-      });
+  const responses = [
+    ...await engine.buildClient([ tailwindcss() ]),
+    ...await engine.buildAssets([ tailwindcss() ]),
+    ...await engine.buildPages([ tailwindcss() ])
+  ].map(response => {
+    const results = response.results;
+    if (typeof results?.contents === 'string') {
+      results.contents = results.contents.substring(0, 100) + ' ...';
     }
+    return results;
   });
 
-  const resource = await build.resource();
-  if (!resource) {
-    throw new Error('Failed to create resource');
-  }
-
-  const home = build.add('@/pages/home');
-  const about = build.add('@/pages/about');
-
-  await build.buildPages();
-  await build.buildClient();
-
-  await home.saveMarkup(path.join(docs, 'home.html'));
-  await about.saveMarkup(path.join(docs, 'about.html'));
+  console.log(responses);
 }
 
-compile()
-  .then(() => process.exit(0))
-  .catch(e => {
-    console.error(e);
-    process.exit(1);
-  });
-
+develop().catch(e => {
+  console.error(e);
+  process.exit(1);
+});

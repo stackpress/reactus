@@ -2,152 +2,211 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 //modules
-import type { ViteDevServer } from 'vite';
-//stackpress
-import type { FileLoader } from '@stackpress/lib';
+import type { PluginOption } from 'vite';
 //local
-import type { BuildMode, ViteConnect, ManifestOptions } from './types';
-import Page from './Page';
+import type { DocumentIterator, BuildStatus } from './types';
+import type Server from './Server';
+import Document from './Document';
 import Exception from './Exception';
+import { writeFile } from './helpers';
 
 export default class Manifest {
-  //callback to lazily connect to vite dev server
-  public readonly connect: ViteConnect;
-  //file loader options
-  public readonly loader: FileLoader;
-  //location to where to put the manifest file (json)
-  public readonly manifest: string;
-  //page map
-  public readonly pages = new Set<Page>();
-  //client script route prefix used in the document markup
-  //ie. /client/[id][extname]
-  //<script type="module" src="/client/[id][extname]"></script>
-  //<script type="module" src="/client/abc123.tsx"></script>
-  public readonly route: string;
-  //page processing mode
-  public readonly mode: BuildMode;
-  //cached vite resource
-  protected _resource: ViteDevServer|null = null;
-  //build paths
-  protected _path: {
-    build: {
-      //location to where to put the final client scripts (js)
-      client: string, //ie. .reactus/build/client
-      //location to where to put the final page entry (js)
-      page: string //ie. .reactus/build/page
-    },
-    source: {
-      //location to where to put the client scripts for dev and build (tsx)
-      client: string, //ie. .reactus/src/client
-      //location to where to put the page scripts for build (tsx)
-      page: string //ie. .reactus/src/page
-    }
-  };
-  //static templates
-  protected _template: {
-    //template wrapper for the client script (tsx)
-    client: string,
-    //template wrapper for the document markup (html)
-    document: string,
-    //template wrapper for the page script (tsx)
-    page: string
-  };
-
-  /**
-   * Returns all the build paths
-   */
-  public get path() {
-    return Object.freeze(this._path);
-  }
+  //file server
+  public readonly server: Server;
+  //document map
+  public readonly documents = new Set<Document>();
 
   /**
    * Returns the size of the manifest
    */
   public get size() {
-    return this.pages.size;
+    return this.documents.size;
   }
 
   /**
-   * Returns all the static templates
+   * Sets the file loader
    */
-  public get template() {
-    return Object.freeze(this._template);
+  public constructor(server: Server) {
+    this.server = server;
   }
 
   /**
-   * Consume all the options
-   */
-  public constructor(
-    mode: BuildMode,
-    loader: FileLoader,
-    options: ManifestOptions
-  ) {
-    this.mode = mode;
-    this.loader = loader;
-    this.connect = options.connect;
-    //location to where to put the manifest file (json)
-    this.manifest = options.manifestPath;
-    //client script route prefix used in the document markup
-    //ie. /client/[id][extname]
-    //<script type="module" src="/client/[id][extname]"></script>
-    //<script type="module" src="/client/abc123.tsx"></script>
-    this.route = options.clientRoute;
-    //build paths
-    this._path = {
-      build: {
-        //location to where to put the final client scripts (js)
-        client: options.clientBuildPath,
-        //location to where to put the final page entry (js)
-        page: options.pageBuildPath
-      },
-      source: {
-        //location to where to put the client scripts for dev and build (tsx)
-        client: options.clientSourcePath,
-        //location to where to put the page scripts for build (tsx)
-        page: options.pageSourcePath
-      }
-    };
-    //static templates
-    this._template = {
-      //template wrapper for the client script (tsx)
-      client: options.clientTemplate,
-      //template wrapper for the document markup (html)
-      document: options.documentTemplate,
-      //template wrapper for the page script (tsx)
-      page: options.pageTemplate
-    };
-  }
-
-  /**
-   * Create a new page
+   * Create a new document
    */
   public add(entry: string) {
     entry = this._toEntryPath(entry);
     if (!this.has(entry)) {
-      const page = new Page(this, entry);
-      this.pages.add(page);
+      const document = new Document(entry, this.server);
+      this.documents.add(document);
     }
-    return this.get(entry) as Page;
+    return this.get(entry) as Document;
   }
 
   /**
-   * Builds all the client scripts (js) from the pages in the manifest
+   * Builds and saves the client entries from all the documents
    */
-  public async buildClient() {
-    const results: Record<string, string> = {};
-    for (const page of this.values()) {
-      results[page.id] = await page.saveClientBuild();
+  public async buildClient(plugins: PluginOption[] = []) {
+    //buffer for the build status results
+    const results: BuildStatus[] = [];
+    //loop through all the documents
+    for (const document of this.values()) {
+      //this just gives the entry code (js) (chunk)
+      const client = await document.getClient(plugins);
+      //if the output is not an array
+      if (!Array.isArray(client.output)) {
+        //push an error
+        results.push(Exception.for(
+          `Client '${document.entry}' was not generated`
+        ).withCode(500).toResponse());
+        //do not do anything else
+        continue;
+      }
+      //find the output with type chunk
+      const chunk = client.output.find(
+        output => output.type === 'chunk'
+      );
+      //if a chunk was not found
+      if (!chunk) {
+        //push an error
+        results.push(Exception.for(
+          `Client '${document.entry}' was not generated`
+        ).withCode(404).toResponse());
+        //skip the rest...
+        continue;
+      }
+      //determine the file path
+      const file = path.join(
+        this.server.paths.client, 
+        `${document.id}.js`
+      );
+      //write the file to disk
+      await writeFile(file, chunk.code);
+      //push the result
+      results.push({
+        code: 200,
+        status: 'OK',
+        results: {
+          type: 'client',
+          id: document.id,
+          entry: document.entry,
+          contents: chunk.code,
+          source: this.server.loader.absolute(document.entry),
+          destination: file
+        }
+      });
     }
+    //return the results
     return results;
   }
 
   /**
-   * Builds all the page scripts (js) from the pages in the manifest
+   * Builds and saves the pages scripts from all the documents
    */
-  public async buildPages() {
-    const results: Record<string, string> = {};
-    for (const page of this.values()) {
-      results[page.id] = await page.savePageBuild();
+  public async buildPages(plugins: PluginOption[] = []) {
+    //buffer for the build status results
+    const results: BuildStatus[] = [];
+    //loop through all the documents
+    for (const document of this.values()) {
+      //this gives the page component source code (js) and assets
+      const page = await document.getPage(plugins);
+      //if the output is not an array
+      if (!Array.isArray(page.output)) {
+        //push an error
+        results.push(Exception.for(
+          `Page '${document.entry}' was not generated`
+        ).withCode(500).toResponse());
+        //dont do anything else
+        continue;
+      }
+      //find the output with type chunk
+      const chunk = page.output.find(
+        output => output.type === 'chunk'
+      );
+      //if a chunk was not found
+      if (!chunk) {
+        //push an error
+        results.push(Exception.for(
+          `Page '${document.entry}' was not generated`
+        ).withCode(404).toResponse());
+        //skip the rest...
+        continue;
+      }
+      //determine the file path
+      const file = path.join(
+        this.server.paths.page, 
+        `${document.id}.js`
+      );
+      //write the file to disk
+      await writeFile(file, chunk.code);
+      //push the result
+      results.push({
+        code: 200,
+        status: 'OK',
+        results: {
+          type: 'page',
+          id: document.id,
+          entry: document.entry,
+          contents: chunk.code,
+          source: this.server.loader.absolute(document.entry),
+          destination: file
+        }
+      });
+    }
+    //return the results
+    return results;
+  }
+
+  /**
+   * Builds and saves the assets used from all the documents
+   */
+  public async buildAssets(plugins: PluginOption[] = []) {
+    //buffer for the build status results
+    const results: BuildStatus[] = [];
+    //loop through all the documents
+    for (const document of this.values()) {
+      //this gives the page component source code (js) and assets
+      const page = await document.getAssets(plugins);
+      //if the output is not an array
+      if (!Array.isArray(page.output)) {
+        //push an error
+        results.push(Exception.for(
+          `Assets for '${document.entry}' was not generated`
+        ).withCode(500).toResponse());
+        //dont do anything else
+        continue;
+      }
+      //loop through all the outputs
+      for (const output of page.output) {
+        //if the output is not an asset
+        if (output.type !== 'asset') continue;
+        //if output does not start with assets/
+        if (!output.fileName.startsWith('assets/')) {
+          //push an error
+          results.push(Exception.for(
+            `${output.type} '${output.fileName}' was not saved`
+          ).withCode(404).toResponse());
+          continue;
+        }
+        //determine the file path
+        const file = path.join(
+          this.server.paths.asset, 
+          output.fileName.substring(7)
+        );
+        //write the file to disk
+        await writeFile(file, output.source);
+        //push the result
+        results.push({
+          code: 200,
+          status: 'OK',
+          results: {
+            type: 'asset',
+            id: document.id,
+            entry: document.entry,
+            contents: output.source,
+            destination: file
+          }
+        });
+      }
     }
     return results;
   }
@@ -156,33 +215,33 @@ export default class Manifest {
    * Returns a list of map entries
    */
   public entries() {
-    return this.map<[ Page, number ]>((page, index) => [ page, index ]);
+    return this.map<[ Document, number ]>((document, index) => [ document, index ]);
   }
 
   /**
-   * Find a page by id
+   * Find a document by id
    */
   public find(id: string) {
-    return this.values().find(page => page.id === id) ?? null;
+    return this.values().find(document => document.id === id) ?? null;
   }
 
   /**
    * Loop through the manifest
    */
-  public forEach(callback: (page: Page, index?: number) => unknown) {
+  public forEach(callback: DocumentIterator<unknown>) {
     this.values().forEach(callback);
   }
 
   /**
-   * Get a page by entry
+   * Get a document by entry
    */
   public get(entry: string) {
     entry = this._toEntryPath(entry);
-    return this.values().find(page => page.entry === entry) ?? null;
+    return this.values().find(document => document.entry === entry) ?? null;
   }
 
   /**
-   * Returns true if the page exists
+   * Returns true if the document exists
    */
   public has(entry: string) {
     entry = this._toEntryPath(entry);
@@ -192,8 +251,8 @@ export default class Manifest {
   /**
    * Loads the manifest from disk
    */
-  public async load() {
-    const json = await fs.readFile(this.manifest, 'utf8');
+  public async load(file: string) {
+    const json = await fs.readFile(file, 'utf8');
     const hash = JSON.parse(json) as Record<string, string>;
     return this.set(hash);
   }
@@ -201,27 +260,17 @@ export default class Manifest {
   /**
    * Loop through the manifest
    */
-  public map<T = unknown>(callback: (page: Page, index: number) => T) {
+  public map<T = unknown>(callback: DocumentIterator<T>) {
     return this.values().map(callback);
-  }
-
-  /**
-   * Tries to return the vite resource
-   */
-  public async resource() {
-    if (!this._resource) {
-      this._resource = (await this.connect()) ?? null;
-    }
-    return this._resource;
   }
 
   /**
    * Saves the manifest to disk
    */
-  public async save() {
+  public async save(file: string) {
     const hash = this.toJSON();
     const json = JSON.stringify(hash, null, 2);
-    await fs.writeFile(this.manifest, json);
+    await writeFile(file, json);
     return this;
   }
 
@@ -240,15 +289,15 @@ export default class Manifest {
    */
   public toJSON() {
     return Object.fromEntries(
-      this.values().map(page => [ page.id, page.entry ])
+      this.values().map(document => [ document.id, document.entry ])
     );
   }
 
   /**
-   * Returns a list of pages
+   * Returns a list of documents
    */
   public values() {
-    return Array.from(this.pages.values());
+    return Array.from(this.documents.values());
   }
 
   /**
@@ -285,12 +334,12 @@ export default class Manifest {
       return entry;
     }
     //make it an absolute path
-    entry = this.loader.absolute(entry);
+    entry = this.server.loader.absolute(entry);
     //if the entry is a root of the project
     //ie. /path/to/project/file
-    if (entry.startsWith(this.loader.cwd)) {
+    if (entry.startsWith(this.server.loader.cwd)) {
       //ie. @/file
-      return entry.replace(this.loader.cwd, '@');
+      return entry.replace(this.server.loader.cwd, '@');
     }
     //it's not valid
     throw new Exception(`Invalid entry file: ${original}`);

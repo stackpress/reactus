@@ -2,6 +2,17 @@ import './home.css';
 import { useState } from 'react';
 import reactLogo from '../assets/react.svg';
 
+export function Head() {
+  return (
+    <>
+      <title>Vite + React + Reactus</title>
+      <meta name="description" content="Vite + React + Reactus" />
+      <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+      <link rel="stylesheet" type="text/css" href="/index.css" />
+    </>
+  )
+}
+
 export default function HomePage() {
   const [count, setCount] = useState(0)
 

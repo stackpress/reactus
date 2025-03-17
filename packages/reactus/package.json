@@ -10,7 +10,8 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@stackpress/lib": "0.4.6"
+    "@stackpress/lib": "0.4.6",
+    "@vitejs/plugin-react": "4.3.4"
   },
   "devDependencies": {
     "@types/node": "22.9.3",

@@ -2,7 +2,7 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 import path from 'node:path';
-import fs from 'node:fs/promises';
+import sirv from 'sirv';
 //reactus
 import reactus from 'reactus';
 
@@ -11,38 +11,42 @@ export type SR = ServerResponse<IM>;
 
 async function start() {
   const cwd = process.cwd();
-  const document = path.join(cwd, 'assets/document.html');
-
-  const dev = reactus('production', {
-    documentTemplate: await fs.readFile(document, 'utf8')
+  const engine = reactus({
+    cwd,
+    //path where to save assets (css, images, etc)
+    assetPath: path.join(cwd, 'public/assets'),
+    //path where to save and load (live) the client scripts (js)
+    clientPath: path.join(cwd, 'public/client'),
+    //client script route prefix used in the document markup
+    //ie. /client/[id][extname]
+    //<script type="module" src="/client/[id][extname]"></script>
+    //<script type="module" src="/client/abc123.tsx"></script>
+    clientRoute: '/client',
+    //path where to save and load (live) the server script (js)
+    pagePath: path.join(cwd, '.reactus')
+  });
+  // Init `sirv` handler
+  const assets = sirv(path.join(cwd, 'public'), {
+    maxAge: 31536000, // 1Y
+    immutable: true
   });
 
   const server = createServer(async (req, res) => {
-    //if middleware was triggered
-    if (res.headersSent) return;
     // home page
     if (req.url === '/') {
       res.setHeader('Content-Type', 'text/html');
-      res.end(await dev.getMarkup('@/pages/home'));
+      res.end(await engine.getMarkup('@/pages/home'));
       return;
     //about page
     } else if (req.url === '/about') {
       res.setHeader('Content-Type', 'text/html');
-      res.end(await dev.getMarkup('@/pages/about'));
+      res.end(await engine.getMarkup('@/pages/about'));
       return;
-    //client scripts
-    } else if (req.url && /^\/client\/[a-z0-9]+\.tsx$/.test(req.url)) {
-      const id = req.url.slice(8, -4);
-      const page = dev.find(id);
-      if (page) {
-        const client = await page.getClientBuild();
-        if (client) {
-          res.setHeader('Content-Type', 'text/javascript');
-          res.end(client);
-          return;
-        }
-      }
     }
+    //static asset server
+    assets(req, res);
+    //if static asset was triggered
+    if (res.headersSent) return;
     res.end('404 Not Found');
   });
 
