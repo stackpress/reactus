@@ -2,7 +2,7 @@
   "private": true,
   "workspaces": [
     "examples/*",
-    "packages/*"
+    "reactus"
   ],
   "scripts": {
     "build": "yarn --cwd packages/reactus build",

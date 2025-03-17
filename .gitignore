@@ -140,3 +140,4 @@ archives
 examples/*/public/assets
 examples/*/public/client
 .reactus
+.build
