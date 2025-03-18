@@ -1,15 +1,9 @@
 {
-  "extends": "./tsconfig.client",
+  "extends": "@stackpress/lib/tsconfig/esm",
   "compilerOptions": {
-    "allowImportingTsExtensions": false,
-    "declaration": true,
-    "outDir": "./dist/",
-    "noEmit": false,
-    "removeComments": true,
-    "sourceMap": false,
-    "target": "ES2020"
+    "moduleResolution": "node",
+    "outDir": "dist/"
   },
   "include": [ "src/**/*.ts" ],
-  "exclude": [ "dist", "docs", "node_modules", "tests" ]
+  "exclude": [ "assets.d.ts", "dist", "node_modules", "tests" ]
 }
-

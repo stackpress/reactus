@@ -1,7 +1,8 @@
 //modules
 import type { ViteDevServer, PluginOption } from 'vite';
 //stackpress
-import { FileLoader, NodeFS } from '@stackpress/lib';
+import FileLoader from '@stackpress/lib/FileLoader';
+import NodeFS from '@stackpress/lib/NodeFS';
 //local
 import type { IM, SR, ViteConfig, ServerConfig } from './types';
 import Exception from './Exception';
@@ -121,7 +122,7 @@ export default class Server {
     //organize plugins
     settings.plugins = await this.plugins(settings.plugins);
     //vite build now
-    return build(settings);
+    return build({ logLevel: 'silent', ...settings });
   }
 
   /**

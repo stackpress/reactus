@@ -23,7 +23,7 @@ async function start() {
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
     //path where to save and load (live) the server script (js)
-    pagePath: path.join(cwd, '.reactus')
+    pagePath: path.join(cwd, '.build/pages')
   });
   // Init `sirv` handler
   const assets = sirv(path.join(cwd, 'public'), {

@@ -1,17 +1,63 @@
 {
+  "type": "module",
   "name": "reactus",
   "version": "0.1.1",
-  "type": "module",
+  "license": "Apache-2.0",
+  "description": "reactive React template engine",
+  "author": "Chris <chris@incept.asia>",
+  "homepage": "https://github.com/stackpress/reactus",
+  "bugs": "https://github.com/stackpress/reactus/issues",
+  "repository": "stackpress/reactus",
+  "keywords": [
+    "ts",
+    "typescript",
+    "template engine",
+    "react",
+    "vite",
+    "stackpress"
+  ],
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
-    "./tsconfig": "./tsconfig.client.json"
+    "./tsclient": "./tsconfig/client.json",
+    "./assets.d.ts": "./tsconfig/assets.d.ts",
+    "./constants": "./dist/constants.js",
+    "./helpers": "./dist/helpers.js",
+    "./types": "./dist/types.js",
+    "./Builder": "./dist/Builder.js",
+    "./Document": "./dist/Document.js",
+    "./Exception": "./dist/Document.js",
+    "./Manifest": "./dist/Manifest.js",
+    "./Server": "./dist/Server.js"
   },
+  "typesVersions": {
+    "*": {
+      "index": [ "./dist/index.d.ts"],
+      "constants": [ "./dist/constants.d.ts" ],
+      "helpers": [ "./dist/helpers.d.ts" ],
+      "types": [ "./dist/types.d.ts" ],
+      "Builder": [ "./dist/Builder.d.ts" ],
+      "Document": [ "./dist/builder/Document.d.ts" ],
+      "Exception": [ "./dist/Exception.d.ts" ],
+      "Manifest": [ "./dist/Manifest.d.ts" ],
+      "Server": [ "./dist/Server.d.ts" ]
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
   "scripts": {
-    "build": "tsc"
+    "build": "tsc",
+    "test": "ts-mocha tests/*.test.ts"
   },
   "dependencies": {
-    "@stackpress/lib": "0.4.6",
-    "@vitejs/plugin-react": "4.3.4"
+    "@stackpress/lib": "0.4.10",
+    "@vitejs/plugin-react": "4.3.4",
+    "vite": "6.1.1"
   },
   "devDependencies": {
     "@types/node": "22.9.3",
@@ -21,7 +67,6 @@
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "ts-node": "10.9.2",
-    "typescript": "5.7.2",
-    "vite": "6.1.1"
+    "typescript": "5.7.2"
   }
 }

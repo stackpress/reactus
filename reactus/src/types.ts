@@ -9,7 +9,7 @@ import type {
   FileSystem, 
   ErrorResponse, 
   SuccessResponse 
-} from '@stackpress/lib';
+} from '@stackpress/lib/types';
 //local
 import type Document from './Document';
 

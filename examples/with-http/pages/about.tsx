@@ -1,4 +1,5 @@
 import './home.css';
+import Edit from '../components/Edit';
 
 export function Head({ styles = [] }: { styles?: string[] }) {
   return (
@@ -19,9 +20,7 @@ export default function AboutPage() {
     <>
       <h1>About Reactus</h1>
       <div className="p-4">
-        <p className="py-4">
-          Edit <code>src/about.tsx</code> and save to test HMR
-        </p>
+        <Edit name="about" />
         <a href="/">Home Page</a>
       </div>
     </>

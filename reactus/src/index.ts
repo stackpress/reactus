@@ -2,7 +2,8 @@ export type * from './types';
 export * from './constants';
 export * from './helpers';
 
-import { FileLoader, NodeFS } from '@stackpress/lib';
+import FileLoader from '@stackpress/lib/FileLoader';
+import NodeFS from '@stackpress/lib/NodeFS';
 
 import Builder from './Builder';
 import Document from './Document';
@@ -25,9 +26,7 @@ import path from 'node:path';
 //modules
 import type { PluginOption } from 'vite';
 //local
-import type { 
-  UnknownNest 
-} from '@stackpress/lib/dist/types';
+import type { UnknownNest } from '@stackpress/lib/types';
 import type { 
   IM, SR,
   ViteConfig, 

@@ -8,9 +8,9 @@ import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
 import { jsx } from 'react/jsx-runtime';
 //stackpress
-import type { UnknownNest } from '@stackpress/lib/dist/types';
+import type { UnknownNest } from '@stackpress/lib/types';
 //local
-import type { DocumentImport, BuildResults } from './types';
+import type { DocumentImport, ViteConfig, BuildResults } from './types';
 import type Server from './Server';
 import Exception from './Exception';
 import { id } from './helpers';
@@ -53,23 +53,10 @@ export default class Document {
    * source code (js) and assets
    */
   async getAssets(plugins: PluginOption[] = []) {
-    const results = await this.server.build({
-      configFile: false,
-      //this is used to resolve node modules
-      root: this.server.loader.cwd,
-      plugins,
-      build: {
-        //Prevents writing to disk
-        write: false, 
-        rollupOptions: {
-          input: this.source,
-          output: {
-            format: 'es',
-            entryFileNames: '[name].js',
-          }
-        }
-      }
-    }) as RollupOutput;
+    //make the asset build options
+    const config = this._getAssetBuildOptions(plugins);
+    //now really build the page
+    const results = await this.server.build(config) as RollupOutput;
 
     return results.output;
   }
@@ -90,25 +77,10 @@ export default class Document {
     //convert to data url
     const data = Buffer.from(code).toString('base64');
     const url = `imfs:text/typescript;base64,${data};${file}`;
-    const results = await this.server.build({
-      configFile: false,
-      //this is used to resolve node modules
-      root: this.server.loader.cwd,
-      plugins,
-      build: {
-        //Prevents writing to disk
-        write: false, 
-        rollupOptions: {
-          input: url,
-          output: {
-            //Ensures ES module output
-            format: 'es',
-            //Preserves output structure
-            entryFileNames: '[name].js',
-          }
-        }
-      }
-    }) as RollupOutput;
+    //make the client build options
+    const config = this._getClientBuildOptions(url, plugins);
+    //now really build the client
+    const results = await this.server.build(config) as RollupOutput;
     return results.output;
   }
 
@@ -173,38 +145,10 @@ export default class Document {
     //convert to data url
     const data = Buffer.from(code).toString('base64');
     const url = `imfs:text/typescript;base64,${data};${file}`;
-    const results = await this.server.build({
-      configFile: false,
-      //this is used to resolve node modules
-      root: this.server.loader.cwd,
-      plugins,
-      build: {
-        //Prevents writing to disk
-        write: false, 
-        //dont minify yet..
-        minify: false, 
-        rollupOptions: {
-          // 🔥 Preserve all exports
-          preserveEntrySignatures: 'exports-only', 
-          input: url,
-          // Do not bundle React
-          external: [ 'react', 'react-dom', 'react/jsx-runtime' ],
-          output: {
-            // Ensures ES module output
-            format: 'es', 
-            // Preserves output structure
-            entryFileNames: '[name].js', 
-            // Ensures named exports are available
-            exports: 'named', 
-            globals: {
-              react: 'React',
-              'react-dom': 'ReactDOM',
-              'react/jsx-runtime': 'jsxRuntime'
-            }
-          }
-        }
-      }
-    }) as RollupOutput;
+    //make the page build options
+    const config = this._getPageBuildOptions(url, plugins);
+    //now really build the page
+    const results = await this.server.build(config) as RollupOutput;
     return results.output;
   }
 
@@ -230,6 +174,54 @@ export default class Document {
       return this.server.loader.relative(fromFile, absolute);
     }
     return this.entry;
+  }
+
+  /**
+   * Generates the client build options
+   */
+  protected _getAssetBuildOptions(plugins: PluginOption[]) {
+    return {
+      configFile: false,
+      //this is used to resolve node modules
+      root: this.server.loader.cwd,
+      plugins,
+      build: {
+        //Prevents writing to disk
+        write: false, 
+        rollupOptions: {
+          input: this.source,
+          output: {
+            format: 'es',
+            entryFileNames: '[name].js',
+          }
+        }
+      }
+    } as ViteConfig;
+  }
+
+  /**
+   * Generates the client build options
+   */
+  protected _getClientBuildOptions(url: string, plugins: PluginOption[]) {
+    return {
+      configFile: false,
+      //this is used to resolve node modules
+      root: this.server.loader.cwd,
+      plugins,
+      build: {
+        //Prevents writing to disk
+        write: false, 
+        rollupOptions: {
+          input: url,
+          output: {
+            //Ensures ES module output
+            format: 'es',
+            //Preserves output structure
+            entryFileNames: '[name].js',
+          }
+        }
+      }
+    } as ViteConfig;
   }
 
   /**
@@ -293,6 +285,44 @@ export default class Document {
       .replace(`<!--document-body-->`, body ?? '')
       .replace(`<!--document-props-->`, JSON.stringify(props))
       .replace(`<!--document-client-->`, clientRoute);
+  }
+
+  /**
+   * Generates the client build options
+   */
+  protected _getPageBuildOptions(url: string, plugins: PluginOption[]) {
+    return {
+      configFile: false,
+      //this is used to resolve node modules
+      root: this.server.loader.cwd,
+      plugins,
+      build: {
+        //Prevents writing to disk
+        write: false, 
+        //dont minify yet..
+        //minify: false, 
+        rollupOptions: {
+          // 🔥 Preserve all exports
+          preserveEntrySignatures: 'exports-only', 
+          input: url,
+          // Do not bundle React
+          external: [ 'react', 'react-dom', 'react/jsx-runtime' ],
+          output: {
+            // Ensures ES module output
+            format: 'es', 
+            // Preserves output structure
+            entryFileNames: '[name].js', 
+            // Ensures named exports are available
+            exports: 'named', 
+            globals: {
+              react: 'React',
+              'react-dom': 'ReactDOM',
+              'react/jsx-runtime': 'jsxRuntime'
+            }
+          }
+        }
+      }
+    } as ViteConfig;
   }
 
   /**

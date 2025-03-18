@@ -12,18 +12,20 @@ import { HASH_LENGTH, BASE62_ALPHABET } from './constants';
  */
 export function id(content: string, length = HASH_LENGTH) {
   //make an md5 hash
-  const md5 = crypto.createHash('md5').update(content).digest();
-  // Convert MD5 hash to BigInt
-  let num = BigInt(`0x${md5.toString('hex')}`); 
+  const md5 = crypto.createHash('md5').update(content).digest('hex');
+  //Convert first 12 hex digits to a number
+  let num = parseInt(md5.slice(0, 12), 16); 
   //hash buffer
   let hash = '';
-  while (num > 0n) {
-    const index = Number(num % 62n);
+  while (num > 0) {
+    //Get remainder within Base62 range
+    const index = num % 62; 
     hash = BASE62_ALPHABET[index] + hash;
-    num /= 62n;
+    //Integer division
+    num = Math.floor(num / 62); 
   }
-  // Trim to desired length
-  return hash.slice(0, length); 
+  //Trim to desired length
+  return hash.padStart(length, '0').slice(0, length);
 }
 
 /**
@@ -84,7 +86,7 @@ export function imfs() {
           const data = encoded.substring(7);
           return Buffer.from(data, 'base64').toString();
         }
-        // Let other plugins handle it
+        //Let other plugins handle it
         return null; 
       }
     }

@@ -19,7 +19,7 @@ async function develop() {
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
     //path where to save and load (live) the server script (js)
-    pagePath: path.join(cwd, '.reactus')
+    pagePath: path.join(cwd, '.build/pages')
   });
   
   engine.add('@/pages/home');
@@ -37,7 +37,9 @@ async function develop() {
     return results;
   });
 
-  console.log(responses);
+  //console.log(responses);
+  //fix for unused variable :)
+  if (responses.length) return;
 }
 
 develop().catch(e => {

@@ -6,7 +6,7 @@
   ],
   "scripts": {
     "build": "yarn --cwd reactus build",
-    "http:compile": "yarn --cwd examples/with-http compile",
+    "http:build": "yarn --cwd examples/with-http build",
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
     "report": "nyc yarn test && nyc report -r lcov",

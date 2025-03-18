@@ -1,11 +1,13 @@
 {
-  "extends": "reactus/tsconfig",
+  "extends": "reactus/tsclient",
   "compilerOptions": {
-    "types": [ "vite/client" ]
+    "moduleResolution": "bundler",
+    "outDir": ".build"
   },
   "include": [ 
-    "pages/**/*.tsx", 
-    "scripts/**/*.ts"
+    "scripts/**/*.ts", 
+    "components/**/*.tsx" , 
+    "pages/**/*.tsx" 
   ],
-  "exclude": [ "dist", "docs", "node_modules", "tests" ]
+  "exclude": [ "dist", "node_modules", "tests" ]
 }
