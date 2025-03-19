@@ -1,11 +1,10 @@
-import './page.css';
-import { useState } from 'react';
+import './how.css';
 import Edit from '../components/Edit';
 
 export function Head({ styles = [] }: { styles?: string[] }) {
   return (
     <>
-      <title>Reactus</title>
+      <title>How It Works</title>
       <meta name="description" content="Reactus" />
       <link rel="icon" type="image/svg+xml" href="/react.svg" />
       <link rel="stylesheet" type="text/css" href="/global.css" />
@@ -16,18 +15,12 @@ export function Head({ styles = [] }: { styles?: string[] }) {
   )
 }
 
-export default function HomePage() {
-  const [count, setCount] = useState(0)
-
+export default function HowItWorksPage() {
   return (
     <>
-      <h1>React + Reactus</h1>
+      <h1>How It Works</h1>
       <div className="p-4">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <Edit name="about" />
-        <a href="/about">About Reactus</a>
+        <Edit name="how" />
       </div>
     </>
   )

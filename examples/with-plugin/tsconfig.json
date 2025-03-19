@@ -2,7 +2,7 @@
   "extends": "reactus/tsconfig/client",
   "compilerOptions": {
     "moduleResolution": "bundler",
-    "outDir": ".build",
+    "outDir": ".build"
   },
   "include": [ 
     "scripts/**/*.ts", 

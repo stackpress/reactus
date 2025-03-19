@@ -6,7 +6,7 @@ import NodeFS from '@stackpress/lib/NodeFS';
 //local
 import type { IM, SR, ViteConfig, ServerConfig } from './types';
 import Exception from './Exception';
-import { imfs } from './helpers';
+import { imfs, loader } from './helpers';
 
 export default class Server {
   //file loader
@@ -158,7 +158,12 @@ export default class Server {
     //add react plugin
     const react = await import('@vitejs/plugin-react');
     //add the imfs plugin
-    return [ imfs(), react.default(), ...plugins ];
+    return [ 
+      imfs(), 
+      loader(this.loader), 
+      react.default(), 
+      ...plugins 
+    ];
   }
 
   /**

@@ -33,14 +33,6 @@ export default class Document {
   }
 
   /**
-   * Returns the absolute path to the entry file
-   */
-  public get source() {
-    const loader = this.server.loader;
-    return loader.absolute(this.entry);
-  }
-
-  /**
    * Sets the manifest and entry file
    */
   public constructor(entry: string, server: Server) {
@@ -54,7 +46,7 @@ export default class Document {
    */
   async getAssets(plugins: PluginOption[] = []) {
     //make the asset build options
-    const config = this._getAssetBuildOptions(plugins);
+    const config = await this._getAssetBuildOptions(plugins);
     //now really build the page
     const results = await this.server.build(config) as RollupOutput;
 
@@ -67,9 +59,9 @@ export default class Document {
    */
   async getClient(plugins: PluginOption[] = []) {
     //calculate file path relative to the page file
-    const file = `${this.source}.client.tsx`;
+    const file = `${await this.source()}.client.tsx`;
     //now make the entry file relative to the root entry file
-    const relative = this._entryToRelativeFile(file);
+    const relative = await this._entryToRelativeFile(file);
     //get the client script template (tsx)
     const clientScript = this.server.templates.client;
     //add the relative entry to the document script
@@ -91,9 +83,9 @@ export default class Document {
     //for development and build modes
     const dev = await this.server.dev();
     //calculate file path relative to the page file
-    const file = `${this.source}.entry.tsx`;
+    const file = `${await this.source()}.entry.tsx`;
     //now make the entry file relative to the root entry file
-    const relative = this._entryToRelativeFile(file);
+    const relative = await this._entryToRelativeFile(file);
     //get the client script template (tsx)
     const clientScript = this.server.templates.client;
     //add the relative entry to the document script
@@ -132,9 +124,9 @@ export default class Document {
       .filter(asset => path.extname(asset.fileName) === '.css')
       .map(asset => asset.fileName.substring(7));
     //calculate file path relative to the page file
-    const file = `${this.source}.page.tsx`;
+    const file = `${await this.source()}.page.tsx`;
     //now make the entry file relative to the root entry file
-    const relative = this._entryToRelativeFile(file);
+    const relative = await this._entryToRelativeFile(file);
     //get the client script template (tsx)
     const pageScript = this.server.templates.page;
     //add the relative entry to the document script
@@ -162,15 +154,49 @@ export default class Document {
   }
 
   /**
+   * Returns true if entry is a node module entry
+   */
+  public async isModule() {
+    const source = await this.source();
+    return source.includes('node_modules');
+  }
+
+  /**
+   * Returns the absolute filepath to the entry file
+   * Throws an Exception if the file is not found
+   */
+  public async resolve(extnames = [ '.js', '.tsx' ]) {
+    const loader = this.server.loader;
+    const filepath = await loader.resolveFile(
+      this.entry, 
+      extnames,
+      loader.cwd,
+      //throw if not found
+      true
+    ) as string;
+    const basepath = loader.basepath(filepath);
+    const extname = path.extname(filepath);
+    return { filepath, basepath, extname };
+  }
+
+  /**
+   * Returns the absolute path to the entry file
+   */
+  public async source() {
+    const loader = this.server.loader;
+    return await loader.absolute(this.entry);
+  }
+
+  /**
    * Changes the entry path to a relative file path
    * 
    * Entry path formats:
    * - @/path/to/file
    * - module/path/to/file
    */
-  protected _entryToRelativeFile(fromFile: string) {
+  protected async _entryToRelativeFile(fromFile: string) {
     if (this.entry.startsWith(`@${path.sep}`)) {
-      const absolute = this.source;
+      const absolute = await this.source();
       return this.server.loader.relative(fromFile, absolute);
     }
     return this.entry;
@@ -179,7 +205,7 @@ export default class Document {
   /**
    * Generates the client build options
    */
-  protected _getAssetBuildOptions(plugins: PluginOption[]) {
+  protected async _getAssetBuildOptions(plugins: PluginOption[]) {
     return {
       configFile: false,
       //this is used to resolve node modules
@@ -189,7 +215,7 @@ export default class Document {
         //Prevents writing to disk
         write: false, 
         rollupOptions: {
-          input: this.source,
+          input: await this.source(),
           output: {
             format: 'es',
             entryFileNames: '[name].js',
@@ -332,10 +358,14 @@ export default class Document {
     //for development and build modes
     const dev = await this.server.dev();
     //determine the server entry file name (page.tsx)
-    const file = this.source;
+    const { filepath, extname } = await this.resolve();
+    if (extname === '.js') {
+      //use native import to load the document export
+      return await import(filepath) as DocumentImport;
+    }
     //use dev server to load the document export
     return await dev.ssrLoadModule(
-      `file://${file}.tsx`
+      `file://${filepath}`
     ) as DocumentImport;
   }
 

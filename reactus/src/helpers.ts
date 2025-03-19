@@ -2,6 +2,8 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
+//stackpress
+import type FileLoader from '@stackpress/lib/FileLoader';
 //modules
 import type { ViteDevServer } from 'vite';
 //local
@@ -88,6 +90,44 @@ export function imfs() {
         }
         //Let other plugins handle it
         return null; 
+      }
+    }
+  };
+}
+
+/**
+ * Node modules vite plugin
+ */
+export function loader(
+  loader: FileLoader, 
+  extnames = ['.js', '.ts', '.tsx']
+) {
+  const cache = new Map<string, string>();
+  return {
+    //resolves entry points from node_modules
+    name: 'stackpress-file-loader',
+    async resolveId(source: string, importer?: string) {
+      //skip if absolute path
+      if (source.startsWith('/')) return;
+      //use cache
+      if (cache.has(source)) return cache.get(source);
+      //by default the pwd is the loader's current working directory
+      let pwd = loader.cwd;
+      //if importer is given
+      if (importer) {
+        //if importer is an in memory file string
+        if (importer.startsWith('imfs:')) {
+          //imfs:text/typescript;base64,${data};/foo/bar.tsx
+          importer = importer.substring(5).split(';')[2];
+        }
+        //set the pwd to the importer's directory
+        pwd = path.dirname(importer);
+      }
+      //now try to resolve the file
+      const filepath = await loader.resolveFile(source, extnames, pwd);
+      if (filepath) {
+        cache.set(source, filepath);
+        return filepath;
       }
     }
   };

@@ -22,13 +22,13 @@ export default class Manifest extends Server {
   /**
    * Create a new document
    */
-  public add(entry: string) {
-    entry = this._toEntryPath(entry);
-    if (!this.has(entry)) {
+  public async add(entry: string) {
+    entry = await this._toEntryPath(entry);
+    if (!(await this.has(entry))) {
       const document = new Document(entry, this);
       this.documents.add(document);
     }
-    return this.get(entry) as Document;
+    return (await this.get(entry)) as Document;
   }
 
   /**
@@ -55,17 +55,17 @@ export default class Manifest extends Server {
   /**
    * Get a document by entry
    */
-  public get(entry: string) {
-    entry = this._toEntryPath(entry);
+  public async get(entry: string) {
+    entry = await this._toEntryPath(entry);
     return this.values().find(document => document.entry === entry) ?? null;
   }
 
   /**
    * Returns true if the document exists
    */
-  public has(entry: string) {
-    entry = this._toEntryPath(entry);
-    return this.get(entry) !== null;
+  public async has(entry: string) {
+    entry = await this._toEntryPath(entry);
+    return (await this.get(entry)) !== null;
   }
 
   /**
@@ -164,7 +164,7 @@ export default class Manifest extends Server {
    * - module/path/to/file
    * Throws an Exception if the entry is invalid
    */
-  protected _toEntryPath(entry: string) {
+  protected async _toEntryPath(entry: string) {
     const original = entry;
     //get last position of node_modules
     //ie. /path/to/node_modules/to/node_modules/module
@@ -192,7 +192,7 @@ export default class Manifest extends Server {
       return entry;
     }
     //make it an absolute path
-    entry = this.loader.absolute(entry);
+    entry = await this.loader.absolute(entry);
     //if the entry is a root of the project
     //ie. /path/to/project/file
     if (entry.startsWith(this.loader.cwd)) {

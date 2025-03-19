@@ -13,17 +13,14 @@ async function develop() {
     assetPath: path.join(cwd, 'public/assets'),
     //path where to save and load (live) the client scripts (js)
     clientPath: path.join(cwd, 'public/client'),
-    //client script route prefix used in the document markup
-    //ie. /client/[id][extname]
-    //<script type="module" src="/client/[id][extname]"></script>
-    //<script type="module" src="/client/abc123.tsx"></script>
-    clientRoute: '/client',
     //path where to save and load (live) the server script (js)
     pagePath: path.join(cwd, '.build/pages')
   });
   
-  engine.add('@/pages/home');
-  engine.add('@/pages/about');
+  await engine.add('@/pages/home');
+  await engine.add('@/pages/about');
+  await engine.add('reactus-with-plugin/pages/how');
+  await engine.add('reactus-with-plugin/pages/contact');
 
   const responses = [
     ...await engine.buildClient([ tailwindcss() ]),

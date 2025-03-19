@@ -103,6 +103,7 @@ export default class Builder extends Manifest {
       );
       //write the file to disk
       await writeFile(file, chunk.code);
+      const source = await document.source();
       //push the result
       results.push({
         code: 200,
@@ -112,7 +113,7 @@ export default class Builder extends Manifest {
           id: document.id,
           entry: document.entry,
           contents: chunk.code,
-          source: this.loader.absolute(document.entry),
+          source,
           destination: file
         }
       });
@@ -160,6 +161,7 @@ export default class Builder extends Manifest {
       );
       //write the file to disk
       await writeFile(file, chunk.code);
+      const source = await document.source();
       //push the result
       results.push({
         code: 200,
@@ -169,7 +171,7 @@ export default class Builder extends Manifest {
           id: document.id,
           entry: document.entry,
           contents: chunk.code,
-          source: this.loader.absolute(document.entry),
+          source,
           destination: file
         }
       });

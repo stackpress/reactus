@@ -34,7 +34,12 @@ async function develop() {
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
     //path where to save and load (live) the server script (js)
-    pagePath: path.join(cwd, '.build/pages')
+    pagePath: path.join(cwd, '.build/pages'),
+    //style route prefix used in the document markup
+    //ie. /assets/[id][extname]
+    //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+    //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+    styleRoute: '/assets'
   });
 
   const server = createServer(async (req, res) => {
@@ -44,15 +49,21 @@ async function develop() {
     if (res.headersSent) return;
     // home page
     if (req.url === '/') {
-      const document = engine.add('@/pages/home');
       res.setHeader('Content-Type', 'text/html');
-      res.end(await document.getMarkup());
+      res.end(await engine.getMarkup('@/pages/home', { title: 'Home' }));
       return;
     //about page
     } else if (req.url === '/about') {
-      const document = engine.add('@/pages/about');
       res.setHeader('Content-Type', 'text/html');
-      res.end(await document.getMarkup());
+      res.end(await engine.getMarkup('@/pages/about'));
+      return;
+    } else if (req.url === '/contact') {
+      res.setHeader('Content-Type', 'text/html');
+      res.end(await engine.getMarkup('reactus-with-plugin/pages/contact'));
+      return;
+    } else if (req.url === '/how') {
+      res.setHeader('Content-Type', 'text/html');
+      res.end(await engine.getMarkup('reactus-with-plugin/pages/how'));
       return;
     }
     res.end('404 Not Found');

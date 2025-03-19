@@ -221,7 +221,9 @@ export default function engine(options: Partial<ServerConfig>) {
     getAssets: (
       entry: string, 
       plugins: PluginOption[] = []
-    ) => builder.add(entry).getAssets(plugins),
+    ) => builder.add(entry).then(
+      document => document.getAssets(plugins)
+    ),
 
     /**
      * Returns the final client entry 
@@ -230,12 +232,16 @@ export default function engine(options: Partial<ServerConfig>) {
     getClient: (
       entry: string, 
       plugins: PluginOption[] = []
-    ) => builder.add(entry).getClient(plugins),
+    ) => builder.add(entry).then(
+      document => document.getClient(plugins)
+    ),
   
     /**
      * Returns the client entry for HMR (js)
      */
-    getHMR: (entry: string) => builder.add(entry).getHMR(),
+    getHMR: (entry: string) => builder.add(entry).then(
+      document => document.getHMR()
+    ),
     
     /**
      * Returns the final document markup (html)
@@ -243,7 +249,9 @@ export default function engine(options: Partial<ServerConfig>) {
     getMarkup: (
       entry: string, 
       props: UnknownNest = {}
-    ) => builder.add(entry).getMarkup(props),
+    ) => builder.add(entry).then(
+      document => document.getMarkup(props)
+    ),
   
     /**
      * Returns the final page component source code (js)
@@ -252,21 +260,40 @@ export default function engine(options: Partial<ServerConfig>) {
       entry: string, 
       plugins: PluginOption[] = [],
       assets?: BuildResults
-    ) => builder.add(entry).getPage(plugins, assets),
+    ) => builder.add(entry).then(
+      document => document.getPage(plugins, assets)
+    ),
 
     /**
      * Generates an id for the entry file
      */
-    id: (entry: string) => builder.add(entry).id,
+    id: (entry: string) => builder.add(entry).then(
+      document => document.id
+    ),
   
     /**
      * Imports the page component to runtime
      */
-    importPage: (entry: string) => builder.add(entry).importPage(),
+    importPage: (entry: string) => builder.add(entry).then(
+      document => document.importPage()
+    ),
+  
+    /**
+     * Returns the absolute filepath to the entry file
+     * Throws an Exception if the file is not found
+     */
+    resolve: (
+      entry: string, 
+      extnames?: string[]
+    ) => builder.add(entry).then(
+      document => document.resolve(extnames)
+    ),
   
     /**
      * Returns the absolute path to the entry file
      */
-    source: (entry: string) => builder.add(entry).source,
+    source: (entry: string) => builder.add(entry).then(
+      document => document.source()
+    ),
   };
 }

@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "name": "reactus-with-plugin",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "reactus": "0.1.1",
+    "sirv": "3.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "4.0.14",
+    "@types/node": "22.9.3",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "tailwindcss": "4.0.14", 
+    "tsx": "4.19.3",
+    "typescript": "5.7.2"
+  }
+}

@@ -1,13 +1,13 @@
-import './home.css';
+import './page.css';
 import Edit from '../components/Edit';
 
 export function Head({ styles = [] }: { styles?: string[] }) {
   return (
     <>
-      <title>Vite + React + Reactus</title>
-      <meta name="description" content="Vite + React + Reactus" />
-      <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-      <link rel="stylesheet" type="text/css" href="/index.css" />
+      <title>About Reactus</title>
+      <meta name="description" content="About Reactus" />
+      <link rel="icon" type="image/svg+xml" href="/react.svg" />
+      <link rel="stylesheet" type="text/css" href="/global.css" />
       {styles.map((href, index) => (
         <link key={index} rel="stylesheet" type="text/css" href={href} />
       ))}
