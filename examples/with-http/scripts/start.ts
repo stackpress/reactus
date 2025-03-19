@@ -4,14 +4,14 @@ import { createServer } from 'node:http';
 import path from 'node:path';
 import sirv from 'sirv';
 //reactus
-import reactus from 'reactus';
+import { serve } from 'reactus';
 
 export type IM = IncomingMessage;
 export type SR = ServerResponse<IM>;
 
 async function start() {
   const cwd = process.cwd();
-  const engine = reactus({
+  const engine = serve({
     cwd,
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>

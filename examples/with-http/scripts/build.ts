@@ -3,11 +3,11 @@ import path from 'node:path';
 //modules
 import tailwindcss from '@tailwindcss/vite';
 //reactus
-import reactus from 'reactus';
+import { build } from 'reactus';
 
 async function develop() {
   const cwd = process.cwd();
-  const engine = reactus({
+  const engine = build({
     cwd,
     plugins: [ tailwindcss() ],
     //path where to save assets (css, images, etc)

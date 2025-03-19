@@ -9,9 +9,75 @@ import NodeFS from '@stackpress/lib/NodeFS';
 //local
 import type { IM, SR, ViteConfig, ServerConfig } from './types';
 import Exception from './Exception';
+import { 
+  PAGE_TEMPLATE,
+  CLIENT_TEMPLATE, 
+  DOCUMENT_TEMPLATE 
+} from './constants';
 import { imfs, loader } from './helpers';
 
 export default class Server {
+  /**
+   * Returns the final configuration for the server
+   */
+  public static configure(options: Partial<ServerConfig>) {
+    const cwd = options.cwd || process.cwd();
+    return Object.freeze({
+      //path where to save assets (css, images, etc)
+      // - used in build step
+      assetPath: options.assetPath || path.join(cwd, '.reactus/assets'),
+      //base path (used in vite)
+      // - used in dev mode
+      basePath: options.basePath || '/',
+      //path where to save the client scripts (js)
+      // - used in build step
+      clientPath: options.clientPath || path.join(cwd, '.reactus/client'),
+      //client script route prefix used in the document markup
+      //ie. /client/[id][extname]
+      //<script type="module" src="/client/[id][extname]"></script>
+      //<script type="module" src="/client/abc123.tsx"></script>
+      // - used in dev mode and live server
+      clientRoute: options.clientRoute || '/client',
+      //template wrapper for the client script (tsx)
+      // - used in dev mode and build step
+      clientTemplate: options.clientTemplate || CLIENT_TEMPLATE,
+      //current working directory
+      cwd: options.cwd || process.cwd(),
+      //template wrapper for the document markup (html)
+      // - used in dev mode and live server
+      documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
+      //file system
+      fs: options.fs || new NodeFS(),
+      //global head component path
+      globalHead: options.globalHead,
+      //global css file path
+      globalCSS: options.globalCSS,
+      //path where to save and load (live) the server script (js)
+      // - used in build step and live server
+      pagePath: options.pagePath || path.join(cwd, '.reactus/page'),
+      //template wrapper for the page script (tsx)
+      // - used in build step
+      pageTemplate: options.pageTemplate || PAGE_TEMPLATE,
+      //vite plugins
+      plugins: options.plugins || [],
+      //directs resolvers and markup generator
+      production:  typeof options.production === 'boolean' 
+        ? options.production 
+        : true,
+      //style route prefix used in the document markup
+      //ie. /assets/[id][extname]
+      //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+      //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+      // - used in live server
+      styleRoute: options.styleRoute || '/assets',
+      //original vite options (overrides other settings related to vite)
+      vite: options.vite,
+      //ignore files in watch mode
+      // - used in dev mode
+      watchIgnore: options.watchIgnore || []
+    });
+  }
+
   //file loader
   public readonly loader: FileLoader;
   //directs resolvers and markup generator

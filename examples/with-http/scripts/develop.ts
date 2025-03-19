@@ -3,14 +3,13 @@ import { createServer } from 'node:http';
 //modules
 import tailwindcss from '@tailwindcss/vite';
 //reactus
-import reactus from 'reactus';
+import { dev } from 'reactus';
 
 async function develop() {
   const cwd = process.cwd();
-  const engine = reactus({
+  const engine = dev({
     cwd,
     basePath: '/',
-    production: false,
     plugins: [ tailwindcss() ],
     watchIgnore: [ '**/.build/**' ],
     globalCSS: '',

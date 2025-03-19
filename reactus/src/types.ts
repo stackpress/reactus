@@ -49,6 +49,83 @@ export type SR = ServerResponse<IM>;
 
 export type ViteConfig = InlineConfig;
 
+export type DevelopConfig = {
+  //base path (used in vite)
+  basePath: string,
+  //client script route prefix used in the document markup
+  //ie. /client/[id][extname]
+  //<script type="module" src="/client/[id][extname]"></script>
+  //<script type="module" src="/client/abc123.tsx"></script>
+  clientRoute: string,
+  //template wrapper for the client script (tsx)
+  clientTemplate: string,
+  //current working directory
+  cwd: string,
+  //template wrapper for the document markup (html)
+  documentTemplate: string,
+  //file system
+  fs?: FileSystem,
+  //global head component path
+  globalHead?: string,
+  //global css file path
+  globalCSS?: string,
+  //vite plugins
+  plugins: PluginOption[],
+  //original vite options (overrides other settings related to vite)
+  vite?: ViteConfig,
+  //ignore files in watch mode
+  watchIgnore?: string[]
+};
+
+export type BuildConfig = {
+  //path where to save assets (css, images, etc)
+  assetPath: string,
+  //base path (used in vite)
+  basePath: string,
+  //path where to save the client scripts (js)
+  clientPath: string,
+  //template wrapper for the client script (tsx)
+  clientTemplate: string,
+  //current working directory
+  cwd: string,
+  //file system
+  fs?: FileSystem,
+  //path where to save and load (live) the server script (js)
+  pagePath: string,
+  //template wrapper for the page script (tsx)
+  pageTemplate: string,
+  //vite plugins
+  plugins: PluginOption[]
+};
+
+export type ProductionConfig = {
+  //client script route prefix used in the document markup
+  //ie. /client/[id][extname]
+  //<script type="module" src="/client/[id][extname]"></script>
+  //<script type="module" src="/client/abc123.tsx"></script>
+  clientRoute: string,
+  //current working directory
+  cwd: string,
+  //template wrapper for the document markup (html)
+  documentTemplate: string,
+  //file system
+  fs?: FileSystem,
+  //global head component path
+  globalHead?: string,
+  //global css file path
+  globalCSS?: string,
+  //path where to save and load (live) the server script (js)
+  pagePath: string,
+  //template wrapper for the page script (tsx)
+  //vite plugins
+  plugins: PluginOption[],
+  //style route prefix used in the document markup
+  //ie. /assets/[id][extname]
+  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+  styleRoute: string
+};
+
 export type ServerConfig = {
   //path where to save assets (css, images, etc)
   // - used in build step
