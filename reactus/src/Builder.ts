@@ -1,7 +1,5 @@
 //node
 import path from 'node:path';
-//modules
-import type { PluginOption } from 'vite';
 //local
 import type { BuildStatus } from './types';
 import Manifest from './Manifest';
@@ -12,13 +10,13 @@ export default class Builder extends Manifest {
   /**
    * Builds and saves the assets used from all the documents
    */
-  public async buildAssets(plugins: PluginOption[] = []) {
+  public async buildAssets() {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents
     for (const document of this.values()) {
       //this gives the page component source code (js) and assets
-      const page = await document.getAssets(plugins);
+      const page = await document.getAssets();
       //if the output is not an array
       if (!Array.isArray(page)) {
         //push an error
@@ -67,13 +65,13 @@ export default class Builder extends Manifest {
   /**
    * Builds and saves the client entries from all the documents
    */
-  public async buildClient(plugins: PluginOption[] = []) {
+  public async buildClient() {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents
     for (const document of this.values()) {
       //this just gives the entry code (js) (chunk)
-      const client = await document.getClient(plugins);
+      const client = await document.getClient();
       //if the output is not an array
       if (!Array.isArray(client)) {
         //push an error
@@ -103,7 +101,7 @@ export default class Builder extends Manifest {
       );
       //write the file to disk
       await writeFile(file, chunk.code);
-      const source = await document.source();
+      const absolute = await document.absolute();
       //push the result
       results.push({
         code: 200,
@@ -113,7 +111,7 @@ export default class Builder extends Manifest {
           id: document.id,
           entry: document.entry,
           contents: chunk.code,
-          source,
+          source: absolute,
           destination: file
         }
       });
@@ -125,13 +123,13 @@ export default class Builder extends Manifest {
   /**
    * Builds and saves the pages scripts from all the documents
    */
-  public async buildPages(plugins: PluginOption[] = []) {
+  public async buildPages() {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents
     for (const document of this.values()) {
       //this gives the page component source code (js) and assets
-      const page = await document.getPage(plugins);
+      const page = await document.getPage();
       //if the output is not an array
       if (!Array.isArray(page)) {
         //push an error
@@ -161,7 +159,7 @@ export default class Builder extends Manifest {
       );
       //write the file to disk
       await writeFile(file, chunk.code);
-      const source = await document.source();
+      const absolute = await document.absolute();
       //push the result
       results.push({
         code: 200,
@@ -171,7 +169,7 @@ export default class Builder extends Manifest {
           id: document.id,
           entry: document.entry,
           contents: chunk.code,
-          source,
+          source: absolute,
           destination: file
         }
       });

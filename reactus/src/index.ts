@@ -23,8 +23,6 @@ export {
 
 //node
 import path from 'node:path';
-//modules
-import type { PluginOption } from 'vite';
 //local
 import type { UnknownNest } from '@stackpress/lib/types';
 import type { 
@@ -43,30 +41,58 @@ import {
 export default function engine(options: Partial<ServerConfig>) {
   const cwd = options.cwd || process.cwd();
   const config = {
-    cwd: options.cwd || process.cwd(),
-    vite: options.vite,
     //path where to save assets (css, images, etc)
+    // - used in build step
     assetPath: options.assetPath || path.join(cwd, '.reactus/assets'),
-    //path where to save and load (live) the client scripts (js)
+    //base path (used in vite)
+    // - used in dev mode
+    basePath: options.basePath || '/',
+    //path where to save the client scripts (js)
+    // - used in build step
     clientPath: options.clientPath || path.join(cwd, '.reactus/client'),
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
+    // - used in dev mode and live server
     clientRoute: options.clientRoute || '/client',
     //template wrapper for the client script (tsx)
+    // - used in dev mode and build step
     clientTemplate: options.clientTemplate || CLIENT_TEMPLATE,
+    //current working directory
+    cwd: options.cwd || process.cwd(),
     //template wrapper for the document markup (html)
+    // - used in dev mode and live server
     documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
+    //file system
+    fs: options.fs || new NodeFS(),
+    //global head component path
+    globalHead: options.globalHead,
+    //global css file path
+    globalCSS: options.globalCSS,
     //path where to save and load (live) the server script (js)
+    // - used in build step and live server
     pagePath: options.pagePath || path.join(cwd, '.reactus/page'),
     //template wrapper for the page script (tsx)
+    // - used in build step
     pageTemplate: options.pageTemplate || PAGE_TEMPLATE,
+    //vite plugins
+    plugins: options.plugins || [],
+    //directs resolvers and markup generator
+    production:  typeof options.production === 'boolean' 
+      ? options.production 
+      : true,
     //style route prefix used in the document markup
     //ie. /assets/[id][extname]
     //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
     //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-    styleRoute: options.styleRoute || '/assets'
+    // - used in live server
+    styleRoute: options.styleRoute || '/assets',
+    //original vite options (overrides other settings related to vite)
+    vite: options.vite,
+    //ignore files in watch mode
+    // - used in dev mode
+    watchIgnore: options.watchIgnore || []
   }
   const builder = new Builder(config);
 
@@ -125,7 +151,7 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Returns the default vite plugins
      */
-    plugins: (plugins: PluginOption[] = []) => builder.plugins(plugins),
+    plugins: () => builder.plugins(),
 
     //----------------------------------------------------------------//
     // Manifest Methods
@@ -138,23 +164,17 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Builds and saves the assets used from all the documents
      */
-    buildAssets: (
-      plugins: PluginOption[] = []
-    ) => builder.buildAssets(plugins),
+    buildAssets: () => builder.buildAssets(),
 
     /**
      * Builds and saves the client entries from all the documents
      */
-    buildClient: (
-      plugins: PluginOption[] = []
-    ) => builder.buildClient(plugins),
+    buildClient: () => builder.buildClient(),
 
     /**
      * Builds and saves the pages scripts from all the documents
      */
-    buildPages: (
-      plugins: PluginOption[] = []
-    ) => builder.buildPages(plugins),
+    buildPages: () => builder.buildPages(),
   
     /**
      * Returns a list of map entries
@@ -212,56 +232,13 @@ export default function engine(options: Partial<ServerConfig>) {
     values: () => builder.values(),
 
     //----------------------------------------------------------------//
-    // Document Methods
-
-    /**
-     * Returns the final client entry 
-     * source code (js) and assets
-     */
-    getAssets: (
-      entry: string, 
-      plugins: PluginOption[] = []
-    ) => builder.add(entry).then(
-      document => document.getAssets(plugins)
-    ),
-
-    /**
-     * Returns the final client entry 
-     * source code (js) and assets
-     */
-    getClient: (
-      entry: string, 
-      plugins: PluginOption[] = []
-    ) => builder.add(entry).then(
-      document => document.getClient(plugins)
-    ),
+    // Document Path Methods
   
     /**
-     * Returns the client entry for HMR (js)
+     * Returns the absolute path to the entry file
      */
-    getHMR: (entry: string) => builder.add(entry).then(
-      document => document.getHMR()
-    ),
-    
-    /**
-     * Returns the final document markup (html)
-     */
-    getMarkup: (
-      entry: string, 
-      props: UnknownNest = {}
-    ) => builder.add(entry).then(
-      document => document.getMarkup(props)
-    ),
-  
-    /**
-     * Returns the final page component source code (js)
-     */
-    getPage: (
-      entry: string, 
-      plugins: PluginOption[] = [],
-      assets?: BuildResults
-    ) => builder.add(entry).then(
-      document => document.getPage(plugins, assets)
+    absolute: (entry: string) => builder.add(entry).then(
+      document => document.absolute()
     ),
 
     /**
@@ -279,21 +256,59 @@ export default function engine(options: Partial<ServerConfig>) {
     ),
   
     /**
-     * Returns the absolute filepath to the entry file
-     * Throws an Exception if the file is not found
+     * Returns the absolute path to the entry file
      */
-    resolve: (
-      entry: string, 
-      extnames?: string[]
-    ) => builder.add(entry).then(
-      document => document.resolve(extnames)
+    relative: (entry: string, fromFile: string) => builder.add(entry).then(
+      document => document.relative(fromFile)
+    ),
+
+    //----------------------------------------------------------------//
+    // Document Build Methods
+
+    /**
+     * Returns the final client entry 
+     * source code (js) and assets
+     */
+    getAssets: (entry: string) => builder.add(entry).then(
+      document => document.getAssets()
+    ),
+
+    /**
+     * Returns the final client entry 
+     * source code (js) and assets
+     */
+    getClient: (entry: string) => builder.add(entry).then(
+      document => document.getClient()
     ),
   
     /**
-     * Returns the absolute path to the entry file
+     * Returns the final page component source code (js)
      */
-    source: (entry: string) => builder.add(entry).then(
-      document => document.source()
+    getPage: (
+      entry: string, 
+      assets?: BuildResults
+    ) => builder.add(entry).then(
+      document => document.getPage(assets)
     ),
+
+    //----------------------------------------------------------------//
+    // Document Server Methods
+  
+    /**
+     * Returns the client entry for HMR (js)
+     */
+    getHMRClient: (entry: string) => builder.add(entry).then(
+      document => document.getHMRClient()
+    ),
+    
+    /**
+     * Returns the final document markup (html)
+     */
+    getMarkup: (
+      entry: string, 
+      props: UnknownNest = {}
+    ) => builder.add(entry).then(
+      document => document.getMarkup(props)
+    )
   };
 }

@@ -9,6 +9,7 @@ async function develop() {
   const cwd = process.cwd();
   const engine = reactus({
     cwd,
+    plugins: [ tailwindcss() ],
     //path where to save assets (css, images, etc)
     assetPath: path.join(cwd, 'public/assets'),
     //path where to save and load (live) the client scripts (js)
@@ -23,9 +24,9 @@ async function develop() {
   await engine.add('reactus-with-plugin/pages/contact');
 
   const responses = [
-    ...await engine.buildClient([ tailwindcss() ]),
-    ...await engine.buildAssets([ tailwindcss() ]),
-    ...await engine.buildPages([ tailwindcss() ])
+    ...await engine.buildClient(),
+    ...await engine.buildAssets(),
+    ...await engine.buildPages()
   ].map(response => {
     const results = response.results;
     if (typeof results?.contents === 'string') {

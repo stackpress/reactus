@@ -144,7 +144,7 @@ export default class Manifest extends Server {
       const id = req.url.slice(8, -4);
       const document = this.find(id);
       if (document) {
-        const client = await document.getHMR();
+        const client = await document.getHMRClient();
         if (client) {
           res.setHeader('Content-Type', 'text/javascript');
           res.end(client);

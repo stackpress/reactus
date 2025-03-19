@@ -1,5 +1,4 @@
 //node
-import path from 'node:path';
 import { createServer } from 'node:http';
 //modules
 import tailwindcss from '@tailwindcss/vite';
@@ -10,36 +9,17 @@ async function develop() {
   const cwd = process.cwd();
   const engine = reactus({
     cwd,
-    vite: {
-      server: { 
-        middlewareMode: true,
-        watch: { 
-          ignored: [ '**/.build/**' ] 
-        }
-      },
-      appType: 'custom',
-      base: '/',
-      root: cwd,
-      mode: 'development',
-      publicDir: path.join(cwd, 'public'),
-      plugins: [ tailwindcss() ]
-    },
-    //path where to save assets (css, images, etc)
-    assetPath: path.join(cwd, 'public/assets'),
-    //path where to save and load (live) the client scripts (js)
-    clientPath: path.join(cwd, 'public/client'),
+    basePath: '/',
+    production: false,
+    plugins: [ tailwindcss() ],
+    watchIgnore: [ '**/.build/**' ],
+    globalCSS: '',
+    globalHead: '',
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
-    clientRoute: '/client',
-    //path where to save and load (live) the server script (js)
-    pagePath: path.join(cwd, '.build/pages'),
-    //style route prefix used in the document markup
-    //ie. /assets/[id][extname]
-    //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
-    //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-    styleRoute: '/assets'
+    clientRoute: '/client'
   });
 
   const server = createServer(async (req, res) => {

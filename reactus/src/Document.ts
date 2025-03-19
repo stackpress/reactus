@@ -1,7 +1,6 @@
 //node
 import path from 'node:path';
 //modules
-import type { PluginOption } from 'vite';
 import type { RollupOutput } from 'rollup';
 import type { ElementType } from 'react';
 import { StrictMode } from 'react';
@@ -40,13 +39,75 @@ export default class Document {
     this.server = server;
   }
 
+  //------------------------------------------------------------------//
+  // Resolver Methods
+
+  /**
+   * Returns the absolute path to the entry file
+   */
+  public async absolute() {
+    const loader = this.server.loader;
+    return await loader.absolute(this.entry);
+  }
+
+  /**
+   * Imports the page component to runtime
+   */
+  public async importPage() {
+    const entry = this.server.production 
+      ? path.join(this.server.paths.page, `${this.id}.js`)
+      : this.entry;
+    return this.server.import<DocumentImport>(entry);
+  }
+
+  /**
+   * Changes the entry path to a relative file path
+   * 
+   * Entry path formats:
+   * - @/path/to/file
+   * - module/path/to/file
+   */
+  public async relative(fromFile: string) {
+    if (this.entry.startsWith(`@${path.sep}`)) {
+      const absolute = await this.absolute();
+      return this.server.loader.relative(fromFile, absolute);
+    }
+    return this.entry;
+  }
+
+  /**
+   * Creates an in memory file string url
+   */
+  protected async _getImfsURL(name: string, template: string) {
+    //get absolute file path
+    const source = await this.absolute();
+    //calculate file path relative to the page file
+    const file = `${source}.${name}.tsx`;
+    //now make the entry file relative to the root entry file
+    const relative = await this.relative(file);
+    //add the relative entry to the document script
+    const code = template.replaceAll('{entry}', relative);
+    //convert to data url
+    const data = Buffer.from(code).toString('base64');
+    return `imfs:text/typescript;base64,${data};${file}`;
+  }
+
+  //------------------------------------------------------------------//
+  // Build Methods
+
   /**
    * Returns the final client entry 
    * source code (js) and assets
    */
-  async getAssets(plugins: PluginOption[] = []) {
+  async getAssets() {
+    //get the client script template (tsx)
+    const pageScript = this.server.templates.page;
+    //add the relative entry to the document script
+    const code = pageScript.replace('{styles}', '[]');
+    //make in memory file string url
+    const url = await this._getImfsURL('assets', code);
     //make the asset build options
-    const config = await this._getAssetBuildOptions(plugins);
+    const config = await this._getAssetBuildOptions(url);
     //now really build the page
     const results = await this.server.build(config) as RollupOutput;
 
@@ -57,42 +118,141 @@ export default class Document {
    * Returns the final client entry 
    * source code (js) and assets
    */
-  async getClient(plugins: PluginOption[] = []) {
-    //calculate file path relative to the page file
-    const file = `${await this.source()}.client.tsx`;
-    //now make the entry file relative to the root entry file
-    const relative = await this._entryToRelativeFile(file);
+  async getClient() {
     //get the client script template (tsx)
-    const clientScript = this.server.templates.client;
-    //add the relative entry to the document script
-    const code = clientScript.replace('{entry}', relative);
-    //convert to data url
-    const data = Buffer.from(code).toString('base64');
-    const url = `imfs:text/typescript;base64,${data};${file}`;
+    const template = this.server.templates.client;
+    //make in memory file string url
+    const url = await this._getImfsURL('client', template);
     //make the client build options
-    const config = this._getClientBuildOptions(url, plugins);
+    const config = await this._getClientBuildOptions(url);
     //now really build the client
     const results = await this.server.build(config) as RollupOutput;
     return results.output;
   }
 
   /**
+   * Returns the final page component source code (js)
+   */
+  async getPage(assets?: BuildResults) {
+    //if assets are not provided, build for them
+    assets = assets || await this.getAssets();
+    //only get the style file names
+    //ie. /assets/abc-123.css -> abc-123.css
+    const styles = assets
+      .filter(asset => asset.type === 'asset')
+      .filter(asset => asset.fileName.startsWith('assets/'))
+      .filter(asset => path.extname(asset.fileName) === '.css')
+      .map(asset => asset.fileName.substring(7));
+    //get the client script template (tsx)
+    const pageScript = this.server.templates.page;
+    //add the relative entry to the document script
+    const code = pageScript.replace('{styles}', JSON.stringify(styles));
+    //make in memory file string url
+    const url = await this._getImfsURL('page', code);
+    //make the page build options
+    const config = await this._getPageBuildOptions(url);
+    //now really build the page
+    const results = await this.server.build(config) as RollupOutput;
+    return results.output;
+  }
+
+  /**
+   * Generates the client build options
+   */
+  protected async _getAssetBuildOptions(url: string) {
+    return {
+      configFile: false,
+      //this is used to resolve node modules
+      root: this.server.loader.cwd,
+      plugins: await this.server.plugins(),
+      build: {
+        //Prevents writing to disk
+        write: false, 
+        rollupOptions: {
+          input: url,
+          output: {
+            format: 'es',
+            entryFileNames: '[name].js',
+          }
+        }
+      }
+    } as ViteConfig;
+  }
+
+  /**
+   * Generates the client build options
+   */
+  protected async _getClientBuildOptions(url: string) {
+    return {
+      configFile: false,
+      //this is used to resolve node modules
+      root: this.server.loader.cwd,
+      plugins: await this.server.plugins(),
+      build: {
+        //Prevents writing to disk
+        write: false, 
+        rollupOptions: {
+          input: url,
+          output: {
+            format: 'es',
+            entryFileNames: '[name].js',
+          }
+        }
+      }
+    } as ViteConfig;
+  }
+
+  /**
+   * Generates the client build options
+   */
+  protected async _getPageBuildOptions(url: string) {
+    return {
+      configFile: false,
+      //this is used to resolve node modules
+      root: this.server.loader.cwd,
+      plugins: await this.server.plugins(),
+      build: {
+        //Prevents writing to disk
+        write: false, 
+        //dont minify yet..
+        //minify: false, 
+        rollupOptions: {
+          // 🔥 Preserve all exports
+          preserveEntrySignatures: 'exports-only', 
+          input: url,
+          // Do not bundle React
+          external: [ 'react', 'react-dom', 'react/jsx-runtime' ],
+          output: {
+            // Ensures ES module output
+            format: 'es', 
+            // Preserves output structure
+            entryFileNames: '[name].js', 
+            // Ensures named exports are available
+            exports: 'named', 
+            globals: {
+              react: 'React',
+              'react-dom': 'ReactDOM',
+              'react/jsx-runtime': 'jsxRuntime'
+            }
+          }
+        }
+      }
+    } as ViteConfig;
+  }
+
+  //------------------------------------------------------------------//
+  // Server Methods
+
+  /**
    * Returns the client entry for HMR (js)
    */
-  async getHMR() {
+  async getHMRClient() {
     //for development and build modes
     const dev = await this.server.dev();
-    //calculate file path relative to the page file
-    const file = `${await this.source()}.entry.tsx`;
-    //now make the entry file relative to the root entry file
-    const relative = await this._entryToRelativeFile(file);
     //get the client script template (tsx)
-    const clientScript = this.server.templates.client;
-    //add the relative entry to the document script
-    const code = clientScript.replace('{entry}', relative);
-    //convert to data url
-    const data = Buffer.from(code).toString('base64');
-    const url = `imfs:text/typescript;base64,${data};${file}`;
+    const template = this.server.templates.client;
+    //make in memory file string url
+    const url = await this._getImfsURL('hmr', template);
     //then let vite transform the file to js
     const results = await dev.transformRequest(url, { ssr: false });
     if (results === null) {
@@ -111,151 +271,11 @@ export default class Document {
   }
 
   /**
-   * Returns the final page component source code (js)
-   */
-  async getPage(plugins: PluginOption[] = [], assets?: BuildResults) {
-    //if assets are not provided, build for them
-    assets = assets || await this.getAssets(plugins);
-    //only get the style file names
-    //ie. /assets/abc-123.css -> abc-123.css
-    const styles = assets
-      .filter(asset => asset.type === 'asset')
-      .filter(asset => asset.fileName.startsWith('assets/'))
-      .filter(asset => path.extname(asset.fileName) === '.css')
-      .map(asset => asset.fileName.substring(7));
-    //calculate file path relative to the page file
-    const file = `${await this.source()}.page.tsx`;
-    //now make the entry file relative to the root entry file
-    const relative = await this._entryToRelativeFile(file);
-    //get the client script template (tsx)
-    const pageScript = this.server.templates.page;
-    //add the relative entry to the document script
-    const code = pageScript
-      .replace('{entry}', relative)
-      .replace('{entry}', relative)
-      .replace('{styles}', JSON.stringify(styles));
-    //convert to data url
-    const data = Buffer.from(code).toString('base64');
-    const url = `imfs:text/typescript;base64,${data};${file}`;
-    //make the page build options
-    const config = this._getPageBuildOptions(url, plugins);
-    //now really build the page
-    const results = await this.server.build(config) as RollupOutput;
-    return results.output;
-  }
-
-  /**
-   * Imports the page component to runtime
-   */
-  async importPage() {
-    return this.server.production 
-      ? await this._importPage()
-      : await this._importDevPage();
-  }
-
-  /**
-   * Returns true if entry is a node module entry
-   */
-  public async isModule() {
-    const source = await this.source();
-    return source.includes('node_modules');
-  }
-
-  /**
-   * Returns the absolute filepath to the entry file
-   * Throws an Exception if the file is not found
-   */
-  public async resolve(extnames = [ '.js', '.tsx' ]) {
-    const loader = this.server.loader;
-    const filepath = await loader.resolveFile(
-      this.entry, 
-      extnames,
-      loader.cwd,
-      //throw if not found
-      true
-    ) as string;
-    const basepath = loader.basepath(filepath);
-    const extname = path.extname(filepath);
-    return { filepath, basepath, extname };
-  }
-
-  /**
-   * Returns the absolute path to the entry file
-   */
-  public async source() {
-    const loader = this.server.loader;
-    return await loader.absolute(this.entry);
-  }
-
-  /**
-   * Changes the entry path to a relative file path
-   * 
-   * Entry path formats:
-   * - @/path/to/file
-   * - module/path/to/file
-   */
-  protected async _entryToRelativeFile(fromFile: string) {
-    if (this.entry.startsWith(`@${path.sep}`)) {
-      const absolute = await this.source();
-      return this.server.loader.relative(fromFile, absolute);
-    }
-    return this.entry;
-  }
-
-  /**
-   * Generates the client build options
-   */
-  protected async _getAssetBuildOptions(plugins: PluginOption[]) {
-    return {
-      configFile: false,
-      //this is used to resolve node modules
-      root: this.server.loader.cwd,
-      plugins,
-      build: {
-        //Prevents writing to disk
-        write: false, 
-        rollupOptions: {
-          input: await this.source(),
-          output: {
-            format: 'es',
-            entryFileNames: '[name].js',
-          }
-        }
-      }
-    } as ViteConfig;
-  }
-
-  /**
-   * Generates the client build options
-   */
-  protected _getClientBuildOptions(url: string, plugins: PluginOption[]) {
-    return {
-      configFile: false,
-      //this is used to resolve node modules
-      root: this.server.loader.cwd,
-      plugins,
-      build: {
-        //Prevents writing to disk
-        write: false, 
-        rollupOptions: {
-          input: url,
-          output: {
-            //Ensures ES module output
-            format: 'es',
-            //Preserves output structure
-            entryFileNames: '[name].js',
-          }
-        }
-      }
-    } as ViteConfig;
-  }
-
-  /**
    * Returns the document markup for dev mode
    */
   protected async _getDevMarkup(props: UnknownNest = {}) {
     //import the page
-    const document = await this._importDevPage();
+    const document = await this.importPage();
     //get the document script template (tsx)
     const documentTemplate = this.server.templates.document;
     //for development and build modes
@@ -289,7 +309,7 @@ export default class Document {
    */
   protected async _getMarkup(props: UnknownNest = {}) {
     //import the page
-    const document = await this._importPage();
+    const document = await this.importPage();
     //get the document script template (tsx)
     const documentTemplate = this.server.templates.document;
     //determine the client route
@@ -311,74 +331,6 @@ export default class Document {
       .replace(`<!--document-body-->`, body ?? '')
       .replace(`<!--document-props-->`, JSON.stringify(props))
       .replace(`<!--document-client-->`, clientRoute);
-  }
-
-  /**
-   * Generates the client build options
-   */
-  protected _getPageBuildOptions(url: string, plugins: PluginOption[]) {
-    return {
-      configFile: false,
-      //this is used to resolve node modules
-      root: this.server.loader.cwd,
-      plugins,
-      build: {
-        //Prevents writing to disk
-        write: false, 
-        //dont minify yet..
-        //minify: false, 
-        rollupOptions: {
-          // 🔥 Preserve all exports
-          preserveEntrySignatures: 'exports-only', 
-          input: url,
-          // Do not bundle React
-          external: [ 'react', 'react-dom', 'react/jsx-runtime' ],
-          output: {
-            // Ensures ES module output
-            format: 'es', 
-            // Preserves output structure
-            entryFileNames: '[name].js', 
-            // Ensures named exports are available
-            exports: 'named', 
-            globals: {
-              react: 'React',
-              'react-dom': 'ReactDOM',
-              'react/jsx-runtime': 'jsxRuntime'
-            }
-          }
-        }
-      }
-    } as ViteConfig;
-  }
-
-  /**
-   * Imports the page component to runtime for dev mode
-   */
-  protected async _importDevPage() {
-    //for development and build modes
-    const dev = await this.server.dev();
-    //determine the server entry file name (page.tsx)
-    const { filepath, extname } = await this.resolve();
-    if (extname === '.js') {
-      //use native import to load the document export
-      return await import(filepath) as DocumentImport;
-    }
-    //use dev server to load the document export
-    return await dev.ssrLoadModule(
-      `file://${filepath}`
-    ) as DocumentImport;
-  }
-
-  /**
-   * Imports the page component to runtime
-   */
-  protected async _importPage() {
-    //get the page path
-    const pagePath = this.server.paths.page;
-    //determine the page file name
-    const file = path.join(pagePath, `${this.id}.js`);
-    //use native import to load the page export
-    return await import(file) as DocumentImport;
   }
 
   /**
