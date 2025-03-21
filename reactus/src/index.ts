@@ -202,14 +202,14 @@ export function dev(options: Partial<DevelopConfig>) {
     /**
      * Returns the client entry for HMR (js)
      */
-    renderHMRClient: (entry: string) => server.manifest.set(entry).then(
+    renderHMR: (entry: string) => server.manifest.set(entry).then(
       document => document.render.renderHMRClient()
     ),
     
     /**
      * Returns the final document markup (html)
      */
-    renderMarkup: (
+    render: (
       entry: string, 
       props: UnknownNest = {}
     ) => server.manifest.set(entry).then(
@@ -275,7 +275,7 @@ export function build(options: Partial<BuildConfig>) {
     /**
      * Builds and saves the client entries from all the documents
      */
-    buildAllClient: () => builder.buildClient(),
+    buildAllClients: () => builder.buildClient(),
 
     /**
      * Builds and saves the pages scripts from all the documents
@@ -447,7 +447,7 @@ export function serve(options: Partial<ProductionConfig>) {
     /**
      * Returns the final document markup (html)
      */
-    renderMarkup: (
+    render: (
       entry: string, 
       props: UnknownNest = {}
     ) => server.manifest.set(entry).then(
@@ -553,7 +553,7 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Builds and saves the client entries from all the documents
      */
-    buildAllClient: () => builder.buildClient(),
+    buildAllClients: () => builder.buildClient(),
 
     /**
      * Builds and saves the pages scripts from all the documents
@@ -692,14 +692,14 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Returns the client entry for HMR (js)
      */
-    renderHMRClient: (entry: string) => builder.manifest.set(entry).then(
+    renderHMR: (entry: string) => builder.manifest.set(entry).then(
       document => document.render.renderHMRClient()
     ),
     
     /**
      * Returns the final document markup (html)
      */
-    renderMarkup: (
+    render: (
       entry: string, 
       props: UnknownNest = {}
     ) => builder.manifest.set(entry).then(

@@ -35,20 +35,20 @@ async function start() {
     // home page
     if (req.url === '/') {
       res.setHeader('Content-Type', 'text/html');
-      res.end(await engine.getMarkup('@/pages/home'));
+      res.end(await engine.render('@/pages/home'));
       return;
     //about page
     } else if (req.url === '/about') {
       res.setHeader('Content-Type', 'text/html');
-      res.end(await engine.getMarkup('@/pages/about'));
+      res.end(await engine.render('@/pages/about'));
       return;
     } else if (req.url === '/contact') {
       res.setHeader('Content-Type', 'text/html');
-      res.end(await engine.getMarkup('reactus-with-plugin/pages/contact'));
+      res.end(await engine.render('reactus-with-plugin/pages/contact'));
       return;
     } else if (req.url === '/how') {
       res.setHeader('Content-Type', 'text/html');
-      res.end(await engine.getMarkup('reactus-with-plugin/pages/how'));
+      res.end(await engine.render('reactus-with-plugin/pages/how'));
       return;
     }
     //static asset server

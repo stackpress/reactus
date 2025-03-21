@@ -18,15 +18,15 @@ async function develop() {
     pagePath: path.join(cwd, '.build/pages')
   });
   
-  await engine.add('@/pages/home');
-  await engine.add('@/pages/about');
-  await engine.add('reactus-with-plugin/pages/how');
-  await engine.add('reactus-with-plugin/pages/contact');
+  await engine.set('@/pages/home');
+  await engine.set('@/pages/about');
+  await engine.set('reactus-with-plugin/pages/how');
+  await engine.set('reactus-with-plugin/pages/contact');
 
   const responses = [
-    ...await engine.buildClient(),
-    ...await engine.buildAssets(),
-    ...await engine.buildPages()
+    ...await engine.buildAllClients(),
+    ...await engine.buildAllAssets(),
+    ...await engine.buildAllPages()
   ].map(response => {
     const results = response.results;
     if (typeof results?.contents === 'string') {
