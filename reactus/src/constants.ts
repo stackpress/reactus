@@ -18,6 +18,10 @@ export const DOCUMENT_TEMPLATE = `
 </html>
 `.trim();
 
+export const STYLE_TEMPLATE = `
+:root { display: initial; }
+`.trim();
+
 export const PAGE_TEMPLATE = `
 import Body from '{entry}';
 export * from '{entry}';

@@ -2,11 +2,11 @@
 import path from 'node:path';
 //local
 import type { BuildStatus } from './types';
-import Manifest from './Manifest';
+import Server from './Server';
 import Exception from './Exception';
 import { writeFile } from './helpers';
 
-export default class Builder extends Manifest {
+export default class Builder extends Server {
   /**
    * Builds and saves the assets used from all the documents
    */
@@ -14,9 +14,9 @@ export default class Builder extends Manifest {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents
-    for (const document of this.values()) {
+    for (const document of this.manifest.values()) {
       //this gives the page component source code (js) and assets
-      const page = await document.getAssets();
+      const page = await document.builder.buildAssets();
       //if the output is not an array
       if (!Array.isArray(page)) {
         //push an error
@@ -69,9 +69,9 @@ export default class Builder extends Manifest {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents
-    for (const document of this.values()) {
+    for (const document of this.manifest.values()) {
       //this just gives the entry code (js) (chunk)
-      const client = await document.getClient();
+      const client = await document.builder.buildClient();
       //if the output is not an array
       if (!Array.isArray(client)) {
         //push an error
@@ -101,7 +101,7 @@ export default class Builder extends Manifest {
       );
       //write the file to disk
       await writeFile(file, chunk.code);
-      const absolute = await document.absolute();
+      const absolute = await document.loader.absolute();
       //push the result
       results.push({
         code: 200,
@@ -127,9 +127,9 @@ export default class Builder extends Manifest {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents
-    for (const document of this.values()) {
+    for (const document of this.manifest.values()) {
       //this gives the page component source code (js) and assets
-      const page = await document.getPage();
+      const page = await document.builder.buildPage();
       //if the output is not an array
       if (!Array.isArray(page)) {
         //push an error
@@ -159,7 +159,7 @@ export default class Builder extends Manifest {
       );
       //write the file to disk
       await writeFile(file, chunk.code);
-      const absolute = await document.absolute();
+      const absolute = await document.loader.absolute();
       //push the result
       results.push({
         code: 200,

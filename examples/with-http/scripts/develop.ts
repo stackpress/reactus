@@ -12,13 +12,12 @@ async function develop() {
     basePath: '/',
     plugins: [ tailwindcss() ],
     watchIgnore: [ '**/.build/**' ],
-    globalCSS: '',
-    globalHead: '',
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
-    clientRoute: '/client'
+    clientRoute: '/client',
+    styleTemplate: `@import "tailwindcss";\n\n:root { display: initial; }`
   });
 
   const server = createServer(async (req, res) => {

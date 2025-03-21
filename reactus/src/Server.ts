@@ -1,20 +1,20 @@
 //node
 import path from 'node:path';
-//modules
-import type { ElementType } from 'react';
-import type { ViteDevServer, PluginOption } from 'vite';
 //stackpress
-import FileLoader from '@stackpress/lib/FileLoader';
 import NodeFS from '@stackpress/lib/NodeFS';
+//server
+import ServerLoader from './server/Loader';
+import ServerManifest from './server/Manifest';
+import ServerResource from './server/Resource';
+import VirtualServer from './server/Virtual';
 //local
-import type { IM, SR, ViteConfig, ServerConfig } from './types';
-import Exception from './Exception';
+import type { IM, SR, ServerConfig } from './types';
 import { 
   PAGE_TEMPLATE,
   CLIENT_TEMPLATE, 
-  DOCUMENT_TEMPLATE 
+  DOCUMENT_TEMPLATE,
+  STYLE_TEMPLATE
 } from './constants';
-import { imfs, loader } from './helpers';
 
 export default class Server {
   /**
@@ -48,10 +48,6 @@ export default class Server {
       documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
       //file system
       fs: options.fs || new NodeFS(),
-      //global head component path
-      globalHead: options.globalHead,
-      //global css file path
-      globalCSS: options.globalCSS,
       //path where to save and load (live) the server script (js)
       // - used in build step and live server
       pagePath: options.pagePath || path.join(cwd, '.reactus/page'),
@@ -70,6 +66,8 @@ export default class Server {
       //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
       // - used in live server
       styleRoute: options.styleRoute || '/assets',
+      //template wrapper for the styles (css)
+      styleTemplate: options.styleTemplate || STYLE_TEMPLATE,
       //original vite options (overrides other settings related to vite)
       vite: options.vite,
       //ignore files in watch mode
@@ -78,33 +76,23 @@ export default class Server {
     });
   }
 
-  //file loader
-  public readonly loader: FileLoader;
+  //server file loader
+  public readonly loader: ServerLoader;
+  //server manifest
+  public readonly manifest: ServerManifest;
+  //server resource
+  public readonly resource: ServerResource;
   //directs resolvers and markup generator
   public readonly production: boolean;
-  //vite plugins
-  protected _plugins: PluginOption[];
-  //cached vite dev server
-  protected _dev: ViteDevServer|null = null;
-  //global components and styles
-  protected _globals: {
-    //global head component
-    head?: ElementType|null,
-    //global styles
-    styles?: string|null
-  } = {};
-  //watch ignore patterns
-  protected _ignore: string[];
+  //virtual file system
+  public readonly vfs = new VirtualServer();
+
   //build paths
   protected _paths: {
     //path where to save assets (css, images, etc)
     asset: string,
-    //base path (used in vite)
-    base: string,
     //location to where to put the final client scripts (js)
     client: string,
-    //global css file path
-    css?: string
     //global head component path
     head?: string,
     //location to where to put the final page script (js)
@@ -124,10 +112,10 @@ export default class Server {
     //template wrapper for the document markup (html)
     document: string,
     //template wrapper for the page script (tsx)
-    page: string
+    page: string,
+    //template wrapper for the page script (css)
+    style?: string
   };
-  //configuration for vite
-  protected _viteConfig?: ViteConfig;
 
   /**
    * Returns the paths
@@ -151,23 +139,32 @@ export default class Server {
   }
 
   /**
-   * Returns the vite configuration
-   */
-  public get viteConfig() {
-    return this._viteConfig ? Object.freeze(this._viteConfig): null;
-  }
-
-  /**
    * Sets the templates and vite configuration
    */
   constructor(config: ServerConfig) {
-    const { fs = new NodeFS(), cwd = process.cwd() } = config;
-    this.loader = new FileLoader(fs, cwd);
+    const cwd = config.cwd || process.cwd();
     this.production = config.production;
-    this._plugins = config.plugins;
-    this._viteConfig = config.vite;
-    //watch ignore patterns
-    this._ignore = config.watchIgnore || [];
+    this.manifest = new ServerManifest(this);
+    this.resource = new ServerResource(this, {
+      //base path (used in vite)
+      // - used in dev mode
+      basePath: config.basePath,
+      //original vite options (overrides other settings related to vite)
+      config: config.vite,
+      //current working directory
+      cwd: cwd,
+      //vite plugins
+      plugins: config.plugins,
+      //ignore files in watch mode
+      // - used in dev mode
+      watchIgnore: config.watchIgnore
+    });
+    this.loader = new ServerLoader({ 
+      fs: config.fs, 
+      cwd: cwd, 
+      resource: this.resource, 
+      production: this.production 
+    });
     //build paths
     this._routes = {
       //style route prefix used in the document markup
@@ -179,14 +176,8 @@ export default class Server {
     this._paths = {
       //path where to save assets (css, images, etc)
       asset: config.assetPath,
-      //base path (used in vite)
-      base: config.basePath,
       //location to where to put the final client scripts (js)
       client: config.clientPath,
-      //global css file path
-      css: config.globalCSS,
-      //global head component path
-      head: config.globalHead,
       //location to where to put the final page script (js)
       page: config.pagePath
     };
@@ -197,164 +188,17 @@ export default class Server {
       //template wrapper for the document markup (html)
       document: config.documentTemplate,
       //template wrapper for the page script (tsx)
-      page: config.pageTemplate
+      page: config.pageTemplate,
+      //template wrapper for the page script (css)
+      style: config.styleTemplate
     };
-  }
-
-  /**
-   * Tries to return the vite build callback
-   */
-  public async build(config: ViteConfig) {
-    //rely on import cache
-    const { build } = await import('vite');
-    //shallow copy the vite config
-    const settings = { ...config }; 
-    //organize plugins
-    settings.plugins = await this.plugins();
-    //vite build now
-    return build({ logLevel: 'silent', ...settings });
-  }
-
-  /**
-   * Tries to return the vite dev server
-   */
-  public async dev() {
-    if (this.production) {
-      throw new Exception('Cannot run dev server in production mode');
-    } else if (!this._dev) {
-      this._dev = await this._createServer();
-    }
-    return this._dev;
-  }
-  
-  /**
-   * Imports a URL using the dev server
-   */
-  public async fetch<T = any>(url: string) {
-    //for development and build modes
-    const dev = await this.dev();
-    //use dev server to load the document export
-    return await dev.ssrLoadModule(url) as T;
-  }
-
-  /**
-   * Returns the global head component
-   */
-  public async head() {
-    if (!this._globals.head) {
-      this._globals.head = null;
-      if (typeof this._paths.head === 'string') {
-        const head = await this.import<{ default: ElementType }>(
-          this._paths.head
-        );
-        this._globals.head = head.default || null;
-      }
-    }
-    return this._globals.head;
   }
 
   /**
    * HTTP middleware
    */
   public async http(req: IM, res: SR) {
-    const middlewares = await this.middlewares();
+    const middlewares = await this.resource.middlewares();
     return await new Promise(r => middlewares(req, res, r));
-  }
-  
-  /**
-   * Imports the page component to runtime for dev mode
-   */
-  public async import<T = any>(
-    pathname: string,
-    extnames = [ '.js', '.tsx' ]
-  ) {
-    //determine the page file name
-    const meta = await this.resolve(pathname, extnames);
-    if (this.production || meta.extname === '.js') {
-      //use native import to load the module
-      return await import(meta.filepath) as T;
-    }
-    //use dev server to load the module
-    return await this.fetch(`file://${meta.filepath}`) as T;
-  }
-
-  /**
-   * Returns the middleware stack
-   */
-  public async middlewares() {
-    const dev = await this.dev();
-    return dev.middlewares;
-  }
-
-  /**
-   * Returns the default vite plugins
-   */
-  public async plugins() {
-    //add react plugin
-    const react = await import('@vitejs/plugin-react');
-    //add the imfs plugin
-    return [ 
-      imfs(), 
-      loader(this.loader), 
-      react.default(),
-      ...this._plugins 
-    ];
-  }
-
-  /**
-   * Returns the absolute filepath to the entry file
-   * Throws an Exception if the file is not found
-   */
-  public async resolve(pathname: string, extnames = [ '.js', '.tsx' ]) {
-    const loader = this.loader;
-    const filepath = await loader.resolveFile(
-      pathname, 
-      extnames,
-      loader.cwd,
-      //throw if not found
-      true
-    ) as string;
-    const basepath = loader.basepath(filepath);
-    const extname = path.extname(filepath);
-    return { filepath, basepath, extname };
-  }
-
-  /**
-   * Returns the global styles
-   */
-  public async styles() {
-    if (!this._globals.styles) {
-      this._globals.styles = null;
-      if (typeof this._paths.css === 'string') {
-        this._globals.styles = await this.loader.fs.readFile(
-          this._paths.css, 
-          'utf8'
-        );
-      }
-    }
-    return this._globals.styles;
-  }
-
-  /**
-   * Create vite dev server logic
-   */
-  protected async _createServer() {
-    const vite = this._viteConfig || {
-      server: { 
-        middlewareMode: true,
-        watch: {  ignored: this._ignore }
-      },
-      appType: 'custom',
-      base: this.paths.base,
-      root: this.loader.cwd,
-      mode: 'development'
-    };
-    const { createServer } = await import('vite');
-    //shallow copy the vite config
-    const config = { ...vite }; 
-    //organize plugins
-    config.plugins = await this.plugins();
-    //create the vite resource
-    return await createServer(config);
   }
 }

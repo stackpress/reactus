@@ -46,6 +46,7 @@ export type DocumentIterator<T = unknown> = (
 
 export type IM = IncomingMessage;
 export type SR = ServerResponse<IM>;
+export type Next = () => void;
 
 export type ViteConfig = InlineConfig;
 
@@ -65,12 +66,10 @@ export type DevelopConfig = {
   documentTemplate: string,
   //file system
   fs?: FileSystem,
-  //global head component path
-  globalHead?: string,
-  //global css file path
-  globalCSS?: string,
   //vite plugins
   plugins: PluginOption[],
+  //template wrapper for the styles (css)
+  styleTemplate: string,
   //original vite options (overrides other settings related to vite)
   vite?: ViteConfig,
   //ignore files in watch mode
@@ -95,7 +94,9 @@ export type BuildConfig = {
   //template wrapper for the page script (tsx)
   pageTemplate: string,
   //vite plugins
-  plugins: PluginOption[]
+  plugins: PluginOption[],
+  //template wrapper for the styles (css)
+  styleTemplate: string
 };
 
 export type ProductionConfig = {
@@ -110,10 +111,6 @@ export type ProductionConfig = {
   documentTemplate: string,
   //file system
   fs?: FileSystem,
-  //global head component path
-  globalHead?: string,
-  //global css file path
-  globalCSS?: string,
   //path where to save and load (live) the server script (js)
   pagePath: string,
   //template wrapper for the page script (tsx)
@@ -152,10 +149,6 @@ export type ServerConfig = {
   documentTemplate: string,
   //file system
   fs?: FileSystem,
-  //global head component path
-  globalHead?: string,
-  //global css file path
-  globalCSS?: string,
   //path where to save and load (live) the server script (js)
   // - used in build step and live server
   pagePath: string,
@@ -172,6 +165,9 @@ export type ServerConfig = {
   //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
   // - used in live server
   styleRoute: string,
+  //template wrapper for the styles (css)
+  // - used in dev mode and build step
+  styleTemplate: string,
   //original vite options (overrides other settings related to vite)
   vite?: ViteConfig,
   //ignore files in watch mode

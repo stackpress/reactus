@@ -1,16 +1,18 @@
 //node
 import fs from 'node:fs/promises';
 import path from 'node:path';
-//local
-import type { DocumentIterator } from './types';
-import Server from './Server';
-import Document from './Document';
-import Exception from './Exception';
-import { writeFile } from './helpers';
+//common
+import type { DocumentIterator } from '../types';
+import Exception from '../Exception';
+import Document from '../Document';
+import Server from '../Server';
+import { writeFile } from '../helpers';
 
-export default class Manifest extends Server {
+export default class ServerManifest {
   //document map
-  public readonly documents = new Set<Document>();
+  public readonly documents = new Map<string, Document>();
+  //parent server
+  protected _server: Server;
 
   /**
    * Returns the size of the manifest
@@ -20,13 +22,20 @@ export default class Manifest extends Server {
   }
 
   /**
+   * Sets the server parent
+   */
+  constructor(server: Server) {
+    this._server = server;
+  }
+
+  /**
    * Create a new document
    */
-  public async add(entry: string) {
+  public async set(entry: string) {
     entry = await this._toEntryPath(entry);
     if (!(await this.has(entry))) {
-      const document = new Document(entry, this);
-      this.documents.add(document);
+      const document = new Document(entry, this._server);
+      this.documents.set(entry, document);
     }
     return (await this.get(entry)) as Document;
   }
@@ -69,12 +78,13 @@ export default class Manifest extends Server {
   }
 
   /**
-   * Loads the manifest from disk
+   * Sets the manifest from hash
    */
-  public async load(file: string) {
-    const json = await fs.readFile(file, 'utf8');
-    const hash = JSON.parse(json) as Record<string, string>;
-    return this.set(hash);
+  public load(hash: Record<string, string>) {
+    for (const entry of Object.values(hash)) {
+      this.set(entry);
+    }
+    return this;
   }
 
   /**
@@ -85,22 +95,21 @@ export default class Manifest extends Server {
   }
 
   /**
+   * Loads the manifest from disk
+   */
+  public async open(file: string) {
+    const json = await fs.readFile(file, 'utf8');
+    const hash = JSON.parse(json) as Record<string, string>;
+    return this.load(hash);
+  }
+
+  /**
    * Saves the manifest to disk
    */
   public async save(file: string) {
     const hash = this.toJSON();
     const json = JSON.stringify(hash, null, 2);
     await writeFile(file, json);
-    return this;
-  }
-
-  /**
-   * Sets the manifest from hash
-   */
-  public set(hash: Record<string, string>) {
-    for (const entry of Object.values(hash)) {
-      this.add(entry);
-    }
     return this;
   }
 
@@ -118,44 +127,6 @@ export default class Manifest extends Server {
    */
   public values() {
     return Array.from(this.documents.values());
-  }
-
-  /**
-   * Create vite dev server logic
-   */
-  protected async _createServer() {
-    const server = await super._createServer();
-    //add client asset middleware
-    server.middlewares.use(async (req, res, next) => {
-      //if no url
-      if (!req.url 
-        //or request is not for client assets
-        || !req.url.startsWith(this._routes.client) 
-        //or not a tsx request
-        || !req.url.endsWith('.tsx') 
-        //or response was already sent
-        || res.headersSent
-      ) {
-        //skip
-        next();
-        return;
-      }
-      //example url: /client/abc-123.tsx
-      const id = req.url.slice(8, -4);
-      const document = this.find(id);
-      if (document) {
-        const client = await document.getHMRClient();
-        if (client) {
-          res.setHeader('Content-Type', 'text/javascript');
-          res.end(client);
-          return;
-        }
-      }
-      //nothing caught
-      next();
-    });
-
-    return server;
   }
 
   /**
@@ -191,13 +162,14 @@ export default class Manifest extends Server {
     if (entry.startsWith(`@${path.sep}`)) {
       return entry;
     }
+    const loader = this._server.loader;
     //make it an absolute path
-    entry = await this.loader.absolute(entry);
+    entry = await loader.absolute(entry);
     //if the entry is a root of the project
     //ie. /path/to/project/file
-    if (entry.startsWith(this.loader.cwd)) {
+    if (entry.startsWith(loader.cwd)) {
       //ie. @/file
-      return entry.replace(this.loader.cwd, '@');
+      return entry.replace(loader.cwd, '@');
     }
     //it's not valid
     throw new Exception(`Invalid entry file: ${original}`);
