@@ -6,9 +6,19 @@
   ],
   "scripts": {
     "build": "yarn --cwd reactus build",
+  
     "http:build": "yarn --cwd examples/with-http build",
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
+
+    "tailwind:build": "yarn --cwd examples/with-tailwind build",
+    "tailwind:dev": "yarn --cwd examples/with-tailwind dev",
+    "tailwind:start": "yarn --cwd examples/with-tailwind start",
+
+    "uno:build": "yarn --cwd examples/with-unocss build",
+    "uno:dev": "yarn --cwd examples/with-unocss dev",
+    "uno:start": "yarn --cwd examples/with-unocss start",
+
     "report": "nyc yarn test && nyc report -r lcov",
     "test": "yarn --cwd reactus test"
   },

@@ -19,11 +19,11 @@ async function start() {
     clientRoute: '/client',
     //path where to load the server script (js)
     pagePath: path.join(cwd, '.build/pages'),
-    //style route prefix used in the document markup
+    //css route prefix used in the document markup
     //ie. /assets/[id][extname]
     //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
     //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-    styleRoute: '/assets'
+    cssRoute: '/assets'
   });
   // Init `sirv` handler
   const assets = sirv(path.join(cwd, 'public'), {

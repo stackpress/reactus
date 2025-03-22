@@ -1,6 +1,8 @@
 //node
 import path from 'node:path';
 import { createServer } from 'node:http';
+//modules
+import UnoCSS from 'unocss/vite'
 //reactus
 import { dev } from 'reactus';
 
@@ -9,14 +11,14 @@ async function develop() {
   const engine = dev({
     cwd,
     basePath: '/',
-    plugins: [],
+    plugins: [ UnoCSS() ],
     watchIgnore: [ '**/.build/**' ],
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
-    cssFile: path.join(cwd, 'uno.css')
+    cssFile: 'virtual:uno.css'
   });
 
   const server = createServer(async (req, res) => {
