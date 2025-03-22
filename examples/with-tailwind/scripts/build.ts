@@ -20,6 +20,8 @@ async function develop() {
   
   await engine.set('@/pages/home');
   await engine.set('@/pages/about');
+  await engine.set('reactus-with-plugin/pages/how');
+  await engine.set('reactus-with-plugin/pages/contact');
 
   const responses = [
     ...await engine.buildAllClients(),

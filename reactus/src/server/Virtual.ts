@@ -1,8 +1,16 @@
+//stackpress
+import type { CallableMap } from '@stackpress/lib/types';
 import map from '@stackpress/lib/map';
+//common
+import { VFS_PROTOCOL } from '../constants';
 
 export default class VirtualServer {
   //virtual file system
-  public readonly fs = map();
+  public readonly fs: CallableMap<string, string>;
+
+  public constructor() {
+    this.fs = map();
+  }
 
   /**
    * Returns the contents of the file from the VFS
@@ -16,6 +24,13 @@ export default class VirtualServer {
   }
 
   /**
+   * Returns true if the file exists in the VFS
+   */
+  public has(filepath: string) {
+    return this.fs.has(filepath);
+  }
+
+  /**
    * Encodes the contents and saves it to the VFS
    */
   public set(filepath: string, contents: string) {
@@ -23,6 +38,6 @@ export default class VirtualServer {
     const data = Buffer.from(contents).toString('base64');
     //save to VFS
     this.fs.set(filepath, data);
-    return `vfs:${filepath}`;
+    return `${VFS_PROTOCOL}${filepath}`;
   }
 }

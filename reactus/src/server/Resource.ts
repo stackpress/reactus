@@ -100,14 +100,28 @@ export default class ServerResource {
   public async plugins() {
     //add react plugin
     const react = await import('@vitejs/plugin-react');
+    //add css?
+    const injectCSS = this._server.paths.css 
+      ? css(this._server.paths.css) 
+      : null;
     //add the imfs plugin
     return [ 
-      vfs(this._server.vfs.fs), 
+      injectCSS,
+      vfs(this._server.vfs), 
       file(this._server.loader), 
-      css(this._server.templates.style),
       react.default(),
-      ...this._plugins 
-    ];
+      ...this._plugins,
+    ] as PluginOption[];
+  }
+
+  /**
+   * returns true if tailwindcss is enabled
+   */
+  public async tailwindEnabled() {
+    const dev = await this.dev();
+    return !!dev.config.plugins.find(
+      plugin => plugin.name.startsWith('@tailwindcss/vite')
+    )
   }
 
   /**

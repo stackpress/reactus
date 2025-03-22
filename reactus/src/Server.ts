@@ -12,8 +12,7 @@ import type { IM, SR, ServerConfig } from './types';
 import { 
   PAGE_TEMPLATE,
   CLIENT_TEMPLATE, 
-  DOCUMENT_TEMPLATE,
-  STYLE_TEMPLATE
+  DOCUMENT_TEMPLATE
 } from './constants';
 
 export default class Server {
@@ -41,6 +40,15 @@ export default class Server {
       //template wrapper for the client script (tsx)
       // - used in dev mode and build step
       clientTemplate: options.clientTemplate || CLIENT_TEMPLATE,
+      //filepath to a global css file
+      // - used in dev mode and build step
+      cssFile: options.cssFile,
+      //style route prefix used in the document markup
+      //ie. /assets/[id][extname]
+      //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+      //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+      // - used in live server
+      cssRoute: options.cssRoute || '/assets',
       //current working directory
       cwd: options.cwd || process.cwd(),
       //template wrapper for the document markup (html)
@@ -60,14 +68,6 @@ export default class Server {
       production:  typeof options.production === 'boolean' 
         ? options.production 
         : true,
-      //style route prefix used in the document markup
-      //ie. /assets/[id][extname]
-      //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
-      //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-      // - used in live server
-      styleRoute: options.styleRoute || '/assets',
-      //template wrapper for the styles (css)
-      styleTemplate: options.styleTemplate || STYLE_TEMPLATE,
       //original vite options (overrides other settings related to vite)
       vite: options.vite,
       //ignore files in watch mode
@@ -85,14 +85,16 @@ export default class Server {
   //directs resolvers and markup generator
   public readonly production: boolean;
   //virtual file system
-  public readonly vfs = new VirtualServer();
-
+  public readonly vfs: VirtualServer;
+  
   //build paths
   protected _paths: {
     //path where to save assets (css, images, etc)
     asset: string,
     //location to where to put the final client scripts (js)
     client: string,
+    //filepath to a global css file
+    css?: string,
     //global head component path
     head?: string,
     //location to where to put the final page script (js)
@@ -100,10 +102,10 @@ export default class Server {
   };
   //route prefixes
   protected _routes: {
-    //style route prefix used in the document markup
-    style: string,
     //client route prefix used in the document markup
-    client: string
+    client: string,
+    //style route prefix used in the document markup
+    css: string
   };
   //template wrappers for the client, document, and server
   protected _templates: {
@@ -112,9 +114,7 @@ export default class Server {
     //template wrapper for the document markup (html)
     document: string,
     //template wrapper for the page script (tsx)
-    page: string,
-    //template wrapper for the page script (css)
-    style?: string
+    page: string
   };
 
   /**
@@ -143,6 +143,7 @@ export default class Server {
    */
   constructor(config: ServerConfig) {
     const cwd = config.cwd || process.cwd();
+    this.vfs = new VirtualServer();
     this.production = config.production;
     this.manifest = new ServerManifest(this);
     this.resource = new ServerResource(this, {
@@ -167,10 +168,10 @@ export default class Server {
     });
     //build paths
     this._routes = {
-      //style route prefix used in the document markup
-      style: config.styleRoute,
       //client route prefix used in the document markup
-      client: config.clientRoute
+      client: config.clientRoute,
+      //style route prefix used in the document markup
+      css: config.cssRoute
     };
     //route paths
     this._paths = {
@@ -178,6 +179,8 @@ export default class Server {
       asset: config.assetPath,
       //location to where to put the final client scripts (js)
       client: config.clientPath,
+      //filepath to a global css file
+      css: config.cssFile,
       //location to where to put the final page script (js)
       page: config.pagePath
     };
@@ -188,9 +191,7 @@ export default class Server {
       //template wrapper for the document markup (html)
       document: config.documentTemplate,
       //template wrapper for the page script (tsx)
-      page: config.pageTemplate,
-      //template wrapper for the page script (css)
-      style: config.styleTemplate
+      page: config.pageTemplate
     };
   }
 

@@ -1,6 +1,8 @@
 //node
 import path from 'node:path';
 import { createServer } from 'node:http';
+//modules
+//import tailwindcss from '@tailwindcss/vite';
 //reactus
 import { dev } from 'reactus';
 
@@ -9,7 +11,9 @@ async function develop() {
   const engine = dev({
     cwd,
     basePath: '/',
-    plugins: [],
+    plugins: [ 
+      //tailwindcss(),
+    ],
     watchIgnore: [ '**/.build/**' ],
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]
@@ -33,6 +37,14 @@ async function develop() {
     } else if (req.url === '/about') {
       res.setHeader('Content-Type', 'text/html');
       res.end(await engine.render('@/pages/about'));
+      return;
+    } else if (req.url === '/contact') {
+      res.setHeader('Content-Type', 'text/html');
+      res.end(await engine.render('reactus-with-plugin/pages/contact'));
+      return;
+    } else if (req.url === '/how') {
+      res.setHeader('Content-Type', 'text/html');
+      res.end(await engine.render('reactus-with-plugin/pages/how'));
       return;
     }
     res.end('404 Not Found');

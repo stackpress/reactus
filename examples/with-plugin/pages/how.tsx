@@ -19,7 +19,7 @@ export default function HowItWorksPage() {
   return (
     <>
       <h1>How It Works</h1>
-      <div className="p-4">
+      <div className="py-12">
         <Edit name="how" />
       </div>
     </>

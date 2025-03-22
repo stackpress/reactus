@@ -1,29 +1,29 @@
 //node
 import path from 'node:path';
-//stackpress
-import type { CallableMap } from '@stackpress/lib/types';
 //modules
-import type { ViteDevServer } from 'vite';
+import type { Plugin, ViteDevServer } from 'vite';
 //server
 import type ServerLoader from './server/Loader';
+import type VirtualServer from './server/Virtual';
 //local
 import type { IM, SR, Next } from './types';
 import type Server from './Server';
+import { VFS_PROTOCOL } from './constants';
 
-/**
- * css loader
- */
-export function css(styles?: string) {
-  return styles ? {
-    //resolves entry points from node_modules
-    name: 'reactus-css-loader',
-    async load(source: string) {
-      //`/foo/bar/.tailwind/${this.id}.css`
-      if (source.includes('.css/') && source.endsWith('.css')) {
-        return styles;
+export function css(cssFile: string) {
+  return {
+    name: 'reactus-inject-css',
+    enforce: 'pre', // Ensure this runs before other transforms
+    transform(code: string, id: string) {
+      // Only process TypeScript files
+      if (id.endsWith('.tsx')) {
+        // Inject the CSS import at the top of the file
+        const cssImport = `import '${cssFile}';\n`;
+        return cssImport + code;
       }
-    }
-  }: null;
+      return code;
+    },
+  } as Plugin;
 }
 
 /**
@@ -102,13 +102,13 @@ export function hmr(server: Server) {
 /**
  * Virtual file system
  */
-export function vfs(cache: CallableMap<string, string>) {
+export function vfs(vfs: VirtualServer) {
   return {
     //in memory file string
-    name: 'reactus-vfs-loader',
+    name: 'reactus-virtual-loader',
     configureServer(server: ViteDevServer) {
       server.watcher.on('change', filePath => {
-        if (filePath.startsWith('vfs:')) {
+        if (filePath.startsWith(VFS_PROTOCOL)) {
           const { ws, moduleGraph: graph } = server;
           const mod = graph.getModuleById(filePath);
           if (mod) {
@@ -120,17 +120,17 @@ export function vfs(cache: CallableMap<string, string>) {
     },
     resolveId(source: string, importer?: string) {
       //if source is an in memory file string
-      if (source.startsWith('vfs:')) {
+      if (source.startsWith(VFS_PROTOCOL)) {
         //let it load()
         return source; 
       //if importer is an in memory file string
-      } else if (importer?.startsWith('vfs:') 
+      } else if (importer?.startsWith(VFS_PROTOCOL) 
         //and source is a relative path
         && (source.startsWith('./') || source.startsWith('../'))
       ) {
         //vfs:/foo/bar.tsx
-        const file = importer.substring(4);
-        //resolve the source using the vfa file path
+        const file = importer.substring(VFS_PROTOCOL.length);
+        //resolve the source using the vfs file path
         const resolved = path.resolve(path.dirname(file), source);
         //if the resolved path has no extension
         return !path.extname(resolved) 
@@ -143,12 +143,14 @@ export function vfs(cache: CallableMap<string, string>) {
       }
     },
     load(id: string) {
-      if (id.startsWith('vfs:')) {
+      if (id.startsWith(VFS_PROTOCOL)) {
         //vfs:/foo/bar.tsx
-        const file = id.substring(4);
-        if (cache.has(file)) {
-          const data = cache.get(file) as string;
-          return Buffer.from(data, 'base64').toString();
+        const file = id.substring(VFS_PROTOCOL.length);
+        if (vfs.has(file)) {
+          const contents = vfs.get(file);
+          if (typeof contents === 'string') {
+            return contents;
+          }
         }
         //Let other plugins handle it
         return null; 

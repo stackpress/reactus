@@ -16,7 +16,7 @@ async function develop() {
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
-    cssFile: path.join(cwd, 'tailwind.css')
+    cssFile: path.join(cwd, 'uno.css')
   });
 
   const server = createServer(async (req, res) => {
@@ -33,6 +33,14 @@ async function develop() {
     } else if (req.url === '/about') {
       res.setHeader('Content-Type', 'text/html');
       res.end(await engine.render('@/pages/about'));
+      return;
+    } else if (req.url === '/contact') {
+      res.setHeader('Content-Type', 'text/html');
+      res.end(await engine.render('reactus-with-plugin/pages/contact'));
+      return;
+    } else if (req.url === '/how') {
+      res.setHeader('Content-Type', 'text/html');
+      res.end(await engine.render('reactus-with-plugin/pages/how'));
       return;
     }
     res.end('404 Not Found');

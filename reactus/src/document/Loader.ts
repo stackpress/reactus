@@ -31,36 +31,19 @@ export default class DocumentLoader {
    * Imports the page component to runtime
    */
   public async import() {
-    const { vfs, resource, loader, production } = this._server;
+    const { loader, production } = this._server;
     //determine the page file name
-    const meta = await loader.resolve(this._document.entry);
-    if (production || meta.extname === '.js') {
+    const { extname, filepath } = await loader.resolve(
+      this._document.entry
+    );
+    if (production || extname === '.js') {
       //use native import to load the module
-      return await import(meta.filepath) as DocumentImport;
+      return await import(filepath) as DocumentImport;
     }
-    //for development and build modes
-    const dev = await resource.dev();
-    //check if tailwindcss is enabled
-    if (!dev.config.plugins.find(
-      plugin => plugin.name.startsWith('@tailwindcss/vite')
-    )) {
-      //use dev server to load the module
-      return await loader.fetch<DocumentImport>(
-        `file://${meta.filepath}`
-      );
-    }
-    //tailwindcss is enabled, form an imfs instead
-    //get the contents of the file with fs
-    const fs = loader.fs;
-    const relative = `./.tailwind/${this._document.id}.css`;
-    let contents = await fs.readFile(meta.filepath, 'utf8');
-    //add import css statement
-    contents = `import '${relative}';\n${contents}`;
-    //convert to data url
-    const data = Buffer.from(contents).toString('base64');
-    const url = vfs.set(meta.filepath, data);
     //use dev server to load the module
-    return await loader.fetch<DocumentImport>(url);
+    return await loader.fetch<DocumentImport>(
+      `file://${filepath}`
+    );
   }
 
   /**

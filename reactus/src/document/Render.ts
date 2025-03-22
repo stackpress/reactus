@@ -97,15 +97,15 @@ export default class DocumentRender {
     //determine the client route
     const clientRoute = `${routes.client}/${id}.js`;
     //determine style routes
-    const stylesRoutes = (document.styles || []).map(
-      style => `${routes.style}/${style}`
+    const cssRoutes = (document.styles || []).map(
+      style => `${routes.css}/${style}`
     );
     //render the body
     const body = renderJSX(document.default, props);
     //render the head
     const head = renderJSX(document.Head, { 
       ...props, 
-      styles: stylesRoutes
+      styles: cssRoutes
     });
     //return the final html
     return documentTemplate

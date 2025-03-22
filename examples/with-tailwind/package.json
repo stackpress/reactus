@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "reactus-with-http",
+  "name": "reactus-with-tailwind",
   "version": "1.0.0",
   "private": true,
   "scripts": {

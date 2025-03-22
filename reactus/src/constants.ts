@@ -1,3 +1,6 @@
+export const VFS_PROTOCOL = 'virtual:reactus:';
+export const VFS_RESOLVED = '\0virtual:reactus:';
+
 export const BASE62_ALPHABET = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
 
 export const HASH_LENGTH = 32;
@@ -16,10 +19,6 @@ export const DOCUMENT_TEMPLATE = `
     <script type="module" src="<!--document-client-->"></script>
   </body>
 </html>
-`.trim();
-
-export const STYLE_TEMPLATE = `
-:root { display: initial; }
 `.trim();
 
 export const PAGE_TEMPLATE = `

@@ -60,6 +60,8 @@ export type DevelopConfig = {
   clientRoute: string,
   //template wrapper for the client script (tsx)
   clientTemplate: string,
+  //filepath to a global css file
+  cssFile?: string,
   //current working directory
   cwd: string,
   //template wrapper for the document markup (html)
@@ -68,8 +70,6 @@ export type DevelopConfig = {
   fs?: FileSystem,
   //vite plugins
   plugins: PluginOption[],
-  //template wrapper for the styles (css)
-  styleTemplate: string,
   //original vite options (overrides other settings related to vite)
   vite?: ViteConfig,
   //ignore files in watch mode
@@ -85,6 +85,11 @@ export type BuildConfig = {
   clientPath: string,
   //template wrapper for the client script (tsx)
   clientTemplate: string,
+  //style route prefix used in the document markup
+  //ie. /assets/[id][extname]
+  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+  cssRoute: string,
   //current working directory
   cwd: string,
   //file system
@@ -95,8 +100,6 @@ export type BuildConfig = {
   pageTemplate: string,
   //vite plugins
   plugins: PluginOption[],
-  //template wrapper for the styles (css)
-  styleTemplate: string
 };
 
 export type ProductionConfig = {
@@ -105,6 +108,11 @@ export type ProductionConfig = {
   //<script type="module" src="/client/[id][extname]"></script>
   //<script type="module" src="/client/abc123.tsx"></script>
   clientRoute: string,
+  //style route prefix used in the document markup
+  //ie. /assets/[id][extname]
+  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+  cssRoute: string,
   //current working directory
   cwd: string,
   //template wrapper for the document markup (html)
@@ -115,12 +123,7 @@ export type ProductionConfig = {
   pagePath: string,
   //template wrapper for the page script (tsx)
   //vite plugins
-  plugins: PluginOption[],
-  //style route prefix used in the document markup
-  //ie. /assets/[id][extname]
-  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
-  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-  styleRoute: string
+  plugins: PluginOption[]
 };
 
 export type ServerConfig = {
@@ -142,6 +145,15 @@ export type ServerConfig = {
   //template wrapper for the client script (tsx)
   // - used in dev mode and build step
   clientTemplate: string,
+  //filepath to a global css file
+  // - used in dev mode and build step
+  cssFile?: string,
+  //style route prefix used in the document markup
+  //ie. /assets/[id][extname]
+  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
+  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
+  // - used in live server
+  cssRoute: string,
   //current working directory
   cwd: string,
   //template wrapper for the document markup (html)
@@ -159,15 +171,6 @@ export type ServerConfig = {
   plugins: PluginOption[],
   //directs resolvers and markup generator
   production: boolean,
-  //style route prefix used in the document markup
-  //ie. /assets/[id][extname]
-  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
-  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-  // - used in live server
-  styleRoute: string,
-  //template wrapper for the styles (css)
-  // - used in dev mode and build step
-  styleTemplate: string,
   //original vite options (overrides other settings related to vite)
   vite?: ViteConfig,
   //ignore files in watch mode
