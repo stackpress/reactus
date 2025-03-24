@@ -9,7 +9,6 @@ async function develop() {
   const engine = dev({
     cwd,
     basePath: '/',
-    plugins: [],
     watchIgnore: [ '**/.build/**' ],
     //client script route prefix used in the document markup
     //ie. /client/[id][extname]

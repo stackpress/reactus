@@ -1,13 +1,9 @@
 //node
-import type { IncomingMessage, ServerResponse } from 'node:http';
 import { createServer } from 'node:http';
 import path from 'node:path';
 import sirv from 'sirv';
 //reactus
 import { serve } from 'reactus';
-
-export type IM = IncomingMessage;
-export type SR = ServerResponse<IM>;
 
 async function start() {
   const cwd = process.cwd();

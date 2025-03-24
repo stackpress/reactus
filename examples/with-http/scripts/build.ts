@@ -1,15 +1,12 @@
 //node
 import path from 'node:path';
-//modules
-import tailwindcss from '@tailwindcss/vite';
 //reactus
 import { build } from 'reactus';
 
-async function develop() {
+async function builder() {
   const cwd = process.cwd();
   const engine = build({
     cwd,
-    plugins: [ tailwindcss() ],
     //path where to save assets (css, images, etc)
     assetPath: path.join(cwd, 'public/assets'),
     //path where to save and load (live) the client scripts (js)
@@ -38,7 +35,7 @@ async function develop() {
   if (responses.length) return;
 }
 
-develop().catch(e => {
+builder().catch(e => {
   console.error(e);
   process.exit(1);
 });
