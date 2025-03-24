@@ -1,4 +1,4 @@
-# Reactus
+# ☢️ Reactus
 
 [![NPM Package](https://img.shields.io/npm/v/reactus.svg?style=flat)](https://www.npmjs.com/package/reactus)
 [![Commits](https://img.shields.io/github/last-commit/stackpress/reactus)](https://github.com/stackpress/reactus/commits/main/)
