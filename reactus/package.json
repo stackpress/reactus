@@ -28,7 +28,7 @@
     "./types": "./dist/types.js",
     "./Builder": "./dist/Builder.js",
     "./Document": "./dist/Document.js",
-    "./Exception": "./dist/Document.js",
+    "./Exception": "./dist/Exception.js",
     "./Manifest": "./dist/Manifest.js",
     "./Server": "./dist/Server.js"
   },
