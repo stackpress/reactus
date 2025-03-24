@@ -23,7 +23,7 @@ async function start() {
     //ie. /assets/[id][extname]
     //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
     //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-    styleRoute: '/assets'
+    cssRoute: '/assets'
   });
   // Init `sirv` handler
   const assets = sirv(path.join(cwd, 'public'), {

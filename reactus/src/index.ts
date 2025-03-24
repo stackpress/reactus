@@ -275,7 +275,7 @@ export function build(options: Partial<BuildConfig>) {
     /**
      * Builds and saves the client entries from all the documents
      */
-    buildAllClients: () => builder.buildClient(),
+    buildAllClients: () => builder.buildClients(),
 
     /**
      * Builds and saves the pages scripts from all the documents
@@ -447,7 +447,7 @@ export function serve(options: Partial<ProductionConfig>) {
     /**
      * Returns the final document markup (html)
      */
-    render: (
+    render: async (
       entry: string, 
       props: UnknownNest = {}
     ) => server.manifest.set(entry).then(
@@ -553,7 +553,7 @@ export default function engine(options: Partial<ServerConfig>) {
     /**
      * Builds and saves the client entries from all the documents
      */
-    buildAllClients: () => builder.buildClient(),
+    buildAllClients: () => builder.buildClients(),
 
     /**
      * Builds and saves the pages scripts from all the documents

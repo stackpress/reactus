@@ -745,12 +745,13 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.35.0.tgz#05f25dbc9981bee1ae6e713daab10397044a46ca"
   integrity sha512-PIQeY5XDkrOysbQblSW7v3l1MDZzkTEzAfTPkj5VAu3FW8fS4ynyLg2sINp0fp3SjZ8xkRYpLqoKcYqAkhU1dw==
 
-"@stackpress/lib@0.5.1":
-  version "0.5.1"
-  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.5.1.tgz#e9a4bd8eddb5ebdcfe10356e3add8909266a02a1"
-  integrity sha512-rKWLdUgz19noOe4IDMeQIoBpGokIr/qeEUwQGty21ogW5Ojdg9Acy+zWQALbUeByZVNsYJ1mDQfU9c8b00mtIA==
+"@stackpress/lib@0.5.4":
+  version "0.5.4"
+  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.5.4.tgz#2aa72ddf59007d9ee1d47341479b60dafae1b460"
+  integrity sha512-rXKr9MGCJ6Ym0H9Z4SeoY9jEkiOFEjK8J/8hsZOkvPK1eLqkBHPlKq8CRuBC+auCULb2PIr59fOKRvnO2dhdIg==
   dependencies:
     "@inquirer/prompts" "7.1.0"
+    cookie "1.0.2"
 
 "@tailwindcss/node@4.0.14":
   version "4.0.14"
@@ -1475,6 +1476,11 @@ convert-source-map@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-2.0.0.tgz#4b560f649fc4e918dd0ab75cf4961e8bc882d82a"
   integrity sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==
+
+cookie@1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/cookie/-/cookie-1.0.2.tgz#27360701532116bd3f1f9416929d176afe1e4610"
+  integrity sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==
 
 create-require@^1.1.0:
   version "1.1.1"

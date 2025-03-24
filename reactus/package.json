@@ -55,7 +55,7 @@
     "test": "ts-mocha tests/*.test.ts"
   },
   "dependencies": {
-    "@stackpress/lib": "0.5.1",
+    "@stackpress/lib": "0.5.4",
     "@vitejs/plugin-react": "4.3.4",
     "vite": "6.1.1"
   },

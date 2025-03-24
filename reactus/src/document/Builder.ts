@@ -37,7 +37,6 @@ export default class DocumentBuilder {
     const config = await this._getAssetBuildOptions(url);
     //now really build the page
     const results = await resource.build(config) as RollupOutput;
-
     return results.output;
   }
 

@@ -18,6 +18,7 @@ async function develop() {
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
+    //filepath to a global css file
     cssFile: 'virtual:uno.css'
   });
 

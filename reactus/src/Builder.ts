@@ -65,7 +65,7 @@ export default class Builder extends Server {
   /**
    * Builds and saves the client entries from all the documents
    */
-  public async buildClient() {
+  public async buildClients() {
     //buffer for the build status results
     const results: BuildStatus[] = [];
     //loop through all the documents

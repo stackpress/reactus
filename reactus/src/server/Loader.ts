@@ -65,7 +65,7 @@ export default class ServerLoader {
     const meta = await this.resolve(pathname, extnames);
     if (this._production || meta.extname === '.js') {
       //use native import to load the module
-      return await import(meta.filepath) as T;
+      return await this._loader.import<T>(meta.filepath);
     }
     //use dev server to load the module
     return await this.fetch(`file://${meta.filepath}`) as T;

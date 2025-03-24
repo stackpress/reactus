@@ -1,7 +1,7 @@
 //node
 import path from 'node:path';
 //modules
-import tailwindcss from '@tailwindcss/vite';
+import UnoCSS from 'unocss/vite'
 //reactus
 import { build } from 'reactus';
 
@@ -9,13 +9,15 @@ async function develop() {
   const cwd = process.cwd();
   const engine = build({
     cwd,
-    plugins: [ tailwindcss() ],
+    plugins: [ UnoCSS() ],
     //path where to save assets (css, images, etc)
     assetPath: path.join(cwd, 'public/assets'),
     //path where to save and load (live) the client scripts (js)
     clientPath: path.join(cwd, 'public/client'),
     //path where to save and load (live) the server script (js)
-    pagePath: path.join(cwd, '.build/pages')
+    pagePath: path.join(cwd, '.build/pages'),
+    //filepath to a global css file
+    cssFile: 'virtual:uno.css'
   });
   
   await engine.set('@/pages/home');

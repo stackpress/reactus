@@ -32,14 +32,18 @@ export default class DocumentLoader {
    */
   public async import() {
     const { loader, production } = this._server;
+    if (production) {
+      //get the page path
+      const pagePath = this._server.paths.page;
+      //determine the page file name
+      const filepath = path.join(pagePath, `${this._document.id}.js`);
+      //use native import to load the module
+      return await loader.import<DocumentImport>(filepath);
+    }
     //determine the page file name
-    const { extname, filepath } = await loader.resolve(
+    const { filepath } = await loader.resolve(
       this._document.entry
     );
-    if (production || extname === '.js') {
-      //use native import to load the module
-      return await import(filepath) as DocumentImport;
-    }
     //use dev server to load the module
     return await loader.fetch<DocumentImport>(
       `file://${filepath}`

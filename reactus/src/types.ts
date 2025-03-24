@@ -85,11 +85,8 @@ export type BuildConfig = {
   clientPath: string,
   //template wrapper for the client script (tsx)
   clientTemplate: string,
-  //style route prefix used in the document markup
-  //ie. /assets/[id][extname]
-  //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
-  //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-  cssRoute: string,
+  //filepath to a global css file
+  cssFile?: string,
   //current working directory
   cwd: string,
   //file system
