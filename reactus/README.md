@@ -9,7 +9,7 @@ Reactive React Template Engine
 ## Install
 
 ```bash
-npm i -D typescript ts-node @types/node @types/react @types/react-dom
+npm i -D typescript ts-node tsx @types/node @types/react @types/react-dom
 npm i reactus react react-dom
 ```
 
@@ -61,7 +61,7 @@ export default function HomePage() {
 Next start the server and visit `http://localhost:3000/`.
 
 ```bash
-$ node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm server.ts
+$ npx tsx server.ts
 ```
 
 
@@ -141,7 +141,7 @@ console.log(responses);
 Next run the build.
 
 ```bash
-$ node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm build.ts
+$ npx tsx build.ts
 ```
 
 ### Build Configuration
@@ -235,7 +235,7 @@ server.listen(3000, () => {
 Next start the server and visit `http://localhost:3000/`.
 
 ```bash
-$ node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm preview.ts
+$ npx tsx preview.ts
 ```
 
 ### Preview Configuration

@@ -1,5 +1,4 @@
 //node
-import path from 'node:path';
 import { createServer } from 'node:http';
 //reactus
 import { dev } from 'reactus';
@@ -14,8 +13,7 @@ async function develop() {
     //ie. /client/[id][extname]
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
-    clientRoute: '/client',
-    cssFile: path.join(cwd, 'tailwind.css')
+    clientRoute: '/client'
   });
 
   const server = createServer(async (req, res) => {

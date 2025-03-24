@@ -4,9 +4,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/build.ts",
-    "dev": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/develop.ts",
-    "start": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/start.ts"
+    "build": "tsx scripts/build.ts",
+    "dev": "tsx scripts/develop.ts",
+    "start": "tsx scripts/start.ts"
   },
   "dependencies": {
     "react": "19.0.0",
@@ -19,6 +19,7 @@
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
     "ts-node": "10.9.2",
+    "tsx": "4.19.3",
     "typescript": "5.7.2"
   }
 }
