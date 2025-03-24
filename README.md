@@ -1,7 +1,7 @@
 # Reactus
 
 [![NPM Package](https://img.shields.io/npm/v/@stackpress/reactus.svg?style=flat)](https://www.npmjs.com/package/@stackpress/reactus)
-[![Commits](https://img.shields.io/github/last-commit/stackpress/reactus)](https://github.com/stackpress/reactus/commits/main/)
+[![Commits](https://img.shields.io/github/last-commit/reactus)](https://github.com/stackpress/reactus/commits/main/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](https://github.com/reactus/blob/main/LICENSE)
 
 Reactive React Template Engine
