@@ -1,5 +1,4 @@
 //node
-import path from 'node:path';
 import { createServer } from 'node:http';
 //modules
 import UnoCSS from 'unocss/vite'
