@@ -20,7 +20,7 @@ async function develop() {
     //<script type="module" src="/client/[id][extname]"></script>
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
-    cssFile: path.join(cwd, 'tailwind.css')
+    cssFiles: [ path.join(cwd, 'tailwind.css') ]
   });
 
   const server = createServer(async (req, res) => {

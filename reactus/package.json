@@ -30,7 +30,8 @@
     "./Document": "./dist/Document.js",
     "./Exception": "./dist/Exception.js",
     "./Manifest": "./dist/Manifest.js",
-    "./Server": "./dist/Server.js"
+    "./Server": "./dist/Server.js",
+    "./fouc.css": "./fouc.css"
   },
   "typesVersions": {
     "*": {
@@ -47,6 +48,7 @@
   },
   "files": [
     "dist",
+    "fouc.css",
     "LICENSE",
     "README.md"
   ],

@@ -18,7 +18,7 @@ async function develop() {
     //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
     //filepath to a global css file
-    cssFile: 'virtual:uno.css'
+    cssFiles: [ 'reactus/fouc.css', 'virtual:uno.css' ]
   });
 
   const server = createServer(async (req, res) => {

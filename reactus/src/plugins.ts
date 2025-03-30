@@ -10,7 +10,7 @@ import type { IM, SR, Next } from './types';
 import type Server from './Server';
 import { VFS_PROTOCOL } from './constants';
 
-export function css(cssFile: string) {
+export function css(cssFiles: string[]) {
   return {
     name: 'reactus-inject-css',
     enforce: 'pre', // Ensure this runs before other transforms
@@ -18,8 +18,8 @@ export function css(cssFile: string) {
       // Only process TypeScript files
       if (id.endsWith('.tsx')) {
         // Inject the CSS import at the top of the file
-        const cssImport = `import '${cssFile}';\n`;
-        return cssImport + code;
+        const imports = cssFiles.map(css => `import '${css}';`);
+        return imports.join('\n') + '\n' + code;
       }
       return code;
     },

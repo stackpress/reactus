@@ -42,7 +42,7 @@ export default class Server {
       clientTemplate: options.clientTemplate || CLIENT_TEMPLATE,
       //filepath to a global css file
       // - used in dev mode and build step
-      cssFile: options.cssFile,
+      cssFiles: options.cssFiles,
       //style route prefix used in the document markup
       //ie. /assets/[id][extname]
       //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
@@ -94,7 +94,7 @@ export default class Server {
     //location to where to put the final client scripts (js)
     client: string,
     //filepath to a global css file
-    css?: string,
+    css?: string[],
     //global head component path
     head?: string,
     //location to where to put the final page script (js)
@@ -180,7 +180,7 @@ export default class Server {
       //location to where to put the final client scripts (js)
       client: config.clientPath,
       //filepath to a global css file
-      css: config.cssFile,
+      css: config.cssFiles,
       //location to where to put the final page script (js)
       page: config.pagePath
     };

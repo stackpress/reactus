@@ -61,7 +61,7 @@ export type DevelopConfig = {
   //template wrapper for the client script (tsx)
   clientTemplate: string,
   //filepath to a global css file
-  cssFile?: string,
+  cssFiles?: string[],
   //current working directory
   cwd: string,
   //template wrapper for the document markup (html)
@@ -86,7 +86,7 @@ export type BuildConfig = {
   //template wrapper for the client script (tsx)
   clientTemplate: string,
   //filepath to a global css file
-  cssFile?: string,
+  cssFiles?: string[],
   //current working directory
   cwd: string,
   //file system
@@ -144,7 +144,7 @@ export type ServerConfig = {
   clientTemplate: string,
   //filepath to a global css file
   // - used in dev mode and build step
-  cssFile?: string,
+  cssFiles?: string[],
   //style route prefix used in the document markup
   //ie. /assets/[id][extname]
   //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
