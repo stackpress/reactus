@@ -3,9 +3,9 @@ import path from 'node:path';
 //modules
 import type { RollupOutput } from 'rollup';
 //common
-import type { ViteConfig, BuildResults } from '../types';
-import type Document from '../Document';
-import type Server from '../Server';
+import type { ViteConfig, BuildResults } from './types';
+import type Document from './Document';
+import type Server from './Server';
 
 export default class DocumentBuilder {
   //parent docment

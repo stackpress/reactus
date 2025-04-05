@@ -1,9 +1,9 @@
 //node
 import path from 'node:path';
 //document
-import DocumentBuilder from './document/Builder';
-import DocumentLoader from './document/Loader';
-import DocumentRender from './document/Render';
+import DocumentBuilder from './DocumentBuilder';
+import DocumentLoader from './DocumentLoader';
+import DocumentRender from './DocumentRender';
 //local
 import type Server from './Server';
 import { id } from './helpers';

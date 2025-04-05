@@ -5,7 +5,7 @@ import type { FileSystem } from '@stackpress/lib/types';
 import FileLoader from '@stackpress/lib/FileLoader';
 import NodeFS from '@stackpress/lib/NodeFS';
 //local
-import type ServerResource from './Resource';
+import type ServerResource from './ServerResource';
 
 export type ServerLoaderConfig = {
   fs?: FileSystem,

@@ -3,10 +3,10 @@ import path from 'node:path';
 //stackpress
 import NodeFS from '@stackpress/lib/NodeFS';
 //server
-import ServerLoader from './server/Loader';
-import ServerManifest from './server/Manifest';
-import ServerResource from './server/Resource';
-import VirtualServer from './server/Virtual';
+import ServerLoader from './ServerLoader';
+import ServerManifest from './ServerManifest';
+import ServerResource from './ServerResource';
+import VirtualServer from './VirtualServer';
 //local
 import type { IM, SR, ServerConfig } from './types';
 import { 

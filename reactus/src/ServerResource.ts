@@ -1,8 +1,8 @@
 //modules
 import type { ViteDevServer, PluginOption, InlineConfig } from 'vite';
 //common
-import type Server from '../Server';
-import { css, file, hmr, vfs } from '../plugins';
+import type Server from './Server';
+import { css, file, hmr, vfs } from './plugins';
 
 export type ResourceConfig = {
   //base path (used in vite)

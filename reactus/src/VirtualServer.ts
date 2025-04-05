@@ -2,7 +2,7 @@
 import type { CallableMap } from '@stackpress/lib/types';
 import map from '@stackpress/lib/map';
 //common
-import { VFS_PROTOCOL } from '../constants';
+import { VFS_PROTOCOL } from './constants';
 
 export default class VirtualServer {
   //virtual file system

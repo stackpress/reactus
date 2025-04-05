@@ -6,14 +6,14 @@ export * from './plugins';
 import FileLoader from '@stackpress/lib/FileLoader';
 import NodeFS from '@stackpress/lib/NodeFS';
 
-import DocumentBuilder from './document/Builder';
-import DocumentLoader from './document/Loader';
-import DocumentRender from './document/Render';
+import DocumentBuilder from './DocumentBuilder';
+import DocumentLoader from './DocumentLoader';
+import DocumentRender from './DocumentRender';
 
-import ServerLoader from './server/Loader';
-import ServerManifest from './server/Manifest';
-import ServerResource from './server/Resource';
-import VirtualServer from './server/Virtual';
+import ServerLoader from './ServerLoader';
+import ServerManifest from './ServerManifest';
+import ServerResource from './ServerResource';
+import VirtualServer from './VirtualServer';
 
 import Builder from './Builder';
 import Document from './Document';

@@ -28,9 +28,16 @@
     "./types": "./dist/types.js",
     "./Builder": "./dist/Builder.js",
     "./Document": "./dist/Document.js",
+    "./DocumentBuilder": "./dist/DocumentBuilder.js",
+    "./DocumentLoader": "./dist/DocumentLoader.js",
+    "./DocumentRender": "./dist/DocumentRender.js",
     "./Exception": "./dist/Exception.js",
     "./Manifest": "./dist/Manifest.js",
     "./Server": "./dist/Server.js",
+    "./ServerLoader": "./dist/ServerLoader.js",
+    "./ServerManifest": "./dist/ServerManifest.js",
+    "./ServerResource": "./dist/ServerResource.js",
+    "./VirtualServer": "./dist/VirtualServer.js",
     "./fouc.css": "./fouc.css"
   },
   "typesVersions": {
@@ -41,9 +48,16 @@
       "types": [ "./dist/types.d.ts" ],
       "Builder": [ "./dist/Builder.d.ts" ],
       "Document": [ "./dist/builder/Document.d.ts" ],
+      "DocumentBuilder": [ "./dist/DocumentBuilder.d.ts" ],
+      "DocumentLoader": [ "./dist/DocumentLoader.d.ts" ],
+      "DocumentRender": [ "./dist/DocumentRender.d.ts" ],
       "Exception": [ "./dist/Exception.d.ts" ],
       "Manifest": [ "./dist/Manifest.d.ts" ],
-      "Server": [ "./dist/Server.d.ts" ]
+      "Server": [ "./dist/Server.d.ts" ],
+      "ServerLoader": [ "./dist/ServerLoader.d.ts" ],
+      "ServerManifest": [ "./dist/ServerManifest.d.ts" ],
+      "ServerResource": [ "./dist/ServerResource.d.ts" ],
+      "VirtualServer": [ "./dist/VirtualServer.d.ts" ]
     }
   },
   "files": [

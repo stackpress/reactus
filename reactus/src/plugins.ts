@@ -3,8 +3,8 @@ import path from 'node:path';
 //modules
 import type { Plugin, ViteDevServer } from 'vite';
 //server
-import type ServerLoader from './server/Loader';
-import type VirtualServer from './server/Virtual';
+import type ServerLoader from './ServerLoader';
+import type VirtualServer from './VirtualServer';
 //local
 import type { IM, SR, Next } from './types';
 import type Server from './Server';
