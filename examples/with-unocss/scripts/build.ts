@@ -17,7 +17,7 @@ async function develop() {
     //path where to save and load (live) the server script (js)
     pagePath: path.join(cwd, '.build/pages'),
     //filepath to a global css file
-    cssFile: 'virtual:uno.css'
+    cssFiles: [ 'virtual:uno.css' ]
   });
   
   await engine.set('@/pages/home');
