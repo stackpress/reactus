@@ -124,11 +124,14 @@ export function vfs(vfs: VirtualServer) {
         //let it load()
         return source; 
       //if importer is an in memory file string
+      } else if (source.includes(VFS_PROTOCOL)) {
+        return source.substring(source.indexOf(VFS_PROTOCOL));
+      //if importer is an in memory file string
       } else if (importer?.startsWith(VFS_PROTOCOL) 
         //and source is a relative path
         && (source.startsWith('./') || source.startsWith('../'))
       ) {
-        //vfs:/foo/bar.tsx
+        //virtual:reactus:/foo/bar.tsx
         const file = importer.substring(VFS_PROTOCOL.length);
         //resolve the source using the vfs file path
         const resolved = path.resolve(path.dirname(file), source);
@@ -144,7 +147,7 @@ export function vfs(vfs: VirtualServer) {
     },
     load(id: string) {
       if (id.startsWith(VFS_PROTOCOL)) {
-        //vfs:/foo/bar.tsx
+        //virtual:reactus:/foo/bar.tsx
         const file = id.substring(VFS_PROTOCOL.length);
         if (vfs.has(file)) {
           const contents = vfs.get(file);

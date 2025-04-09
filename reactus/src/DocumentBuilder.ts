@@ -88,12 +88,11 @@ export default class DocumentBuilder {
    * Generates the client build options
    */
   protected async _getAssetBuildOptions(url: string) {
-    const { resource, loader } = this._server;
+    const { loader } = this._server;
     return {
       configFile: false,
       //this is used to resolve node modules
       root: loader.cwd,
-      plugins: await resource.plugins(),
       build: {
         //Prevents writing to disk
         write: false, 
@@ -112,12 +111,11 @@ export default class DocumentBuilder {
    * Generates the client build options
    */
   protected async _getClientBuildOptions(url: string) {
-    const { resource, loader } = this._server;
+    const { loader } = this._server;
     return {
       configFile: false,
       //this is used to resolve node modules
       root: loader.cwd,
-      plugins: await resource.plugins(),
       build: {
         //Prevents writing to disk
         write: false, 
@@ -136,12 +134,11 @@ export default class DocumentBuilder {
    * Generates the client build options
    */
   protected async _getPageBuildOptions(url: string) {
-    const { resource, loader } = this._server;
+    const { loader } = this._server;
     return {
       configFile: false,
       //this is used to resolve node modules
       root: loader.cwd,
-      plugins: await resource.plugins(),
       build: {
         //Prevents writing to disk
         write: false, 
