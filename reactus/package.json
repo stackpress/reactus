@@ -141,10 +141,12 @@
     }
   },
   "files": [
-    "dist",
+    "cjs",
+    "esm",
     "fouc.css",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "tsconfig"
   ],
   "scripts": {
     "build": "yarn build:tsc && yarn build:pkg",
