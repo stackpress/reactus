@@ -1,7 +1,6 @@
 {
   "extends": "reactus/tsconfig/cjs",
   "compilerOptions": {
-    "module": "commonjs",
     "outDir": ".build",
   },
   "include": [ 

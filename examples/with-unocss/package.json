@@ -10,13 +10,14 @@
   "dependencies": {
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "reactus": "0.1.25",
+    "reactus": "0.1.26",
     "sirv": "3.0.1"
   },
   "devDependencies": {
     "@types/node": "22.9.3",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
+    "ts-node": "10.9.2",
     "typescript": "5.7.2",
     "unocss": "66.0.0"
   }

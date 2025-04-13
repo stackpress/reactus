@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "reactus",
-  "version": "0.1.25",
+  "version": "0.1.26",
   "license": "Apache-2.0",
   "description": "reactive React template engine",
   "author": "Chris <chris@incept.asia>",
@@ -156,11 +156,11 @@
     "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm",
     "build:tsc:cjs": "tsc -p ./tsconfig.cjs.json",
     "build:tsc:esm": "tsc -p ./tsconfig.esm.json",
-    "test": "nyc ts-mocha -r tsx tests/*.test.ts",
+    "test": "nyc ts-mocha -r ts-node tests/*.test.ts",
     "report": "nyc report -r lcov"
   },
   "dependencies": {
-    "@stackpress/lib": "0.5.9",
+    "@stackpress/lib": "0.5.10",
     "@vitejs/plugin-react": "4.3.4",
     "vite": "6.1.1"
   },
@@ -179,7 +179,6 @@
     "react-dom": "19.0.0",
     "ts-mocha": "10.0.0",
     "ts-node": "10.9.2",
-    "tsx": "4.19.3",
     "typescript": "5.7.2"
   }
 }
