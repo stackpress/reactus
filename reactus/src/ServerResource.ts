@@ -115,16 +115,6 @@ export default class ServerResource {
   }
 
   /**
-   * returns true if tailwindcss is enabled
-   */
-  public async tailwindEnabled() {
-    const dev = await this.dev();
-    return !!dev.config.plugins.find(
-      plugin => plugin.name.startsWith('@tailwindcss/vite')
-    )
-  }
-
-  /**
    * Create vite dev server logic
    */
   protected async _createServer() {

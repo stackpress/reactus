@@ -1,0 +1,6 @@
+{
+  "extends": "@stackpress/lib/tsconfig/cjs",
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  }
+}
