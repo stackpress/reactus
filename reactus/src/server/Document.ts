@@ -55,7 +55,7 @@ export default class Document {
     //get the document script template (tsx)
     const documentTemplate = templates.document;
     //determine the client route
-    const clientRoute = `${routes.client}/${id}.js`;
+    const clientRoute = `${routes.client}/${this.id}.js`;
     //determine style routes
     const cssRoutes = (document.styles || []).map(
       style => `${routes.css}/${style}`
