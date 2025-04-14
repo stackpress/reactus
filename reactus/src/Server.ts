@@ -56,6 +56,8 @@ export default class Server {
       documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
       //file system
       fs: options.fs || new NodeFS(),
+      //vite optimization settings
+      optimizeDeps: options.optimizeDeps,
       //path where to save and load (live) the server script (js)
       // - used in build step and live server
       pagePath: options.pagePath || path.join(cwd, '.reactus/page'),
@@ -154,6 +156,8 @@ export default class Server {
       config: config.vite,
       //current working directory
       cwd: cwd,
+      //vite optimization settings
+      optimizeDeps: config.optimizeDeps,
       //vite plugins
       plugins: config.plugins,
       //ignore files in watch mode
