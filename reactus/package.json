@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "reactus",
-  "version": "0.1.21",
+  "version": "0.1.33",
   "license": "Apache-2.0",
   "description": "reactive React template engine",
   "author": "Chris <chris@incept.asia>",
@@ -16,63 +16,151 @@
     "vite",
     "stackpress"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "main": "./cjs/index.js",
+  "module": "./esm/index.js",
+  "types": "./cjs/index.d.ts",
   "exports": {
-    ".": "./dist/index.js",
+    "./server": {
+      "require": "./cjs/server/index.js",
+      "import": "./esm/server/index.js"
+    },
+    "./server/constants": {
+      "require": "./cjs/server/constants.js",
+      "import": "./esm/server/constants.js"
+    },
+    "./server/Document": {
+      "require": "./cjs/server/Document.js",
+      "import": "./esm/server/Document.js"
+    },
+    "./server/helpers": {
+      "require": "./cjs/server/helpers.js",
+      "import": "./esm/server/helpers.js"
+    },
+    "./server/Server": {
+      "require": "./cjs/server/Server.js",
+      "import": "./esm/server/Server.js"
+    },
+    "./server/types": {
+      "require": "./cjs/server/types.js",
+      "import": "./esm/server/types.js"
+    },
+    "./constants": {
+      "require": "./cjs/constants.js",
+      "import": "./esm/constants.js"
+    },
+    "./helpers": {
+      "require": "./cjs/helpers.js",
+      "import": "./esm/helpers.js"
+    },
+    "./types": {
+      "require": "./cjs/types.js",
+      "import": "./esm/types.js"
+    },
+    "./Builder": {
+      "require": "./cjs/Builder.js",
+      "import": "./esm/Builder.js"
+    },
+    "./Document":{
+      "require": "./cjs/Document.js",
+      "import": "./esm/Document.js"
+    },
+    "./DocumentBuilder": {
+      "require": "./cjs/DocumentBuilder.js",
+      "import": "./esm/DocumentBuilder.js"
+    },
+    "./DocumentLoader": {
+      "require": "./cjs/DocumentLoader.js",
+      "import": "./esm/DocumentLoader.js"
+    },
+    "./DocumentRender": {
+      "require": "./cjs/DocumentRender.js",
+      "import": "./esm/DocumentRender.js"
+    },
+    "./Exception": {
+      "require": "./cjs/Exception.js",
+      "import": "./esm/Exception.js"
+    },
+    "./Manifest": {
+      "require": "./cjs/Manifest.js",
+      "import": "./esm/Manifest.js"
+    },
+    "./Server": {
+      "require": "./cjs/Server.js",
+      "import": "./esm/Server.js"
+    },
+    "./ServerLoader": {
+      "require": "./cjs/ServerLoader.js",
+      "import": "./esm/ServerLoader.js"
+    },
+    "./ServerManifest": {
+      "require": "./cjs/ServerManifest.js",
+      "import": "./esm/ServerManifest.js"
+    },
+    "./ServerResource": {
+      "require": "./cjs/ServerResource.js",
+      "import": "./esm/ServerResource.js"
+    },
+    "./VirtualServer":{
+      "require": "./cjs/VirtualServer.js",
+      "import": "./esm/VirtualServer.js"
+    },
+    ".": {
+      "require": "./cjs/index.js",
+      "import": "./esm/index.js"
+    },
+    "./tsconfig/cjs": "./tsconfig/cjs.json",
+    "./tsconfig/esm": "./tsconfig/esm.json",
     "./tsconfig/client": "./tsconfig/client.json",
     "./assets.d.ts": "./tsconfig/assets.d.ts",
-    "./constants": "./dist/constants.js",
-    "./helpers": "./dist/helpers.js",
-    "./types": "./dist/types.js",
-    "./Builder": "./dist/Builder.js",
-    "./Document": "./dist/Document.js",
-    "./DocumentBuilder": "./dist/DocumentBuilder.js",
-    "./DocumentLoader": "./dist/DocumentLoader.js",
-    "./DocumentRender": "./dist/DocumentRender.js",
-    "./Exception": "./dist/Exception.js",
-    "./Manifest": "./dist/Manifest.js",
-    "./Server": "./dist/Server.js",
-    "./ServerLoader": "./dist/ServerLoader.js",
-    "./ServerManifest": "./dist/ServerManifest.js",
-    "./ServerResource": "./dist/ServerResource.js",
-    "./VirtualServer": "./dist/VirtualServer.js",
     "./fouc.css": "./fouc.css"
   },
   "typesVersions": {
     "*": {
-      "index": [ "./dist/index.d.ts"],
-      "constants": [ "./dist/constants.d.ts" ],
-      "helpers": [ "./dist/helpers.d.ts" ],
-      "types": [ "./dist/types.d.ts" ],
-      "Builder": [ "./dist/Builder.d.ts" ],
-      "Document": [ "./dist/builder/Document.d.ts" ],
-      "DocumentBuilder": [ "./dist/DocumentBuilder.d.ts" ],
-      "DocumentLoader": [ "./dist/DocumentLoader.d.ts" ],
-      "DocumentRender": [ "./dist/DocumentRender.d.ts" ],
-      "Exception": [ "./dist/Exception.d.ts" ],
-      "Manifest": [ "./dist/Manifest.d.ts" ],
-      "Server": [ "./dist/Server.d.ts" ],
-      "ServerLoader": [ "./dist/ServerLoader.d.ts" ],
-      "ServerManifest": [ "./dist/ServerManifest.d.ts" ],
-      "ServerResource": [ "./dist/ServerResource.d.ts" ],
-      "VirtualServer": [ "./dist/VirtualServer.d.ts" ]
+      "server": [ "./cjs/server/index.d.ts" ],
+      "server/constants": [ "./cjs/server/constants.d.ts" ],
+      "server/Document": [ "./cjs/server/Document.d.ts" ],
+      "server/helpers": [ "./cjs/server/helpers.d.ts" ],
+      "server/Server": [ "./cjs/server/Server.d.ts" ],
+      "server/types": [ "./cjs/server/types.d.ts" ],
+      "constants": [ "./cjs/constants.d.ts" ],
+      "helpers": [ "./cjs/helpers.d.ts" ],
+      "types": [ "./cjs/types.d.ts" ],
+      "Builder": [ "./cjs/Builder.d.ts" ],
+      "Document": [ "./cjs/builder/Document.d.ts" ],
+      "DocumentBuilder": [ "./cjs/DocumentBuilder.d.ts" ],
+      "DocumentLoader": [ "./cjs/DocumentLoader.d.ts" ],
+      "DocumentRender": [ "./cjs/DocumentRender.d.ts" ],
+      "Exception": [ "./cjs/Exception.d.ts" ],
+      "Manifest": [ "./cjs/Manifest.d.ts" ],
+      "Server": [ "./cjs/Server.d.ts" ],
+      "ServerLoader": [ "./cjs/ServerLoader.d.ts" ],
+      "ServerManifest": [ "./cjs/ServerManifest.d.ts" ],
+      "ServerResource": [ "./cjs/ServerResource.d.ts" ],
+      "VirtualServer": [ "./cjs/VirtualServer.d.ts" ],
+      "index": [ "./cjs/index.d.ts"]
     }
   },
   "files": [
-    "dist",
+    "cjs",
+    "esm",
     "fouc.css",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "tsconfig"
   ],
   "scripts": {
-    "build": "tsc",
-    "test": "nyc ts-mocha -r tsx tests/*.test.ts",
+    "build": "yarn build:tsc && yarn build:pkg",
+    "build:pkg": "yarn build:pkg:cjs && yarn build:pkg:esm",
+    "build:pkg:cjs": "echo '{\"type\": \"commonjs\"}' > cjs/package.json",
+    "build:pkg:esm": "echo '{\"type\": \"module\"}' > esm/package.json",
+    "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm",
+    "build:tsc:cjs": "tsc -p ./tsconfig.cjs.json",
+    "build:tsc:esm": "tsc -p ./tsconfig.esm.json",
+    "test": "nyc ts-mocha -r ts-node tests/*.test.ts",
     "report": "nyc report -r lcov"
   },
   "dependencies": {
-    "@stackpress/lib": "0.5.9",
+    "@stackpress/lib": "0.5.11",
     "@vitejs/plugin-react": "4.3.4",
     "vite": "6.1.1"
   },
@@ -91,7 +179,6 @@
     "react-dom": "19.0.0",
     "ts-mocha": "10.0.0",
     "ts-node": "10.9.2",
-    "tsx": "4.19.3",
     "typescript": "5.7.2"
   }
 }

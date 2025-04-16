@@ -1,9 +1,9 @@
 //node
 import path from 'node:path';
 //common
-import type { DocumentImport } from './types';
-import type Document from './Document';
-import type Server from './Server';
+import type { DocumentImport } from './types.js';
+import type Document from './Document.js';
+import type Server from './Server.js';
 
 export default class DocumentLoader {
   //parent docment

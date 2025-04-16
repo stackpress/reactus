@@ -2,7 +2,11 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
 //modules
 import type { ElementType } from 'react';
-import type { InlineConfig, PluginOption } from 'vite';
+import type { 
+  InlineConfig, 
+  PluginOption,
+  DepOptimizationOptions
+} from 'vite';
 import type { OutputChunk, OutputAsset } from 'rollup';
 //stackpress
 import type { 
@@ -11,7 +15,7 @@ import type {
   SuccessResponse 
 } from '@stackpress/lib/types';
 //local
-import type Document from './Document';
+import type Document from './Document.js';
 
 //--------------------------------------------------------------------//
 // Manifest Types
@@ -68,6 +72,8 @@ export type DevelopConfig = {
   documentTemplate: string,
   //file system
   fs?: FileSystem,
+  //vite optimization settings
+  optimizeDeps?: DepOptimizationOptions,
   //vite plugins
   plugins: PluginOption[],
   //original vite options (overrides other settings related to vite)
@@ -91,6 +97,8 @@ export type BuildConfig = {
   cwd: string,
   //file system
   fs?: FileSystem,
+  //vite optimization settings
+  optimizeDeps?: DepOptimizationOptions,
   //path where to save and load (live) the server script (js)
   pagePath: string,
   //template wrapper for the page script (tsx)
@@ -158,6 +166,8 @@ export type ServerConfig = {
   documentTemplate: string,
   //file system
   fs?: FileSystem,
+  //vite optimization settings
+  optimizeDeps?: DepOptimizationOptions,
   //path where to save and load (live) the server script (js)
   // - used in build step and live server
   pagePath: string,

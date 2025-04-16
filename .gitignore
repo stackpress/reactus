@@ -135,9 +135,9 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-
 archives
+cjs
+esm
 examples/*/public/assets
 examples/*/public/client
-.reactus
 .build

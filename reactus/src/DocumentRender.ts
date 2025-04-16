@@ -1,10 +1,12 @@
+//node
+import path from 'node:path';
 //stackpress
 import type { UnknownNest } from '@stackpress/lib/types';
 //common
-import type Document from './Document';
-import type Server from './Server';
-import Exception from './Exception';
-import { renderJSX } from './helpers';
+import type Document from './Document.js';
+import type Server from './Server.js';
+import Exception from './Exception.js';
+import { renderJSX } from './helpers.js';
 
 export default class DocumentRender {
   //parent docment
@@ -123,8 +125,10 @@ export default class DocumentRender {
     const { loader } = this._document;
     //get absolute file path
     const absolute = await loader.absolute();
+    //convert all path separators to forward slash
+    const pathname = absolute.replaceAll(path.sep, '/');
     //calculate file path relative to the page file
-    const file = `${absolute}.${name}.tsx`;
+    const file = `${pathname}.${name}.tsx`;
     //now make the entry file relative to the root entry file
     const relative = await loader.relative(file);
     //add the relative entry to the document script

@@ -1,7 +1,7 @@
 //node
 import { createServer } from 'node:http';
 //modules
-import UnoCSS from 'unocss/vite'
+import UnoCSS from 'unocss/vite';
 //reactus
 import { dev } from 'reactus';
 

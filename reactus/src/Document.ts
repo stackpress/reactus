@@ -1,12 +1,12 @@
 //node
 import path from 'node:path';
 //document
-import DocumentBuilder from './DocumentBuilder';
-import DocumentLoader from './DocumentLoader';
-import DocumentRender from './DocumentRender';
+import DocumentBuilder from './DocumentBuilder.js';
+import DocumentLoader from './DocumentLoader.js';
+import DocumentRender from './DocumentRender.js';
 //local
-import type Server from './Server';
-import { id } from './helpers';
+import type Server from './Server.js';
+import { id } from './helpers.js';
 
 export default class Document {
   //builder methods

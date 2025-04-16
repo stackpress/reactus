@@ -1,10 +1,10 @@
 //node
 import path from 'node:path';
 //local
-import type { BuildStatus } from './types';
-import Server from './Server';
-import Exception from './Exception';
-import { writeFile } from './helpers';
+import type { BuildStatus } from './types.js';
+import Server from './Server.js';
+import Exception from './Exception.js';
+import { writeFile } from './helpers.js';
 
 export default class Builder extends Server {
   /**

@@ -1,8 +1,14 @@
 //modules
-import type { ViteDevServer, PluginOption, InlineConfig } from 'vite';
+import type { 
+  AppType, 
+  ViteDevServer, 
+  PluginOption, 
+  InlineConfig,
+  DepOptimizationOptions 
+} from 'vite';
 //common
-import type Server from './Server';
-import { css, file, hmr, vfs } from './plugins';
+import type Server from './Server.js';
+import { css, file, hmr, vfs } from './plugins.js';
 
 export type ResourceConfig = {
   //base path (used in vite)
@@ -12,6 +18,8 @@ export type ResourceConfig = {
   config?: InlineConfig,
   //current working directory
   cwd: string,
+  //vite optimization settings
+  optimizeDeps?: DepOptimizationOptions,
   //vite plugins
   plugins: PluginOption[],
   //ignore files in watch mode
@@ -30,6 +38,8 @@ export default class ServerResource {
   protected _dev: ViteDevServer|null = null;
   //watch ignore patterns
   protected _ignore: string[];
+  //vite optimization settings
+  protected _optimize?: DepOptimizationOptions;
   //vite plugins
   protected _plugins: PluginOption[];
   //parent server
@@ -54,6 +64,8 @@ export default class ServerResource {
     this._config = config.config;
     //watch ignore patterns
     this._ignore = config.watchIgnore || [];
+    //vite optimization settings
+    this._optimize = config.optimizeDeps;
     //vite plugins
     this._plugins = config.plugins;
     //parent server
@@ -115,28 +127,20 @@ export default class ServerResource {
   }
 
   /**
-   * returns true if tailwindcss is enabled
-   */
-  public async tailwindEnabled() {
-    const dev = await this.dev();
-    return !!dev.config.plugins.find(
-      plugin => plugin.name.startsWith('@tailwindcss/vite')
-    )
-  }
-
-  /**
    * Create vite dev server logic
    */
   protected async _createServer() {
-    const vite = this._config || {
+    const vite = {
       server: { 
         middlewareMode: true,
-        watch: {  ignored: this._ignore }
+        watch: { ignored: this._ignore }
       },
-      appType: 'custom',
+      appType: 'custom' as AppType,
       base: this.base,
       root: this._cwd,
-      mode: 'development'
+      mode: 'development',
+      optimizeDeps: this._optimize,
+      ...this._config
     };
     const { createServer } = await import('vite');
     //shallow copy the vite config

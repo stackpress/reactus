@@ -3,17 +3,17 @@ import path from 'node:path';
 //stackpress
 import NodeFS from '@stackpress/lib/NodeFS';
 //server
-import ServerLoader from './ServerLoader';
-import ServerManifest from './ServerManifest';
-import ServerResource from './ServerResource';
-import VirtualServer from './VirtualServer';
+import ServerLoader from './ServerLoader.js';
+import ServerManifest from './ServerManifest.js';
+import ServerResource from './ServerResource.js';
+import VirtualServer from './VirtualServer.js';
 //local
-import type { IM, SR, ServerConfig } from './types';
+import type { IM, SR, ServerConfig } from './types.js';
 import { 
   PAGE_TEMPLATE,
   CLIENT_TEMPLATE, 
   DOCUMENT_TEMPLATE
-} from './constants';
+} from './constants.js';
 
 export default class Server {
   /**
@@ -56,6 +56,8 @@ export default class Server {
       documentTemplate: options.documentTemplate || DOCUMENT_TEMPLATE,
       //file system
       fs: options.fs || new NodeFS(),
+      //vite optimization settings
+      optimizeDeps: options.optimizeDeps,
       //path where to save and load (live) the server script (js)
       // - used in build step and live server
       pagePath: options.pagePath || path.join(cwd, '.reactus/page'),
@@ -154,6 +156,8 @@ export default class Server {
       config: config.vite,
       //current working directory
       cwd: cwd,
+      //vite optimization settings
+      optimizeDeps: config.optimizeDeps,
       //vite plugins
       plugins: config.plugins,
       //ignore files in watch mode

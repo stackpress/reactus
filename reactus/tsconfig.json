@@ -1,9 +1,3 @@
 {
-  "extends": "@stackpress/lib/tsconfig/esm",
-  "compilerOptions": {
-    "moduleResolution": "node",
-    "outDir": "dist/"
-  },
-  "include": [ "src/**/*.ts" ],
-  "exclude": [ "assets.d.ts", "dist", "node_modules", "tests" ]
+  "extends": "./tsconfig.esm"
 }

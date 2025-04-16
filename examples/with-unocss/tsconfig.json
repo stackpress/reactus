@@ -1,7 +1,6 @@
 {
-  "extends": "reactus/tsconfig/client",
+  "extends": "reactus/tsconfig/cjs",
   "compilerOptions": {
-    "moduleResolution": "bundler",
     "outDir": ".build",
   },
   "include": [ 

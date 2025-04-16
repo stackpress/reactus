@@ -9,7 +9,7 @@ export type {
   BuildConfig,
   ProductionConfig,
   ServerConfig
-} from './types';
+} from './types.js';
 
 export {
   VFS_PROTOCOL,
@@ -19,37 +19,37 @@ export {
   DOCUMENT_TEMPLATE,
   PAGE_TEMPLATE,
   CLIENT_TEMPLATE
-} from './constants';
+} from './constants.js';
 
 export {
   id,
   renderJSX,
   writeFile
-} from './helpers';
+} from './helpers.js';
 
 export {
   css,
   file,
   hmr,
   vfs
-} from './plugins';
+} from './plugins.js';
 
 import FileLoader from '@stackpress/lib/FileLoader';
 import NodeFS from '@stackpress/lib/NodeFS';
 
-import DocumentBuilder from './DocumentBuilder';
-import DocumentLoader from './DocumentLoader';
-import DocumentRender from './DocumentRender';
+import DocumentBuilder from './DocumentBuilder.js';
+import DocumentLoader from './DocumentLoader.js';
+import DocumentRender from './DocumentRender.js';
 
-import ServerLoader from './ServerLoader';
-import ServerManifest from './ServerManifest';
-import ServerResource from './ServerResource';
-import VirtualServer from './VirtualServer';
+import ServerLoader from './ServerLoader.js';
+import ServerManifest from './ServerManifest.js';
+import ServerResource from './ServerResource.js';
+import VirtualServer from './VirtualServer.js';
 
-import Builder from './Builder';
-import Document from './Document';
-import Server from './Server';
-import Exception from './Exception';
+import Builder from './Builder.js';
+import Document from './Document.js';
+import Server from './Server.js';
+import Exception from './Exception.js';
 
 export { 
   DocumentBuilder,
@@ -78,7 +78,7 @@ import type {
   ServerConfig, 
   BuildResults,
   DocumentIterator 
-} from './types';
+} from './types.js';
 
 export function dev(options: Partial<DevelopConfig>) {
   const config = Server.configure({ ...options, production: false });

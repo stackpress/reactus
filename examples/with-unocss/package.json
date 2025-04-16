@@ -1,23 +1,23 @@
 {
-  "type": "module",
   "name": "reactus-with-unocss",
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "build": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/build.ts",
-    "dev": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/develop.ts",
-    "start": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/start.ts"
+    "build": "ts-node scripts/build.ts",
+    "dev": "ts-node scripts/develop.ts",
+    "start": "ts-node scripts/start.ts"
   },
   "dependencies": {
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "reactus": "0.1.21",
+    "reactus": "0.1.33",
     "sirv": "3.0.1"
   },
   "devDependencies": {
     "@types/node": "22.9.3",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
+    "ts-node": "10.9.2",
     "typescript": "5.7.2",
     "unocss": "66.0.0"
   }
