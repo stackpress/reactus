@@ -7,6 +7,10 @@
   "scripts": {
     "build": "yarn --cwd reactus build",
   
+    "express:build": "yarn --cwd examples/with-express build",
+    "express:dev": "yarn --cwd examples/with-express dev",
+    "express:start": "yarn --cwd examples/with-express start",
+
     "http:build": "yarn --cwd examples/with-http build",
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
