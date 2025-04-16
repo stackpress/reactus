@@ -2,11 +2,11 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 //common
-import type { DocumentIterator } from './types';
-import Exception from './Exception';
-import Document from './Document';
-import Server from './Server';
-import { writeFile } from './helpers';
+import type { DocumentIterator } from './types.js';
+import Exception from './Exception.js';
+import Document from './Document.js';
+import Server from './Server.js';
+import { writeFile } from './helpers.js';
 
 export default class ServerManifest {
   //document map

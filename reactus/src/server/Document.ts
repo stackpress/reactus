@@ -3,10 +3,10 @@ import path from 'node:path';
 //stackpress
 import type { UnknownNest } from '@stackpress/lib/types';
 //document
-import type { DocumentImport } from './types';
+import type { DocumentImport } from './types.js';
 //local
-import type Server from './Server';
-import { id, renderJSX } from './helpers';
+import type Server from './Server.js';
+import { id, renderJSX } from './helpers.js';
 
 export default class Document {
   //server parent

@@ -3,12 +3,12 @@ import path from 'node:path';
 //modules
 import type { Plugin, ViteDevServer } from 'vite';
 //server
-import type ServerLoader from './ServerLoader';
-import type VirtualServer from './VirtualServer';
+import type ServerLoader from './ServerLoader.js';
+import type VirtualServer from './VirtualServer.js';
 //local
-import type { IM, SR, Next } from './types';
-import type Server from './Server';
-import { VFS_PROTOCOL } from './constants';
+import type { IM, SR, Next } from './types.js';
+import type Server from './Server.js';
+import { VFS_PROTOCOL } from './constants.js';
 
 export function css(cssFiles: string[]) {
   return {

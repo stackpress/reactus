@@ -3,17 +3,17 @@ import path from 'node:path';
 //stackpress
 import NodeFS from '@stackpress/lib/NodeFS';
 //server
-import ServerLoader from './ServerLoader';
-import ServerManifest from './ServerManifest';
-import ServerResource from './ServerResource';
-import VirtualServer from './VirtualServer';
+import ServerLoader from './ServerLoader.js';
+import ServerManifest from './ServerManifest.js';
+import ServerResource from './ServerResource.js';
+import VirtualServer from './VirtualServer.js';
 //local
-import type { IM, SR, ServerConfig } from './types';
+import type { IM, SR, ServerConfig } from './types.js';
 import { 
   PAGE_TEMPLATE,
   CLIENT_TEMPLATE, 
   DOCUMENT_TEMPLATE
-} from './constants';
+} from './constants.js';
 
 export default class Server {
   /**

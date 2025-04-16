@@ -13,7 +13,7 @@ import { jsx } from 'react/jsx-runtime';
 import { 
   HASH_LENGTH, 
   BASE62_ALPHABET
-} from './constants';
+} from './constants.js';
 
 /**
  * Creates an id based on the given content

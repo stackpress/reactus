@@ -1,17 +1,17 @@
 import type { UnknownNest } from '@stackpress/lib/types';
-import type { ServerConfig, DocumentImport } from './types';
-import Document from './Document';
-import Server from './Server';
+import type { ServerConfig, DocumentImport } from './types.js';
+import Document from './Document.js';
+import Server from './Server.js';
 import {
   BASE62_ALPHABET,
   HASH_LENGTH,
   DOCUMENT_TEMPLATE
-} from './constants';
+} from './constants.js';
 import { 
   configure,
   id,
   renderJSX
-} from './helpers';
+} from './helpers.js';
 
 export type { UnknownNest, ServerConfig, DocumentImport };
 

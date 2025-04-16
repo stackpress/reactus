@@ -7,8 +7,8 @@ import type {
   DepOptimizationOptions 
 } from 'vite';
 //common
-import type Server from './Server';
-import { css, file, hmr, vfs } from './plugins';
+import type Server from './Server.js';
+import { css, file, hmr, vfs } from './plugins.js';
 
 export type ResourceConfig = {
   //base path (used in vite)

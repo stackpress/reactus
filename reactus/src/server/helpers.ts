@@ -10,12 +10,12 @@ import { jsx } from 'react/jsx-runtime';
 import type { UnknownNest } from '@stackpress/lib/types';
 import NodeFS from '@stackpress/lib/NodeFS';
 //serve
-import type { ServerConfig } from './types';
+import type { ServerConfig } from './types.js';
 import { 
   BASE62_ALPHABET,
   DOCUMENT_TEMPLATE,
   HASH_LENGTH
-} from './constants';
+} from './constants.js';
 
 export function configure(options: Partial<ServerConfig>) {
   const cwd = options.cwd || process.cwd();

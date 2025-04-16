@@ -15,7 +15,7 @@ import type {
   SuccessResponse 
 } from '@stackpress/lib/types';
 //local
-import type Document from './Document';
+import type Document from './Document.js';
 
 //--------------------------------------------------------------------//
 // Manifest Types

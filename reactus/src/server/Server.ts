@@ -3,7 +3,7 @@ import path from 'node:path';
 //stackpress
 import FileLoader from '@stackpress/lib/FileLoader';
 //local
-import type { ServerConfig } from './types';
+import type { ServerConfig } from './types.js';
 
 export default class Server {
   //server file loader

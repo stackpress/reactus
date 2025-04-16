@@ -1,11 +1,12 @@
+//node
+import path from 'node:path';
 //stackpress
 import type { UnknownNest } from '@stackpress/lib/types';
 //common
-import type Document from './Document';
-import type Server from './Server';
-import Exception from './Exception';
-import { renderJSX } from './helpers';
-import path from 'node:path';
+import type Document from './Document.js';
+import type Server from './Server.js';
+import Exception from './Exception.js';
+import { renderJSX } from './helpers.js';
 
 export default class DocumentRender {
   //parent docment
