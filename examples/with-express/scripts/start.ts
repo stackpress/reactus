@@ -20,13 +20,8 @@ async function start() {
     immutable: true,
   });
 
-  //middleware using sirv to handle public assets
-  app.use((req, res, next) => {
-    assets(req, res);
-
-    if(res.headersSent) return;
-    next();
-  });
+    //middleware using sirv to handle public assets
+    app.use(assets);
 
   app.get('/', async (_req, res) => {
     try {
@@ -48,7 +43,6 @@ async function start() {
       console.error('Error rendering /about:', error);
       res.status(500).send('Internal Server Error');
     }
-    
   });
 
   app.use((_req, res) => {
