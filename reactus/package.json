@@ -162,9 +162,7 @@
     "report": "nyc report -r lcov"
   },
   "dependencies": {
-    "@stackpress/lib": "0.5.14",
-    "@vitejs/plugin-react": "4.3.4",
-    "vite": "6.1.1"
+    "@stackpress/lib": "0.5.14"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
@@ -182,5 +180,13 @@
     "ts-mocha": "10.0.0",
     "ts-node": "10.9.2",
     "typescript": "5.7.2"
+  },
+  "peerDevDependencies": {
+    "@vitejs/plugin-react": "4.3.4",
+    "vite": "6.1.1"
+  },
+  "peerProdDependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
   }
 }

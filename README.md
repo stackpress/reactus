@@ -9,7 +9,7 @@ Reactive React Template Engine
 ## Install
 
 ```bash
-npm i -D typescript ts-node tsx @types/node @types/react @types/react-dom
+npm i -D typescript ts-node tsx @types/node @types/react @types/react-dom @vitejs/plugin-react vite
 npm i reactus react react-dom
 ```
 
