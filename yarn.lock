@@ -745,13 +745,12 @@
   resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.35.0.tgz#05f25dbc9981bee1ae6e713daab10397044a46ca"
   integrity sha512-PIQeY5XDkrOysbQblSW7v3l1MDZzkTEzAfTPkj5VAu3FW8fS4ynyLg2sINp0fp3SjZ8xkRYpLqoKcYqAkhU1dw==
 
-"@stackpress/lib@0.5.14":
-  version "0.5.14"
-  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.5.14.tgz#e4d7dc9f1aad3fa0596dbc1a1977d3e4c1fe653d"
-  integrity sha512-08PrCek/DNgWc696ISErPZ/IOUTrInzpHMR1cyBwHd0HUJ7Cs1CxrgqIYzvIRyZQ49E3mcckWOVb4XCHp0gkQA==
+"@stackpress/lib@0.5.15":
+  version "0.5.15"
+  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.5.15.tgz#7b106da7b32d18b1c5ef39f180bbbf48fa91e463"
+  integrity sha512-BKDYXJhVu3yDZNblC4O7VF6E/VU9M+Z8DzeK9xlFY3NoUblr23EnDDJUC5Qbgc8mourTzy7uMF3qmpPascypZA==
   dependencies:
     "@inquirer/prompts" "7.1.0"
-    cookie "1.0.2"
 
 "@tailwindcss/node@4.0.15":
   version "4.0.15"
@@ -1618,11 +1617,6 @@ cookie-signature@^1.2.1:
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/cookie-signature/-/cookie-signature-1.2.2.tgz#57c7fc3cc293acab9fec54d73e15690ebe4a1793"
   integrity sha512-D76uU73ulSXrD1UXF4KE2TMxVVwhsnCgfAyTg9k8P6KGZjlXKrOLe4dJQKI3Bxi5wjesZoFXJWElNWBjPZMbhg==
-
-cookie@1.0.2:
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/cookie/-/cookie-1.0.2.tgz#27360701532116bd3f1f9416929d176afe1e4610"
-  integrity sha512-9Kr/j4O16ISv8zBBhJoi4bXOYNTkFLOqSL3UDB0njXxCXNezjeyVrJyGOWtgfs/q2km1gwBcfH8q1yEGoMYunA==
 
 cookie@^0.7.1:
   version "0.7.2"
