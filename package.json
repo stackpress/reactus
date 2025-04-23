@@ -15,6 +15,10 @@
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
 
+    "restify:build": "yarn --cwd examples/with-http build",
+    "restify:dev": "yarn --cwd examples/with-restify dev",
+    "restify:start": "yarn --cwd examples/with-restify start",
+
     "tailwind:build": "yarn --cwd examples/with-tailwind build",
     "tailwind:dev": "yarn --cwd examples/with-tailwind dev",
     "tailwind:start": "yarn --cwd examples/with-tailwind start",
