@@ -11,6 +11,10 @@
     "express:dev": "yarn --cwd examples/with-express dev",
     "express:start": "yarn --cwd examples/with-express start",
 
+    "hapi:build": "yarn --cwd examples/with-hapi build",
+    "hapi:dev": "yarn --cwd examples/with-hapi dev",
+    "hapi:start": "yarn --cwd examples/with-hapi start",
+
     "http:build": "yarn --cwd examples/with-http build",
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
