@@ -11,7 +11,7 @@
   "dependencies": {
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "reactus": "0.1.35",
+    "reactus": "0.2.8",
     "sirv": "3.0.1"
   },
   "devDependencies": {
@@ -20,10 +20,12 @@
     "@types/node": "22.9.3",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
+    "@vitejs/plugin-react": "4.3.4",
     "autoprefixer": "10.4.21",
     "react": "19.0.0",
     "react-dom": "19.0.0",
     "tailwindcss": "4.0.15", 
-    "typescript": "5.7.2"
+    "typescript": "5.7.2",
+    "vite": "6.1.1"
   }
 }
