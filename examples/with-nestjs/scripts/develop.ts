@@ -1,47 +1,51 @@
-//node
-import { createServer } from 'node:http';
-//reactus
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from '../src/app.module';
 import { dev } from 'reactus';
+import { createServer, IncomingMessage, ServerResponse } from 'http';
 
-async function develop() {
-  const cwd = process.cwd();
+async function develop() { 
+  // Create NestJS app without body parsing
+  const app = await NestFactory.create(AppModule, {
+    bodyParser: false, 
+  });
+  await app.init();
+
+  // Set up Reactus dev server
   const engine = dev({
-    cwd,
+    cwd: process.cwd(),
     basePath: '/',
-    watchIgnore: [ '**/.build/**' ],
-    //client script route prefix used in the document markup
-    //ie. /client/[id][extname]
-    //<script type="module" src="/client/[id][extname]"></script>
-    //<script type="module" src="/client/abc123.tsx"></script>
-    clientRoute: '/client'
+    watchIgnore: ['**/.build/**'],
+    clientRoute: '/client',
   });
 
-  const server = createServer(async (req, res) => {
-    //handles public, assets and hmr
+  // Handle HTTP requests
+  const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     await engine.http(req, res);
-    //if middleware was triggered
     if (res.headersSent) return;
-    // home page
+
+    // Server-side render routes
     if (req.url === '/') {
       res.setHeader('Content-Type', 'text/html');
       res.end(await engine.render('@/pages/home', { title: 'Home' }));
       return;
-    //about page
-    } else if (req.url === '/about') {
+    }
+
+    if (req.url === '/about') {
       res.setHeader('Content-Type', 'text/html');
       res.end(await engine.render('@/pages/about'));
       return;
     }
+
+    res.statusCode = 404;
     res.end('404 Not Found');
   });
 
   server.listen(3000, () => {
-    console.log('Server running at http://localhost:3000/');
+    console.log('Server running at http://localhost:3000');
   });
 }
 
-develop().catch(e => {
-  console.error(e);
+develop().catch(err => {
+  console.error(err);
   process.exit(1);
 });
-
