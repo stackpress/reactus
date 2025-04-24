@@ -1,48 +1,57 @@
-//node
-import { createServer } from 'node:http';
+import { createServer, IncomingMessage, ServerResponse } from 'node:http';
 import path from 'node:path';
 import sirv from 'sirv';
-//reactus
+
 import { serve } from 'reactus';
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from '../src/app.module';
+import { AppService } from '../src/app.service';
 
 async function start() {
   const cwd = process.cwd();
+
+  // Start NestJS without listening (manual server)
+  const app = await NestFactory.create(AppModule, { bodyParser: false });
+  await app.init();
+
+  // Get NestJS service
+  const appService = app.get(AppService);
+
+  // Set up Reactus renderer
   const engine = serve({
     cwd,
-    //ie. /client/[id][extname]
-    //<script type="module" src="/client/[id][extname]"></script>
-    //<script type="module" src="/client/abc123.tsx"></script>
     clientRoute: '/client',
-    //path where to load the server script (js)
     pagePath: path.join(cwd, '.build/pages'),
-    //css route prefix used in the document markup
-    //ie. /assets/[id][extname]
-    //<link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
-    //<link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-    cssRoute: '/assets'
-  });
-  // Init `sirv` handler
-  const assets = sirv(path.join(cwd, 'public'), {
-    maxAge: 31536000, // 1Y
-    immutable: true
+    cssRoute: '/assets',
   });
 
-  const server = createServer(async (req, res) => {
-    // home page
+  // Serve public assets
+  const assets = sirv(path.join(cwd, 'public'), {
+    maxAge: 31536000,
+    immutable: true,
+  });
+
+  // Create HTTP server
+  const server = createServer(async (req: IncomingMessage, res: ServerResponse) => {
     if (req.url === '/') {
+      const message = appService.getMessage();
       res.setHeader('Content-Type', 'text/html');
-      res.end(await engine.render('@/pages/home'));
+      res.end(await engine.render('@/pages/home', { message }));
       return;
-    //about page
-    } else if (req.url === '/about') {
+    }
+
+    // Server-side render routes
+    if (req.url === '/about') {
       res.setHeader('Content-Type', 'text/html');
       res.end(await engine.render('@/pages/about'));
       return;
     }
-    //static asset server
+
     assets(req, res);
-    //if static asset was triggered
     if (res.headersSent) return;
+
+    res.statusCode = 404;
     res.end('404 Not Found');
   });
 
@@ -51,8 +60,7 @@ async function start() {
   });
 }
 
-start().catch(e => {
-  console.error(e);
+start().catch((err) => {
+  console.error(err);
   process.exit(1);
 });
-
