@@ -15,6 +15,10 @@
     "http:dev": "yarn --cwd examples/with-http dev",
     "http:start": "yarn --cwd examples/with-http start",
 
+    "nestjs:build": "yarn --cwd examples/with-nestjs build",
+    "nestjs:dev": "yarn --cwd examples/with-nestjs dev",
+    "nestjs:start": "yarn --cwd examples/with-nestjs start",
+
     "tailwind:build": "yarn --cwd examples/with-tailwind build",
     "tailwind:dev": "yarn --cwd examples/with-tailwind dev",
     "tailwind:start": "yarn --cwd examples/with-tailwind start",
