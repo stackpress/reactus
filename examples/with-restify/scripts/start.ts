@@ -1,5 +1,5 @@
-import path from "node:path";
-import { serve } from "reactus";
+import path from 'node:path';
+import { serve } from 'reactus';
 import restify from 'restify';
 
 import sirv from "sirv";
