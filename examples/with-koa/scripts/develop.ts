@@ -1,4 +1,4 @@
-import { dev } from "reactus";
+import { dev } from 'reactus';
 import Koa from 'koa';
 import Router from '@koa/router';
 
@@ -44,7 +44,7 @@ async function develop() {
   });
 
   app.listen(3000, () => {
-    console.log(`Server listening at http://localhost:3000`);
+    console.log('Server listening at http://localhost:3000');
   });
 }
 

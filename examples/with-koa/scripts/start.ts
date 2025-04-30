@@ -1,5 +1,5 @@
-import path from "node:path";
-import { serve } from "reactus";
+import path from 'node:path';
+import { serve } from 'reactus';
 import Koa from 'koa';
 import Router from '@koa/router';
 import koaStatic from 'koa-static';
@@ -17,7 +17,7 @@ async function start() {
   });
 
   const assets = koaStatic(path.join(cwd, 'public'), {
-    maxage: 31536000, // Equivalent to maxAge
+    maxage: 31536000,
     immutable: true,
   });
 
@@ -58,7 +58,7 @@ async function start() {
 
 
   app.listen(3000,() => {
-    console.log(`Server listening at http://localhost:3000`);
+    console.log('Server listening at http://localhost:3000');
   });
 }
 
