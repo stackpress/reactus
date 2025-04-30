@@ -16,29 +16,30 @@ async function develop() {
     host: 'localhost',
   });
 
-  server.ext('onRequest', async (request: Request, h: ResponseToolkit) => {
+  //ResponseToolkit provides methods to generate responses from requests
+  server.ext('onRequest', async (request: Request, ResponseToolkit: ResponseToolkit) => {
     await engine.http(request.raw.req, request.raw.res);
     if (request.raw.res.headersSent || request.raw.res.writableEnded) {
-      return h.abandon;
+      return ResponseToolkit.abandon;
     }
-    return h.continue;
+    return ResponseToolkit.continue;
   });
 
   server.route({
     method: 'GET',
     path: '/',
-    handler: async (_request: Request, h: ResponseToolkit) => {
+    handler: async (_request: Request, ResponseToolkit: ResponseToolkit) => {
       const html = await engine.render('@/pages/home', { title: 'Home' });
-      return h.response(html).type('text/html');
+      return ResponseToolkit.response(html).type('text/html');
     }
   });
 
   server.route({
     method: 'GET',
     path: '/about',
-    handler: async (_request: Request, h: ResponseToolkit) => {
+    handler: async (_request: Request, ResponseToolkit: ResponseToolkit) => {
       const html = await engine.render('@/pages/about');
-      return h.response(html).type('text/html');
+      return ResponseToolkit.response(html).type('text/html');
     }
   });
 

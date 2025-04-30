@@ -43,14 +43,14 @@ async function start() {
   server.route({
     method: 'GET',
     path: '/',
-    handler: async (_request: Request, h: ResponseToolkit) => {
+    handler: async (_request: Request, ResponseToolkit: ResponseToolkit) => {
       try {
         // Render the home page using Reactus engine
         const html = await engine.render('@/pages/home', { title: 'Home' });
-        return h.response(html).type('text/html');
+        return ResponseToolkit.response(html).type('text/html');
       } catch (error) {
         console.error("SSR Error /:", error);
-        return h.response('Server Error').code(500);
+        return ResponseToolkit.response('Server Error').code(500);
       }
     }
   });
@@ -58,14 +58,14 @@ async function start() {
   server.route({
     method: 'GET',
     path: '/about',
-    handler: async (_request: Request, h: ResponseToolkit) => {
+    handler: async (_request: Request, ResponseToolkit: ResponseToolkit) => {
       try {
         // Render the about page using Reactus engine
         const html = await engine.render('@/pages/about');
-        return h.response(html).type('text/html');
+        return ResponseToolkit.response(html).type('text/html');
       } catch (error) {
         console.error("SSR Error /about:", error);
-        return h.response('Server Error').code(500);
+        return ResponseToolkit.response('Server Error').code(500);
       }
     }
   });
@@ -73,10 +73,10 @@ async function start() {
   server.route({
     method: '*', 
     path: '/{any*}', 
-    handler: (request: Request, h: ResponseToolkit) => {
+    handler: (request: Request, ResponseToolkit: ResponseToolkit) => {
       console.log(`404 Not Found: ${request.method.toUpperCase()} ${request.path}`);
       // Return a simple text response with a 404 status code
-      return h.response('Page not found').code(404).type('text/plain');
+      return ResponseToolkit.response('Page not found').code(404).type('text/plain');
     }
   });
 
