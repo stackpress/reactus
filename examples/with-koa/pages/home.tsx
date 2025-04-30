@@ -21,7 +21,7 @@ export default function HomePage() {
 
   return (
     <>
-      <h1>React + Reactus</h1>
+      <h1>React + Reactus + Koa</h1>
       <div className="p-4">
         <button className="text-reactus" onClick={() => setCount((count) => count + 1)}>
           count is {count}

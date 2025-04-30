@@ -1,12 +1,14 @@
-//node
-import path from 'node:path';
-import Koa from 'koa';          // Import Koa
-import serveStatic from 'koa-static'; // Import koa-static
-//reactus
-import { serve } from 'reactus';
+import path from "node:path";
+import { serve } from "reactus";
+import Koa from 'koa';
+import Router from '@koa/router';
+import koaStatic from 'koa-static';
 
 async function start() {
+  const app = new Koa();
+  const router = new Router();
   const cwd = process.cwd();
+
   const engine = serve({
     cwd,
     clientRoute: '/client',
@@ -14,32 +16,49 @@ async function start() {
     cssRoute: '/assets'
   });
 
-  const app = new Koa(); // Create a Koa app instance
+  const assets = koaStatic(path.join(cwd, 'public'), {
+    maxage: 31536000, // Equivalent to maxAge
+    immutable: true,
+  });
 
-  // Serve static files from 'public' directory using koa-static
-  app.use(serveStatic(path.join(cwd, 'public'), {
-    maxage: 31536000 * 1000, // 1Y in milliseconds
-    immutable: true
-  }));
+  // Middleware using koa-static to handle public assets
+  app.use(assets);
 
-  // Koa Middleware for page rendering
-  app.use(async (ctx, next) => {
-    // Routing logic using ctx.path
-    if (ctx.path === '/') {
-      ctx.type = 'text/html'; // Set content type
-      ctx.body = await engine.render('@/pages/home'); // Set response body
-    } else if (ctx.path === '/about') {
-      ctx.type = 'text/html';
-      ctx.body = await engine.render('@/pages/about');
-    } else {
-      // If it's not a page route, and wasn't handled by static middleware,
-      // Koa will automatically send a 404 Not Found if ctx.body remains unset.
-      await next();
+  router.get('/', async (ctx) => {
+    try {
+      ctx.set('Content-Type', 'text/html');
+      ctx.body = await engine.render('@/pages/home');
+    } catch (error) {
+      console.error('Error rendering /home:', error);
+      ctx.status = 500;
+      ctx.body = 'Internal Server Error';
     }
   });
 
-  app.listen(3000, () => { // Use app.listen
-    console.log('Server running at http://localhost:3000/');
+  router.get('/about', async (ctx) => {
+    try {
+      ctx.set('Content-Type', 'text/html');
+      ctx.body = await engine.render('@/pages/about');
+    } catch (error) {
+      console.error('Error rendering /about:', error);
+      ctx.status = 500;
+      ctx.body = 'Internal Server Error';
+    }
+  });
+
+   app.use(router.routes()).use(router.allowedMethods());
+
+  // Catch-all middleware for 404
+  app.use(async (ctx) => {
+    if (!ctx.body) {
+      ctx.status = 404;
+      ctx.body = 'Not Found.';
+    }
+  });
+
+
+  app.listen(3000,() => {
+    console.log(`Server listening at http://localhost:3000`);
   });
 }
 

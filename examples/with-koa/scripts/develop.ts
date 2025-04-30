@@ -1,45 +1,50 @@
-//node
-import Koa from 'koa'; // Import Koa
-//reactus
-import { dev } from 'reactus';
+import { dev } from "reactus";
+import Koa from 'koa';
+import Router from '@koa/router';
+
 
 async function develop() {
-  const cwd = process.cwd();
   const engine = dev({
-    cwd,
+    cwd: process.cwd(),
     basePath: '/',
-    watchIgnore: ['**/.build/**'],
-    clientRoute: '/client'
-  });
+    clientRoute: '/client',
+  })
 
-  const app = new Koa(); // Create a Koa app instance
+  const app = new Koa();
+  const router = new Router();
 
-  // Koa Middleware
+  // Handle reactus http requests (public, assets, and hmr)
   app.use(async (ctx, next) => {
-    // Let reactus handle its development routes (client scripts, HMR, etc.)
-    // Pass Koa's raw req/res objects to the engine's http handler
     await engine.http(ctx.req, ctx.res);
 
-    // If reactus handled the request and sent a response, move to the next middleware (or end)
-    if (ctx.res.headersSent) {
-      return next();
-    }
+    if (ctx.res.headersSent) return;
+    await next(); 
+  });
 
-    // Routing logic using ctx.path
-    if (ctx.path === '/') {
-      ctx.type = 'text/html'; // Set content type using ctx.type
-      ctx.body = await engine.render('@/pages/home', { title: 'Home' }); // Set response body using ctx.body
-    } else if (ctx.path === '/about') {
-      ctx.type = 'text/html';
-      ctx.body = await engine.render('@/pages/about');
-    } else {
-      // Let Koa handle the 404 if no route matches
-      await next();
+  router.get('/', async (ctx) => {
+    ctx.set('Content-Type', 'text/html');
+    ctx.body = await engine.render('@/pages/home', { title: 'Home' });
+    return;
+  });
+
+  router.get('/about', async (ctx) => {
+    ctx.set('Content-Type', 'text/html');
+    ctx.body = await engine.render('@/pages/about');
+    return;
+  });
+
+  app.use(router.routes()).use(router.allowedMethods());
+
+  // Catch-all middleware for 404
+  app.use(async (ctx) => {
+    if (!ctx.body) {
+        ctx.status = 404;
+        ctx.body = '404 not found.';
     }
   });
 
-  app.listen(3000, () => { // Use app.listen
-    console.log('Server running at http://localhost:3000/');
+  app.listen(3000, () => {
+    console.log(`Server listening at http://localhost:3000`);
   });
 }
 
