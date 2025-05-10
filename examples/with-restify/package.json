@@ -1,0 +1,29 @@
+{
+  "type": "module",
+  "name": "reactus-with-restify",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx scripts/develop.ts",
+    "build": "tsx scripts/build.ts",
+    "start": "tsx scripts/start.ts"
+  },
+  "dependencies": {
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "reactus": "0.2.9",
+    "restify": "11.1.0",
+    "sirv": "3.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.14.1",
+    "@types/react": "19.1.2",
+    "@types/react-dom": "19.1.2",
+    "@types/restify": "8.5.12",
+    "@vitejs/plugin-react": "4.4.1",
+    "ts-node": "10.9.2",
+    "tsx": "4.19.3",
+    "typescript": "5.8.3",
+    "vite": "6.3.2"
+  }
+}
