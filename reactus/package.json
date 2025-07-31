@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "reactus",
-  "version": "0.2.30",
+  "version": "0.6.1",
   "license": "Apache-2.0",
   "description": "reactive React template engine",
   "author": "Chris <chris@incept.asia>",
@@ -162,7 +162,7 @@
     "report": "nyc report -r lcov"
   },
   "dependencies": {
-    "@stackpress/lib": "0.5.30"
+    "@stackpress/lib": "0.6.1"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
