@@ -6,28 +6,14 @@
   ],
   "scripts": {
     "build": "yarn --cwd reactus build",
-  
-    "express:build": "yarn --cwd examples/with-express build",
-    "express:dev": "yarn --cwd examples/with-express dev",
-    "express:start": "yarn --cwd examples/with-express start",
-
-    "http:build": "yarn --cwd examples/with-http build",
-    "http:dev": "yarn --cwd examples/with-http dev",
-    "http:start": "yarn --cwd examples/with-http start",
-
-    "restify:build": "yarn --cwd examples/with-http build",
-    "restify:dev": "yarn --cwd examples/with-restify dev",
-    "restify:start": "yarn --cwd examples/with-restify start",
-
-    "tailwind:build": "yarn --cwd examples/with-tailwind build",
-    "tailwind:dev": "yarn --cwd examples/with-tailwind dev",
-    "tailwind:start": "yarn --cwd examples/with-tailwind start",
-
-    "uno:build": "yarn --cwd examples/with-unocss build",
-    "uno:dev": "yarn --cwd examples/with-unocss dev",
-    "uno:start": "yarn --cwd examples/with-unocss start",
-
-    "report": "nyc yarn test && nyc report -r lcov",
+    "express": "yarn --cwd examples/with-express",
+    "fastify": "yarn --cwd examples/with-fastify",
+    "hapi": "yarn --cwd examples/with-hapi",
+    "http": "yarn --cwd examples/with-http",
+    "restify": "yarn --cwd examples/with-restify",
+    "tailwind": "yarn --cwd examples/with-tailwind",
+    "unocss": "yarn --cwd examples/with-unocss",
+    "report": "yarn --cwd reactus report",
     "test": "yarn --cwd reactus test"
   },
   "devDependencies": {
