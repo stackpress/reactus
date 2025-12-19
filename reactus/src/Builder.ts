@@ -81,12 +81,10 @@ export default class Builder extends Server {
         //do not do anything else
         continue;
       }
-      //find the output with type chunk
-      const chunk = client.find(
-        output => output.type === 'chunk'
-      );
+      //get all the chunks
+      const chunks = client.filter(output => output.type === 'chunk');
       //if a chunk was not found
-      if (!chunk) {
+      if (chunks.length === 0) {
         //push an error
         results.push(Exception.for(
           `Client '${document.entry}' was not generated`
@@ -94,13 +92,27 @@ export default class Builder extends Server {
         //skip the rest...
         continue;
       }
+      //the first chunk is the entry point
+      // and the rest are assets...
+      for (const asset of chunks.slice(1)) {
+        //skip if not in a folder (ie. assets/some-file-abc123.js)
+        if (asset.fileName.split('/').length <= 1) {
+          continue;
+        }
+        //determine the file path 
+        // (ie. /path/to/client/assets/some-file-abc123.js)
+        const file = path.join(this.paths.client, asset.fileName); 
+        //go ahead and write the asset file to disk
+        await writeFile(file, asset.code);   
+      }
+      //now for the main entry chunk...
       //determine the file path
       const file = path.join(
         this.paths.client, 
         `${document.id}.js`
       );
       //write the file to disk
-      await writeFile(file, chunk.code);
+      await writeFile(file, chunks[0].code);
       const absolute = await document.loader.absolute();
       //push the result
       results.push({
@@ -110,7 +122,7 @@ export default class Builder extends Server {
           type: 'client',
           id: document.id,
           entry: document.entry,
-          contents: chunk.code,
+          contents: chunks[0].code,
           source: absolute,
           destination: file
         }

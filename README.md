@@ -1,6 +1,8 @@
 # ☢️ Reactus
 
 [![NPM Package](https://img.shields.io/npm/v/reactus.svg?style=flat)](https://www.npmjs.com/package/reactus)
+[![Tests Status](https://img.shields.io/github/actions/workflow/status/stackpress/reactus/test.yml)](https://github.com/stackpress/reactus/actions)
+[![Coverage Status](https://coveralls.io/repos/github/stackpress/reactus/badge.svg?branch=main)](https://coveralls.io/github/stackpress/reactus?branch=main)
 [![Commits](https://img.shields.io/github/last-commit/stackpress/reactus)](https://github.com/stackpress/reactus/commits/main/)
 [![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg?style=flat)](https://github.com/stackpress/reactus/blob/main/LICENSE)
 
