@@ -8,6 +8,7 @@
     "build": "yarn --cwd reactus build",
     "express": "yarn --cwd examples/with-express",
     "fastify": "yarn --cwd examples/with-fastify",
+    "hapi": "yarn --cwd examples/with-hapi",
     "http": "yarn --cwd examples/with-http",
     "tailwind": "yarn --cwd examples/with-tailwind",
     "unocss": "yarn --cwd examples/with-unocss",
