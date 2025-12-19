@@ -10,6 +10,7 @@
     "fastify": "yarn --cwd examples/with-fastify",
     "hapi": "yarn --cwd examples/with-hapi",
     "http": "yarn --cwd examples/with-http",
+    "restify": "yarn --cwd examples/with-restify",
     "tailwind": "yarn --cwd examples/with-tailwind",
     "unocss": "yarn --cwd examples/with-unocss",
     "report": "yarn --cwd reactus report",
