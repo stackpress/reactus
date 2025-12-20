@@ -34,18 +34,7 @@ export function id(content: string, length = HASH_LENGTH) {
   }
   //Trim to desired length
   return hash.padStart(length, '0').slice(0, length);
-}
-
-/**
- * When TS builds to CJS, it converts dynamic import() to require()
- * which does not work with ESM-only packages. So this is basically
- * a monkey-patch to allow dynamic import of ESM packages in CJS 
- * builds. Either this is a safer way to do dynamic imports.
- */
-export const include = new Function(
-  'modulePath', 
-  'return import(modulePath)'
-);
+};
 
 /**
  * Renders JSX element to string
@@ -54,7 +43,7 @@ export function renderJSX(element?: ElementType, props: UnknownNest = {}) {
   return element ? renderToString(
     jsx(StrictMode, { children: jsx(element, { ...props }) })
   ): '';
-}
+};
 
 /**
  * Creates folder if necessary and writes file
@@ -71,4 +60,4 @@ export async function writeFile(
   //now cache the tsx code
   await fs.writeFile(file, contents);
   return file;
-}
+};

@@ -9,7 +9,7 @@ import type {
 //common
 import type Server from './Server.js';
 import { css, file, hmr, vfs } from './plugins.js';
-import { include } from './helpers.js';
+import { include } from '@stackpress/lib';
 
 export type ResourceConfig = {
   //base path (used in vite)

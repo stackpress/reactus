@@ -11,7 +11,7 @@
   "dependencies": {
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "reactus": "0.6.2",
+    "reactus": "0.6.4",
     "restify": "11.1.0",
     "sirv": "3.0.2"
   },
