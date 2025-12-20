@@ -1,129 +1,130 @@
+//tests
+import { describe, it, afterEach } from 'mocha';
+import { expect } from 'chai';
+//node
+import path from 'node:path';
+//reactus
+import Server from '../src/Server.js';
 import Document from '../src/Document.js';
 import DocumentBuilder from '../src/DocumentBuilder.js';
 import DocumentLoader from '../src/DocumentLoader.js';
 import DocumentRender from '../src/DocumentRender.js';
-import type Server from '../src/Server.js';
-
-// Mock the helper function
-jest.mock('../src/helpers.js', () => ({
-  id: jest.fn()
-}));
-
-// Mock the document classes
-jest.mock('../src/DocumentBuilder.js');
-jest.mock('../src/DocumentLoader.js');
-jest.mock('../src/DocumentRender.js');
-
-import { id } from '../src/helpers.js';
-
-const mockId = id as jest.MockedFunction<typeof id>;
-const MockDocumentBuilder = DocumentBuilder as jest.MockedClass<typeof DocumentBuilder>;
-const MockDocumentLoader = DocumentLoader as jest.MockedClass<typeof DocumentLoader>;
-const MockDocumentRender = DocumentRender as jest.MockedClass<typeof DocumentRender>;
+import { id as hashId } from '../src/helpers.js';
+import { cleanupTempDir, makeTempDir } from './helpers.js';
 
 describe('Document', () => {
-  let mockServer: Server;
-  let document: Document;
+  let tempDir = '';
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-    
-    // Create a minimal mock server
-    mockServer = {} as Server;
-    
-    // Mock the id function to return a predictable hash
-    mockId.mockReturnValue('abc12345');
+  afterEach(async () => {
+    if (tempDir) await cleanupTempDir(tempDir);
+    tempDir = '';
   });
 
-  describe('constructor', () => {
-    it('should initialize with entry and server', () => {
-      const entry = '@/pages/home.tsx';
-      
-      document = new Document(entry, mockServer);
-      
-      expect(document.entry).toBe(entry);
-      expect(document.server).toBe(mockServer);
+  function makeServer(production = true) {
+    const config = Server.configure({
+      production,
+      cwd: tempDir,
+      basePath: '/',
+      plugins: []
     });
 
-    it('should create builder, loader, and render instances', () => {
-      const entry = '@/pages/home.tsx';
-      
-      document = new Document(entry, mockServer);
-      
-      expect(MockDocumentBuilder).toHaveBeenCalledWith(document);
-      expect(MockDocumentLoader).toHaveBeenCalledWith(document);
-      expect(MockDocumentRender).toHaveBeenCalledWith(document);
-      expect(document.builder).toBeInstanceOf(DocumentBuilder);
-      expect(document.loader).toBeInstanceOf(DocumentLoader);
-      expect(document.render).toBeInstanceOf(DocumentRender);
+    return new Server(config);
+  }
+
+  describe('constructor', () => {
+    it('initializes with entry and server', async () => {
+      tempDir = await makeTempDir('doc-ctor-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+
+      expect(doc.entry).to.equal('@/pages/home.tsx');
+      expect(doc.server).to.equal(server);
+    });
+
+    it('creates builder, loader, and render instances', async () => {
+      tempDir = await makeTempDir('doc-ctor2-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+
+      expect(doc.builder).to.be.instanceOf(DocumentBuilder);
+      expect(doc.loader).to.be.instanceOf(DocumentLoader);
+      expect(doc.render).to.be.instanceOf(DocumentRender);
     });
   });
 
   describe('id getter', () => {
-    it('should generate id from entry basename and hash', () => {
+    it('generates id from entry basename and hash', async () => {
+      tempDir = await makeTempDir('doc-id-');
+      const server = makeServer(true);
       const entry = '@/pages/home.tsx';
-      document = new Document(entry, mockServer);
-      
-      const result = document.id;
-      
-      expect(mockId).toHaveBeenCalledWith(entry, 8);
-      expect(result).toBe('home.tsx-abc12345');
+      const doc = new Document(entry, server);
+
+      const expected = `${path.basename(entry)}-${hashId(entry, 8)}`;
+      expect(doc.id).to.equal(expected);
     });
 
-    it('should handle nested paths correctly', () => {
-      const entry = '@/components/ui/Button.tsx';
-      document = new Document(entry, mockServer);
-      
-      const result = document.id;
-      
-      expect(mockId).toHaveBeenCalledWith(entry, 8);
-      expect(result).toBe('Button.tsx-abc12345');
+    it('handles nested paths correctly', async () => {
+      tempDir = await makeTempDir('doc-id-nested-');
+      const server = makeServer(true);
+      const entry = '@/pages/admin/settings.tsx';
+      const doc = new Document(entry, server);
+
+      expect(doc.id).to.equal(`${path.basename(entry)}-${hashId(entry, 8)}`);
     });
 
-    it('should handle module paths', () => {
-      const entry = 'react-components/Button.tsx';
-      document = new Document(entry, mockServer);
-      
-      const result = document.id;
-      
-      expect(mockId).toHaveBeenCalledWith(entry, 8);
-      expect(result).toBe('Button.tsx-abc12345');
+    it('handles module paths', async () => {
+      tempDir = await makeTempDir('doc-id-module-');
+      const server = makeServer(true);
+      const entry = 'some-module/pages/home.tsx';
+      const doc = new Document(entry, server);
+
+      expect(doc.id).to.equal(`${path.basename(entry)}-${hashId(entry, 8)}`);
     });
 
-    it('should handle files without extension', () => {
-      const entry = '@/pages/index';
-      document = new Document(entry, mockServer);
-      
-      const result = document.id;
-      
-      expect(mockId).toHaveBeenCalledWith(entry, 8);
-      expect(result).toBe('index-abc12345');
+    it('handles files without extension', async () => {
+      tempDir = await makeTempDir('doc-id-noext-');
+      const server = makeServer(true);
+      const entry = '@/pages/home';
+      const doc = new Document(entry, server);
+
+      expect(doc.id).to.equal(`${path.basename(entry)}-${hashId(entry, 8)}`);
     });
   });
 
   describe('property access', () => {
-    beforeEach(() => {
-      document = new Document('@/pages/home.tsx', mockServer);
+    it('provides access to entry property', async () => {
+      tempDir = await makeTempDir('doc-props-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+      expect(doc.entry).to.equal('@/pages/home.tsx');
     });
 
-    it('should provide access to entry property', () => {
-      expect(document.entry).toBe('@/pages/home.tsx');
+    it('provides access to server property', async () => {
+      tempDir = await makeTempDir('doc-props2-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+      expect(doc.server).to.equal(server);
     });
 
-    it('should provide access to server property', () => {
-      expect(document.server).toBe(mockServer);
+    it('provides access to builder property', async () => {
+      tempDir = await makeTempDir('doc-props3-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+      expect(doc.builder).to.be.instanceOf(DocumentBuilder);
     });
 
-    it('should provide access to builder property', () => {
-      expect(document.builder).toBeInstanceOf(DocumentBuilder);
+    it('provides access to loader property', async () => {
+      tempDir = await makeTempDir('doc-props4-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+      expect(doc.loader).to.be.instanceOf(DocumentLoader);
     });
 
-    it('should provide access to loader property', () => {
-      expect(document.loader).toBeInstanceOf(DocumentLoader);
-    });
-
-    it('should provide access to render property', () => {
-      expect(document.render).toBeInstanceOf(DocumentRender);
+    it('provides access to render property', async () => {
+      tempDir = await makeTempDir('doc-props5-');
+      const server = makeServer(true);
+      const doc = new Document('@/pages/home.tsx', server);
+      expect(doc.render).to.be.instanceOf(DocumentRender);
     });
   });
 });

@@ -1,7 +1,9 @@
+//node
 import path from 'node:path';
+//modules
+import type { Request, ResponseToolkit } from '@hapi/hapi';
 import Hapi from '@hapi/hapi';
 import Inert from '@hapi/inert';
-import type { Request, ResponseToolkit } from '@hapi/hapi';
 import { serve } from 'reactus'; 
 
 async function start() {
@@ -18,12 +20,12 @@ async function start() {
     // ie. /assets/[id][extname]
     // <link rel="stylesheet" type="text/css" href="/client/[id][extname]" />
     // <link rel="stylesheet" type="text/css" href="/assets/abc123.css" />
-    cssRoute: '/assets',
+    cssRoute: '/assets'
   });
 
   const server = Hapi.server({
     port: process.env.PORT || 3000,
-    host: process.env.HOST || 'localhost',
+    host: process.env.HOST || 'localhost'
   });
 
   await server.register(Inert);
@@ -35,9 +37,9 @@ async function start() {
       directory: {
         path: path.join(cwd, 'public'), 
         redirectToSlash: true,
-        index: false, 
+        index: false
       }
-    },
+    }
   });
 
   server.route({

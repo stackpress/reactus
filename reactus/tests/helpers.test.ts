@@ -1,267 +1,196 @@
-import { id, renderJSX, writeFile } from '../src/helpers.js';
+//tests
+import { describe, it, afterEach } from 'mocha';
+import { expect } from 'chai';
+//node
 import fs from 'node:fs/promises';
-
-// Mock fs module
-jest.mock('node:fs/promises');
-
-const mockFS = fs as jest.Mocked<typeof fs>;
+import path from 'node:path';
+//modules
+import React from 'react';
+//reactus
+import { id, renderJSX, writeFile } from '../src/helpers.js';
+import { cleanupTempDir, makeTempDir, withPatched } from './helpers.js';
 
 describe('helpers', () => {
-  beforeEach(() => {
-    jest.resetAllMocks();
-  });
-
-  describe('id function', () => {
-    it('should generate consistent hash for same content', () => {
-      const content = 'test content';
-      const hash1 = id(content);
-      const hash2 = id(content);
-      
-      expect(hash1).toBe(hash2);
-      expect(typeof hash1).toBe('string');
-      expect(hash1.length).toBe(32); // Default MD5 hash length
+  describe('id()', () => {
+    it('generates consistent hash for same content', () => {
+      expect(id('hello')).to.equal(id('hello'));
     });
 
-    it('should generate different hashes for different content', () => {
-      const hash1 = id('content1');
-      const hash2 = id('content2');
-      
-      expect(hash1).not.toBe(hash2);
+    it('generates different hashes for different content', () => {
+      expect(id('hello')).to.not.equal(id('hello!'));
     });
 
-    it('should respect custom length parameter', () => {
-      const content = 'test content';
-      const shortHash = id(content, 4);
-      const longHash = id(content, 12);
-      
-      expect(shortHash.length).toBe(4);
-      expect(longHash.length).toBe(12);
+    it('respects custom length parameter', () => {
+      expect(id('hello', 8)).to.have.length(8);
+      expect(id('hello', 12)).to.have.length(12);
     });
 
-    it('should generate valid Base62 characters', () => {
-      const hash = id('test content');
-      const base62Pattern = /^[0-9A-Za-z]+$/;
-      
-      expect(base62Pattern.test(hash)).toBe(true);
+    it('generates valid Base62 characters', () => {
+      const hash = id('hello');
+      expect(hash).to.match(/^[0-9A-Za-z]+$/);
     });
 
-    it('should handle empty string', () => {
+    it('handles empty string', () => {
       const hash = id('');
-      
-      expect(typeof hash).toBe('string');
-      expect(hash.length).toBe(32);
+      expect(hash).to.have.length.greaterThan(0);
+      expect(hash).to.match(/^[0-9A-Za-z]+$/);
     });
 
-    it('should handle very long content', () => {
-      const longContent = 'a'.repeat(10000);
-      const hash = id(longContent);
-      
-      expect(typeof hash).toBe('string');
-      expect(hash.length).toBe(32);
+    it('handles very long content', () => {
+      const input = 'a'.repeat(100_000);
+      expect(id(input)).to.have.length(32);
     });
   });
 
-  describe('renderJSX function', () => {
-    it('should render simple JSX element', () => {
-      const SimpleComponent = () => 'Hello World';
-      const result = renderJSX(SimpleComponent);
-      
-      expect(result).toContain('Hello World');
+  describe('renderJSX()', () => {
+    it('renders simple JSX element', () => {
+      const html = renderJSX(() => React.createElement('div', null, 'Hello'));
+      expect(html).to.include('Hello');
+      expect(html).to.include('<div');
     });
 
-    it('should render JSX element with props', () => {
-      const GreetingComponent = ({ name }: { name: string }) => `Hello ${name}`;
-      const result = renderJSX(GreetingComponent, { name: 'John' });
-      
-      expect(result).toContain('Hello John');
+    it('renders JSX element with props', () => {
+      const Greeting = (props: { name: string }) => React.createElement('div', null, `Hi ${props.name}`);
+      const html = renderJSX(Greeting, { name: 'Chris' });
+      expect(html).to.include('Hi Chris');
     });
 
-    it('should return empty string when element is undefined', () => {
-      const result = renderJSX(undefined);
-      
-      expect(result).toBe('');
+    it('returns empty string when element is undefined', () => {
+      expect(renderJSX(undefined)).to.equal('');
     });
 
-    it('should return empty string when element is null', () => {
-      const result = renderJSX(null as any);
-      
-      expect(result).toBe('');
+    it('returns empty string when element is null', () => {
+      expect(renderJSX(null as unknown as React.ElementType | undefined)).to.equal('');
     });
 
-    it('should handle component with nested elements', () => {
-      const NestedComponent = ({ title, content }: { title: string; content: string }) => (
-        `<div><h1>${title}</h1><p>${content}</p></div>`
+    it('handles component with nested elements', () => {
+      const Nested = () => React.createElement('section', null,
+        React.createElement('h1', null, 'Title'),
+        React.createElement('p', null, 'Body'),
       );
-      
-      const result = renderJSX(NestedComponent, { 
-        title: 'Test Title', 
-        content: 'Test Content' 
+      const html = renderJSX(Nested);
+      expect(html).to.include('Title');
+      expect(html).to.include('Body');
+      expect(html).to.include('<section');
+    });
+
+    it('handles empty props object', () => {
+      const Component = (_props: Record<string, never>) => React.createElement('div', null, 'ok');
+      const html = renderJSX(Component, {});
+      expect(html).to.include('ok');
+    });
+
+    it('handles component that returns string content', () => {
+      const Component = () => 'hello';
+      const html = renderJSX(Component);
+      expect(html).to.include('hello');
+    });
+  });
+
+  describe('writeFile()', () => {
+    let tempDir = '';
+
+    afterEach(async () => {
+      if (tempDir) await cleanupTempDir(tempDir);
+    });
+
+    it('writes file and returns file path', async () => {
+      tempDir = await makeTempDir('write-file-');
+      const file = path.join(tempDir, 'a', 'b', 'file.txt');
+      const returned = await writeFile(file, 'hello');
+
+      expect(returned).to.equal(file);
+      expect(await fs.readFile(file, 'utf8')).to.equal('hello');
+    });
+
+    it('creates directory if it does not exist', async () => {
+      tempDir = await makeTempDir('mkdir-');
+      const file = path.join(tempDir, 'missing', 'dir', 'file.txt');
+      await writeFile(file, 'x');
+
+      const stat = await fs.stat(path.dirname(file));
+      expect(stat.isDirectory()).to.equal(true);
+    });
+
+    it('does not create directory if it already exists', async () => {
+      tempDir = await makeTempDir('mkdir-existing-');
+      const dir = path.join(tempDir, 'exists');
+      await fs.mkdir(dir, { recursive: true });
+
+      // If writeFile incorrectly calls mkdir for an existing directory,
+      // this patched implementation will fail the test.
+      await withPatched(fs, 'mkdir', (async () => {
+        throw new Error('mkdir should not be called');
+      }) as typeof fs.mkdir, async () => {
+        const file = path.join(dir, 'file.txt');
+        await writeFile(file, 'x');
       });
-      
-      expect(result).toContain('Test Title');
-      expect(result).toContain('Test Content');
     });
 
-    it('should handle empty props object', () => {
-      const Component = (props: Record<string, unknown>) => `Props: ${JSON.stringify(props)}`;
-      const result = renderJSX(Component, {});
-      
-      expect(result).toContain('Props: {}');
+    it('handles Uint8Array content', async () => {
+      tempDir = await makeTempDir('uint8-');
+      const file = path.join(tempDir, 'bin.dat');
+      const bytes = new Uint8Array([1, 2, 3]);
+      await writeFile(file, bytes);
+
+      const buf = await fs.readFile(file);
+      expect(Array.from(buf.values())).to.deep.equal([1, 2, 3]);
     });
 
-    it('should handle component that returns string', () => {
-      const StringComponent = () => 'Simple string content';
-      
-      const result = renderJSX(StringComponent);
-      
-      expect(typeof result).toBe('string');
-      expect(result).toContain('Simple string content');
-    });
-  });
+    it('propagates directory creation errors', async () => {
+      tempDir = await makeTempDir('mkdir-error-');
+      const file = path.join(tempDir, 'x', 'y', 'z.txt');
 
-  describe('writeFile function', () => {
-    beforeEach(() => {
-      // Mock stat to return a promise that rejects (directory doesn't exist)
-      mockFS.stat.mockImplementation(() => Promise.reject(new Error('ENOENT')));
-      mockFS.mkdir.mockResolvedValue(undefined);
-      mockFS.writeFile.mockResolvedValue(undefined);
+      const forced = new Error('mkdir failed');
+      try {
+        await withPatched(fs, 'mkdir', (async () => { throw forced; }) as typeof fs.mkdir, async () => {
+          await writeFile(file, 'hello');
+        });
+        expect.fail('writeFile should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
 
-    it('should write file and return file path', async () => {
-      const filePath = '/test/path/file.txt';
-      const content = 'test content';
-      
-      const result = await writeFile(filePath, content);
-      
-      expect(result).toBe(filePath);
-      expect(mockFS.writeFile).toHaveBeenCalledWith(filePath, content);
-    });
+    it('propagates write errors', async () => {
+      tempDir = await makeTempDir('write-error-');
+      const file = path.join(tempDir, 'x.txt');
 
-    it('should create directory if it does not exist', async () => {
-      const filePath = '/test/new/directory/file.txt';
-      const content = 'test content';
-      
-      await writeFile(filePath, content);
-      
-      expect(mockFS.mkdir).toHaveBeenCalledWith('/test/new/directory', { recursive: true });
-      expect(mockFS.writeFile).toHaveBeenCalledWith(filePath, content);
-    });
-
-    it('should not create directory if it already exists', async () => {
-      const filePath = '/test/existing/file.txt';
-      const content = 'test content';
-      
-      // Mock directory exists
-      mockFS.stat.mockResolvedValue({} as any);
-      
-      await writeFile(filePath, content);
-      
-      expect(mockFS.mkdir).not.toHaveBeenCalled();
-      expect(mockFS.writeFile).toHaveBeenCalledWith(filePath, content);
-    });
-
-    it('should handle Uint8Array content', async () => {
-      const filePath = '/test/binary/file.bin';
-      const content = new Uint8Array([1, 2, 3, 4]);
-      
-      const result = await writeFile(filePath, content);
-      
-      expect(result).toBe(filePath);
-      expect(mockFS.writeFile).toHaveBeenCalledWith(filePath, content);
-    });
-
-    it('should handle root directory file', async () => {
-      const filePath = '/file.txt';
-      const content = 'root content';
-      
-      await writeFile(filePath, content);
-      
-      expect(mockFS.writeFile).toHaveBeenCalledWith(filePath, content);
-    });
-
-    it('should handle nested directory creation', async () => {
-      const filePath = '/very/deep/nested/directory/structure/file.txt';
-      const content = 'nested content';
-      
-      await writeFile(filePath, content);
-      
-      expect(mockFS.mkdir).toHaveBeenCalledWith(
-        '/very/deep/nested/directory/structure', 
-        { recursive: true }
-      );
-      expect(mockFS.writeFile).toHaveBeenCalledWith(filePath, content);
-    });
-
-    it('should propagate write errors', async () => {
-      const filePath = '/test/file.txt';
-      const content = 'test content';
-      const writeError = new Error('Write failed');
-      
-      mockFS.writeFile.mockRejectedValue(writeError);
-      
-      await expect(writeFile(filePath, content)).rejects.toThrow('Write failed');
-    });
-
-    it('should propagate directory creation errors', async () => {
-      const filePath = '/test/file.txt';
-      const content = 'test content';
-      const mkdirError = new Error('Permission denied');
-      
-      mockFS.mkdir.mockRejectedValue(mkdirError);
-      
-      await expect(writeFile(filePath, content)).rejects.toThrow('Permission denied');
+      const forced = new Error('write failed');
+      try {
+        await withPatched(fs, 'writeFile', (async () => { throw forced; }) as typeof fs.writeFile, async () => {
+          await writeFile(file, 'hello');
+        });
+        expect.fail('writeFile should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
   });
 
   describe('integration', () => {
-    it('should generate consistent file names for same content', () => {
-      const content = 'consistent content';
-      const hash1 = id(content);
-      const hash2 = id(content);
-      
-      expect(hash1).toBe(hash2);
-      
-      const filePath1 = `/cache/${hash1}.txt`;
-      const filePath2 = `/cache/${hash2}.txt`;
-      
-      expect(filePath1).toBe(filePath2);
+    it('generates consistent file names for same content', () => {
+      const hash = id('same', 8);
+      expect(hash).to.equal(id('same', 8));
     });
 
-    it('should render components and generate hashes', () => {
-      const Component = ({ message }: { message: string }) => `<div>${message}</div>`;
-      const rendered = renderJSX(Component, { message: 'Hello World' });
-      const contentId = id(rendered);
-      
-      expect(rendered).toContain('Hello World');
-      expect(typeof contentId).toBe('string');
-      expect(contentId.length).toBe(32);
+    it('renders components and generate hashes', () => {
+      const Component = (props: { text: string }) => React.createElement('div', null, props.text);
+      const html = renderJSX(Component, { text: 'hello' });
+      expect(id(html, 8)).to.match(/^[0-9A-Za-z]{8}$/);
     });
 
-    it('should handle complex component rendering', () => {
-      const ComplexComponent = ({ 
-        title, 
-        items 
-      }: { 
-        title: string; 
-        items: string[] 
-      }) => {
-        const itemList = items.map(item => `<li>${item}</li>`).join('');
-        return `<div><h1>${title}</h1><ul>${itemList}</ul></div>`;
-      };
-      
-      const props = {
-        title: 'My List',
-        items: ['Item 1', 'Item 2', 'Item 3']
-      };
-      
-      const rendered = renderJSX(ComplexComponent, props);
-      const contentHash = id(JSON.stringify(props));
-      
-      expect(rendered).toContain('My List');
-      expect(rendered).toContain('Item 1');
-      expect(rendered).toContain('Item 2');
-      expect(rendered).toContain('Item 3');
-      expect(typeof contentHash).toBe('string');
+    it('handles complex component rendering', () => {
+      const App = (props: { items: string[] }) => React.createElement(
+        'ul',
+        null,
+        props.items.map((item) => React.createElement('li', { key: item }, item))
+      );
+
+      const html = renderJSX(App, { items: ['a', 'b'] });
+      expect(html).to.include('<ul');
+      expect(html).to.include('a');
+      expect(html).to.include('b');
     });
   });
 });

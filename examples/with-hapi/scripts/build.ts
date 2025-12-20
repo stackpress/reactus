@@ -30,7 +30,6 @@ async function builder() {
     return results;
   });
 
-  //console.log(responses);
   //fix for unused variable :)
   if (responses.length) return;
 }

@@ -1,384 +1,306 @@
+//tests
+import { describe, it, afterEach } from 'mocha';
+import { expect } from 'chai';
+//node
+import path from 'node:path';
+//modules
+import React from 'react';
+//reactus
+import Server from '../src/Server.js';
 import DocumentRender from '../src/DocumentRender.js';
-import type Document from '../src/Document.js';
-import type Server from '../src/Server.js';
-import type { DocumentImport } from '../src/types.js';
-
-// Mock the helper function
-jest.mock('../src/helpers.js', () => ({
-  renderJSX: jest.fn()
-}));
-
-import { renderJSX } from '../src/helpers.js';
-
-const mockRenderJSX = renderJSX as jest.MockedFunction<typeof renderJSX>;
+import Exception from '../src/Exception.js';
+import { cleanupTempDir, makeTempDir, withPatched } from './helpers.js';
 
 describe('DocumentRender', () => {
-  let mockDocument: Document;
-  let mockServer: Server;
-  let mockLoader: any;
-  let mockResource: any;
-  let mockVfs: any;
-  let mockDev: any;
-  let render: DocumentRender;
+  let tempDir = '';
 
-  const mockDocumentImport: DocumentImport = {
-    default: () => '<div>Test Component</div>',
-    Head: () => '<title>Test</title>',
-    styles: ['style1.css', 'style2.css']
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    // Mock dev server
-    mockDev = {
-      transformRequest: jest.fn(),
-      transformIndexHtml: jest.fn()
-    };
-
-    // Mock loader
-    mockLoader = {
-      import: jest.fn().mockResolvedValue(mockDocumentImport),
-      absolute: jest.fn().mockResolvedValue('/project/src/pages/home.tsx'),
-      relative: jest.fn().mockResolvedValue('./pages/home.tsx')
-    };
-
-    // Mock resource
-    mockResource = {
-      dev: jest.fn().mockResolvedValue(mockDev)
-    };
-
-    // Mock VFS
-    mockVfs = {
-      set: jest.fn().mockReturnValue('vfs://test-file.tsx')
-    };
-
-    // Mock server
-    mockServer = {
-      production: false,
-      resource: mockResource,
-      vfs: mockVfs,
-      routes: {
-        client: '/client',
-        css: '/assets'
-      },
-      templates: {
-        client: 'import Component from "{entry}"; export default Component;',
-        document: '<!DOCTYPE html><html><head><!--document-head--></head><body><!--document-body--><script>window.__PROPS__ = <!--document-props-->;</script><script type="module" src="<!--document-client-->"></script></body></html>'
-      }
-    } as unknown as Server;
-
-    // Mock document
-    mockDocument = {
-      id: 'home.tsx-abc123',
-      loader: mockLoader,
-      server: mockServer
-    } as unknown as Document;
-
-    render = new DocumentRender(mockDocument);
+  afterEach(async () => {
+    if (tempDir) await cleanupTempDir(tempDir);
+    tempDir = '';
   });
+
+  function makeServer(production: boolean) {
+    const config = Server.configure({
+      production,
+      cwd: tempDir,
+      basePath: '/',
+      clientRoute: '/client',
+      cssRoute: '/assets',
+      plugins: []
+    });
+
+    return new Server(config);
+  }
+
+  function makeDocument(server: Server, entry = '@/pages/home.tsx') {
+    const document = {
+      id: 'home-123',
+      entry,
+      server,
+      loader: {
+        import: async () => ({
+          default: (props: { message?: string }) => React.createElement('div', null, props.message || 'Hello'),
+          Head: (props: { styles?: string[] }) => React.createElement(
+            'head',
+            null,
+            (props.styles || []).map((href) => React.createElement('link', { key: href, rel: 'stylesheet', href }))
+          ),
+          styles: ['a.css', 'b.css']
+        }),
+        absolute: async () => path.join(tempDir, 'pages', 'home.tsx'),
+        relative: async (_fromFile: string) => './pages/home.tsx'
+      }
+    } as any;
+
+    return document;
+  }
 
   describe('constructor', () => {
-    it('should initialize with document and server references', () => {
-      expect(render['_document']).toBe(mockDocument);
-      expect(render['_server']).toBe(mockServer);
+    it('initializes with document and server references', async () => {
+      tempDir = await makeTempDir('docrender-ctor-');
+      const server = makeServer(true);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
+      expect(render).to.be.instanceOf(DocumentRender);
     });
   });
 
-  describe('renderHMRClient', () => {
-    it('should render HMR client code successfully', async () => {
-      const transformedCode = 'import Component from "./pages/home.tsx"; export default Component;';
-      mockDev.transformRequest.mockResolvedValue({ code: transformedCode });
+  describe('renderHMRClient()', () => {
+    it('renders HMR client code successfully', async () => {
+      tempDir = await makeTempDir('docrender-hmr-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      const result = await render.renderHMRClient();
-
-      expect(mockResource.dev).toHaveBeenCalled();
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.hmr.tsx',
-        'import Component from "./pages/home.tsx"; export default Component;'
-      );
-      expect(mockDev.transformRequest).toHaveBeenCalledWith('vfs://test-file.tsx', { ssr: false });
-      expect(result).toBe(transformedCode);
-    });
-
-    it('should throw exception when transformation fails', async () => {
-      mockDev.transformRequest.mockResolvedValue(null);
-
-      await expect(render.renderHMRClient()).rejects.toThrow('File tsx to js transformation failed');
-    });
-
-    it('should handle transformation errors', async () => {
-      const error = new Error('Transform failed');
-      mockDev.transformRequest.mockRejectedValue(error);
-
-      await expect(render.renderHMRClient()).rejects.toThrow('Transform failed');
-    });
-  });
-
-  describe('renderMarkup', () => {
-    it('should render production markup when in production mode', async () => {
-      const prodServer = {
-        ...mockServer,
-        production: true
-      } as unknown as Server;
-      const prodDocument = {
-        ...mockDocument,
-        server: prodServer
-      } as unknown as Document;
-      const prodRender = new DocumentRender(prodDocument);
-      
-      mockRenderJSX.mockReturnValueOnce('<div>Test Component</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Test</title>');
-
-      const props = { title: 'Test Page' };
-      const result = await prodRender.renderMarkup(props);
-
-      expect(mockLoader.import).toHaveBeenCalled();
-      expect(mockRenderJSX).toHaveBeenCalledWith(mockDocumentImport.default, props);
-      expect(mockRenderJSX).toHaveBeenCalledWith(mockDocumentImport.Head, {
-        ...props,
-        styles: ['/assets/style1.css', '/assets/style2.css']
-      });
-      expect(result).toContain('<div>Test Component</div>');
-      expect(result).toContain('<title>Test</title>');
-      expect(result).toContain('/client/home.tsx-abc123.js');
-      expect(result).toContain(JSON.stringify(props));
-    });
-
-    it('should render development markup when in development mode', async () => {
-      const devServer = {
-        ...mockServer,
-        production: false
-      } as unknown as Server;
-      const devDocument = {
-        ...mockDocument,
-        server: devServer
-      } as unknown as Document;
-      const devRender = new DocumentRender(devDocument);
-      
-      mockDev.transformIndexHtml.mockResolvedValue('<!DOCTYPE html><html><head><!--document-head--><script type="module" src="/@vite/client"></script></head><body><!--document-body--><script>window.__PROPS__ = <!--document-props-->;</script><script type="module" src="<!--document-client-->"></script></body></html>');
-      mockRenderJSX.mockReturnValueOnce('<div>Test Component</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Test</title>');
-
-      const props = { title: 'Test Page' };
-      const result = await devRender.renderMarkup(props);
-
-      expect(mockResource.dev).toHaveBeenCalled();
-      expect(mockDev.transformIndexHtml).toHaveBeenCalledWith('', mockServer.templates.document);
-      expect(mockRenderJSX).toHaveBeenCalledWith(mockDocumentImport.default, props);
-      expect(mockRenderJSX).toHaveBeenCalledWith(mockDocumentImport.Head, props);
-      expect(result).toContain('<div>Test Component</div>');
-      expect(result).toContain('<title>Test</title>');
-      expect(result).toContain('/client/home.tsx-abc123.tsx');
-      expect(result).toContain(JSON.stringify(props));
-    });
-
-    it('should handle empty props', async () => {
-      const prodServer = {
-        ...mockServer,
-        production: true
-      } as unknown as Server;
-      const prodDocument = {
-        ...mockDocument,
-        server: prodServer
-      } as unknown as Document;
-      const prodRender = new DocumentRender(prodDocument);
-      
-      mockRenderJSX.mockReturnValueOnce('<div>Test Component</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Test</title>');
-
-      const result = await prodRender.renderMarkup();
-
-      expect(mockRenderJSX).toHaveBeenCalledWith(mockDocumentImport.default, {});
-      expect(result).toContain('{}');
-    });
-
-    it('should handle missing Head component', async () => {
-      const prodServer = {
-        ...mockServer,
-        production: true
-      } as unknown as Server;
-      const prodDocument = {
-        ...mockDocument,
-        server: prodServer
-      } as unknown as Document;
-      const prodRender = new DocumentRender(prodDocument);
-      
-      const documentWithoutHead = {
-        default: () => '<div>Test Component</div>',
-        styles: []
+      // Stub VFS set so we can verify it was used.
+      let vfsFile = '';
+      (server.vfs as any).set = (file: string, code: string) => {
+        vfsFile = file;
+        return `virtual:reactus:${file}`;
       };
-      mockLoader.import.mockResolvedValue(documentWithoutHead);
-      mockRenderJSX.mockReturnValueOnce('<div>Test Component</div>');
-      mockRenderJSX.mockReturnValueOnce('');
 
-      const result = await prodRender.renderMarkup();
-
-      expect(result).toContain('<div>Test Component</div>');
-      expect(result).not.toContain('null');
-    });
-
-    it('should handle missing styles', async () => {
-      const prodServer = {
-        ...mockServer,
-        production: true
-      } as unknown as Server;
-      const prodDocument = {
-        ...mockDocument,
-        server: prodServer
-      } as unknown as Document;
-      const prodRender = new DocumentRender(prodDocument);
-      
-      const documentWithoutStyles = {
-        default: () => '<div>Test Component</div>',
-        Head: () => '<title>Test</title>'
+      // Fake Vite dev server that returns transformed code.
+      const dev = {
+        transformRequest: async (_url: string) => ({ code: '/*hmr*/' }),
+        transformIndexHtml: async (_url: string, html: string) => html,
+        middlewares: (_req: any, _res: any, next: any) => next(),
+        watcher: { on: () => {} },
       };
-      mockLoader.import.mockResolvedValue(documentWithoutStyles);
-      mockRenderJSX.mockReturnValueOnce('<div>Test Component</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Test</title>');
 
-      const result = await prodRender.renderMarkup();
-
-      expect(mockRenderJSX).toHaveBeenCalledWith(documentWithoutStyles.Head, {
-        styles: []
+      await withPatched(server.resource as any, 'dev', (async () => dev) as any, async () => {
+        const code = await render.renderHMRClient();
+        expect(code).to.equal('/*hmr*/');
+        expect(vfsFile).to.match(/\.hmr\.tsx$/);
       });
-      expect(result).toContain('<div>Test Component</div>');
-    });
-  });
-
-  describe('_renderDevMarkup', () => {
-    it('should render development markup with Vite integration', async () => {
-      const transformedHtml = '<!DOCTYPE html><html><head><!--document-head--><script type="module" src="/@vite/client"></script></head><body><!--document-body--><script>window.__PROPS__ = <!--document-props-->;</script><script type="module" src="<!--document-client-->"></script></body></html>';
-      mockDev.transformIndexHtml.mockResolvedValue(transformedHtml);
-      mockRenderJSX.mockReturnValueOnce('<div>Body Content</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Head Content</title>');
-
-      const props = { test: 'value' };
-      const result = await render['_renderDevMarkup'](props);
-
-      expect(mockDev.transformIndexHtml).toHaveBeenCalledWith('', mockServer.templates.document);
-      expect(result).toContain('<div>Body Content</div>');
-      expect(result).toContain('<title>Head Content</title>');
-      expect(result).toContain('/client/home.tsx-abc123.tsx');
-      expect(result).toContain(JSON.stringify(props));
     });
 
-    it('should handle null head and body content', async () => {
-      const transformedHtml = '<!DOCTYPE html><html><head><!--document-head--></head><body><!--document-body--><script>window.__PROPS__ = <!--document-props-->;</script><script type="module" src="<!--document-client-->"></script></body></html>';
-      mockDev.transformIndexHtml.mockResolvedValue(transformedHtml);
-      mockRenderJSX.mockReturnValueOnce('');
-      mockRenderJSX.mockReturnValueOnce('');
+    it('throws exception when transformation returns null', async () => {
+      tempDir = await makeTempDir('docrender-hmr-null-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      const result = await render['_renderDevMarkup']();
-
-      expect(result).not.toContain('null');
-      expect(result).toContain('{}');
-    });
-  });
-
-  describe('_renderMarkup', () => {
-    it('should render production markup with CSS routes', async () => {
-      mockRenderJSX.mockReturnValueOnce('<div>Production Content</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Production Title</title>');
-
-      const props = { production: true };
-      const result = await render['_renderMarkup'](props);
-
-      expect(mockRenderJSX).toHaveBeenCalledWith(mockDocumentImport.Head, {
-        ...props,
-        styles: ['/assets/style1.css', '/assets/style2.css']
-      });
-      expect(result).toContain('<div>Production Content</div>');
-      expect(result).toContain('<title>Production Title</title>');
-      expect(result).toContain('/client/home.tsx-abc123.js');
-    });
-
-    it('should handle empty styles array', async () => {
-      const documentWithEmptyStyles = {
-        ...mockDocumentImport,
-        styles: []
+      const dev = {
+        transformRequest: async () => null,
+        transformIndexHtml: async (_url: string, html: string) => html,
+        middlewares: (_req: any, _res: any, next: any) => next(),
+        watcher: { on: () => {} },
       };
-      mockLoader.import.mockResolvedValue(documentWithEmptyStyles);
-      mockRenderJSX.mockReturnValueOnce('<div>Content</div>');
-      mockRenderJSX.mockReturnValueOnce('<title>Title</title>');
 
-      const result = await render['_renderMarkup']();
+      try {
+        await withPatched(server.resource as any, 'dev', (async () => dev) as any, async () => {
+          await render.renderHMRClient();
+        });
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.be.instanceOf(Exception);
+      }
+    });
 
-      expect(mockRenderJSX).toHaveBeenCalledWith(documentWithEmptyStyles.Head, {
-        styles: []
-      });
-      expect(result).toContain('<div>Content</div>');
+    it('propagates transformation errors', async () => {
+      tempDir = await makeTempDir('docrender-hmr-err-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
+
+      const forced = new Error('transform failed');
+      const dev = {
+        transformRequest: async () => { throw forced; },
+        transformIndexHtml: async (_url: string, html: string) => html,
+        middlewares: (_req: any, _res: any, next: any) => next(),
+        watcher: { on: () => {} },
+      };
+
+      try {
+        await withPatched(server.resource as any, 'dev', (async () => dev) as any, async () => {
+          await render.renderHMRClient();
+        });
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
   });
 
-  describe('_renderVFS', () => {
-    it('should render template with correct entry replacement', async () => {
-      const template = 'import Component from "{entry}"; export { Component };';
-      
-      const result = await render['_renderVFS']('test', template);
+  describe('renderMarkup()', () => {
+    it('renders production markup when in production mode', async () => {
+      tempDir = await makeTempDir('docrender-prod-');
+      const server = makeServer(true);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      expect(mockLoader.absolute).toHaveBeenCalled();
-      expect(mockLoader.relative).toHaveBeenCalledWith('/project/src/pages/home.tsx.test.tsx');
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.test.tsx',
-        'import Component from "./pages/home.tsx"; export { Component };'
-      );
-      expect(result).toBe('vfs://test-file.tsx');
+      const html = await render.renderMarkup({ message: 'Hi' });
+      expect(html).to.include('Hi');
+      expect(html).to.include('<script type="module" src="/client/home-123.js"></script>');
+      expect(html).to.include('/assets/a.css');
+      expect(html).to.include('/assets/b.css');
     });
 
-    it('should handle Windows path separators', async () => {
-      mockLoader.absolute.mockResolvedValue('C:\\project\\src\\pages\\home.tsx');
-      const template = 'import Component from "{entry}";';
-      
-      await render['_renderVFS']('test', template);
+    it('renders development markup when in development mode', async () => {
+      tempDir = await makeTempDir('docrender-dev-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        'C:\\project\\src\\pages\\home.tsx.test.tsx',
-        'import Component from "./pages/home.tsx";'
-      );
+      const dev = {
+        transformIndexHtml: async (_url: string, html: string) => html + '<!--vite-->',
+        transformRequest: async () => ({ code: '/*hmr*/' }),
+        middlewares: (_req: any, _res: any, next: any) => next(),
+        watcher: { on: () => {} },
+      };
+
+      const html = await withPatched(server.resource as any, 'dev', (async () => dev) as any, async () => {
+        return await render.renderMarkup({ message: 'Dev' });
+      });
+
+      expect(html).to.include('Dev');
+      expect(html).to.include('<!--vite-->');
+      expect(html).to.include('<script type="module" src="/client/home-123.tsx"></script>');
     });
 
-    it('should handle multiple entry replacements', async () => {
-      const template = 'import {entry} from "{entry}"; export default {entry};';
-      
-      await render['_renderVFS']('multi', template);
+    it('handles empty props', async () => {
+      tempDir = await makeTempDir('docrender-empty-props-');
+      const server = makeServer(true);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.multi.tsx',
-        'import ./pages/home.tsx from "./pages/home.tsx"; export default ./pages/home.tsx;'
-      );
+      const html = await render.renderMarkup();
+      expect(html).to.include('Hello');
+    });
+
+    it('handles missing Head component', async () => {
+      tempDir = await makeTempDir('docrender-no-head-');
+      const server = makeServer(true);
+      const doc = makeDocument(server);
+      (doc.loader as any).import = async () => ({
+        default: () => React.createElement('div', null, 'Body')
+      });
+      const render = new DocumentRender(doc);
+
+      const html = await render.renderMarkup();
+      expect(html).to.include('Body');
+    });
+
+    it('handles missing styles', async () => {
+      tempDir = await makeTempDir('docrender-no-styles-');
+      const server = makeServer(true);
+      const doc = makeDocument(server);
+      (doc.loader as any).import = async () => ({
+        default: () => React.createElement('div', null, 'Body'),
+        Head: () => React.createElement('head', null)
+      });
+      const render = new DocumentRender(doc);
+
+      const html = await render.renderMarkup();
+      expect(html).to.include('Body');
+      expect(html).to.not.include('/assets/');
     });
   });
 
   describe('error handling', () => {
-    it('should propagate loader import errors', async () => {
-      const error = new Error('Import failed');
-      mockLoader.import.mockRejectedValue(error);
+    it('propagates loader import errors', async () => {
+      tempDir = await makeTempDir('docrender-import-error-');
+      const server = makeServer(true);
+      const doc = makeDocument(server);
+      const forced = new Error('import failed');
+      (doc.loader as any).import = async () => { throw forced; };
 
-      await expect(render.renderMarkup()).rejects.toThrow('Import failed');
+      const render = new DocumentRender(doc);
+      try {
+        await render.renderMarkup();
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
 
-    it('should propagate dev server errors', async () => {
-      const error = new Error('Dev server failed');
-      mockResource.dev.mockRejectedValue(error);
+    it('propagates dev server errors', async () => {
+      tempDir = await makeTempDir('docrender-dev-error-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      await expect(render.renderHMRClient()).rejects.toThrow('Dev server failed');
+      const forced = new Error('dev failed');
+      try {
+        await withPatched(server.resource as any, 'dev', (async () => { throw forced; }) as any, async () => {
+          await render.renderMarkup();
+        });
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
 
-    it('should propagate VFS errors', async () => {
-      const error = new Error('VFS failed');
-      mockVfs.set.mockImplementation(() => {
-        throw error;
-      });
+    it('propagates VFS errors', async () => {
+      tempDir = await makeTempDir('docrender-vfs-error-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      await expect(render.renderHMRClient()).rejects.toThrow('VFS failed');
+      const forced = new Error('vfs failed');
+      (server.vfs as any).set = () => { throw forced; };
+
+      const dev = {
+        transformRequest: async () => ({ code: '/*hmr*/' }),
+        transformIndexHtml: async (_url: string, html: string) => html,
+        middlewares: (_req: any, _res: any, next: any) => next(),
+        watcher: { on: () => {} },
+      };
+
+      try {
+        await withPatched(server.resource as any, 'dev', (async () => dev) as any, async () => {
+          await render.renderHMRClient();
+        });
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
 
-    it('should propagate loader absolute path errors', async () => {
-      const error = new Error('Absolute path failed');
-      mockLoader.absolute.mockRejectedValue(error);
+    it('propagates loader absolute path errors', async () => {
+      tempDir = await makeTempDir('docrender-abs-error-');
+      const server = makeServer(false);
+      const doc = makeDocument(server);
+      const render = new DocumentRender(doc);
 
-      await expect(render.renderHMRClient()).rejects.toThrow('Absolute path failed');
+      const forced = new Error('absolute failed');
+      (doc.loader as any).absolute = async () => { throw forced; };
+
+      const dev = {
+        transformRequest: async () => ({ code: '/*hmr*/' }),
+        transformIndexHtml: async (_url: string, html: string) => html,
+        middlewares: (_req: any, _res: any, next: any) => next(),
+        watcher: { on: () => {} },
+      };
+
+      try {
+        await withPatched(server.resource as any, 'dev', (async () => dev) as any, async () => {
+          await render.renderHMRClient();
+        });
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
   });
 });

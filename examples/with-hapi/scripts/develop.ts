@@ -1,5 +1,6 @@
-import Hapi from '@hapi/hapi';
+//modules
 import type { Request, ResponseToolkit } from '@hapi/hapi';
+import Hapi from '@hapi/hapi';
 import { dev } from 'reactus';
 
 async function develop() {
@@ -8,12 +9,12 @@ async function develop() {
     cwd,
     basePath: '/',
     watchIgnore: ['**/.build/**'],
-    clientRoute: '/client',
+    clientRoute: '/client'
   });
 
   const server = Hapi.server({
     port: process.env.PORT || 3000,
-    host: 'localhost',
+    host: 'localhost'
   });
 
   //ResponseToolkit provides methods to generate responses from requests
@@ -50,7 +51,6 @@ async function develop() {
     console.error('Error starting Hapi server:', err);
     process.exit(1);
   }
-
 }
 
 develop();

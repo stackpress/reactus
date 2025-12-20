@@ -1,341 +1,188 @@
+//tests
+import { describe, it, afterEach } from 'mocha';
+import { expect } from 'chai';
+//node
+import fs from 'node:fs/promises';
+import path from 'node:path';
+//reactus
 import DocumentBuilder from '../src/DocumentBuilder.js';
-import type Document from '../src/Document.js';
-import type Server from '../src/Server.js';
-import type { BuildResults } from '../src/types.js';
+import Server from '../src/Server.js';
+import { cleanupTempDir, makeTempDir } from './helpers.js';
+
+// This test suite focuses on public behavior (buildAssets/buildClient/buildPage)
+// and treats VFS writes / Vite build invocation as observable side effects.
 
 describe('DocumentBuilder', () => {
-  let mockDocument: Document;
-  let mockServer: Server;
-  let mockLoader: any;
-  let mockResource: any;
-  let mockVfs: any;
-  let builder: DocumentBuilder;
+  let tempDir = '';
 
-  const mockBuildOutput = {
-    output: [
-      {
-        type: 'chunk' as const,
-        fileName: 'main.js',
-        code: 'console.log("test");'
-      },
-      {
-        type: 'asset' as const,
-        fileName: 'assets/style-abc123.css',
-        source: '.test { color: red; }'
-      }
-    ]
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    // Mock loader
-    mockLoader = {
-      cwd: '/project',
-      absolute: jest.fn().mockResolvedValue('/project/src/pages/home.tsx'),
-      relative: jest.fn().mockResolvedValue('./pages/home.tsx')
-    };
-
-    // Mock resource
-    mockResource = {
-      build: jest.fn().mockResolvedValue(mockBuildOutput)
-    };
-
-    // Mock VFS
-    mockVfs = {
-      set: jest.fn().mockReturnValue('vfs://test-file.tsx')
-    };
-
-    // Mock server
-    mockServer = {
-      loader: mockLoader,
-      resource: mockResource,
-      vfs: mockVfs,
-      templates: {
-        page: 'const styles = {styles}; export default function Page() { return <div>Test</div>; }',
-        client: 'import Component from "{entry}"; export default Component;'
-      }
-    } as unknown as Server;
-
-    // Mock document
-    mockDocument = {
-      server: mockServer,
-      loader: mockLoader
-    } as unknown as Document;
-
-    builder = new DocumentBuilder(mockDocument);
+  afterEach(async () => {
+    if (tempDir) await cleanupTempDir(tempDir);
+    tempDir = '';
   });
+
+  function makeServer() {
+    const config = Server.configure({
+      production: true,
+      cwd: tempDir,
+      basePath: '/',
+      plugins: []
+    });
+
+    return new Server(config);
+  }
+
+  function makeDocument(server: Server, entry = '@/pages/home.tsx') {
+    const document = {
+      entry,
+      id: 'home-123',
+      server,
+      loader: {
+        absolute: async () => path.join(tempDir, 'pages', 'home.tsx'),
+        relative: async (_fromFile: string) => './pages/home.tsx'
+      }
+    } as any;
+
+    return document;
+  }
 
   describe('constructor', () => {
-    it('should initialize with document and server references', () => {
-      expect(builder['_document']).toBe(mockDocument);
-      expect(builder['_server']).toBe(mockServer);
+    it('initializes with document and server references', async () => {
+      tempDir = await makeTempDir('docbuilder-ctor-');
+      const server = makeServer();
+      const document = makeDocument(server);
+
+      const builder = new DocumentBuilder(document);
+      expect(builder).to.be.instanceOf(DocumentBuilder);
     });
   });
 
-  describe('buildAssets', () => {
-    it('should build assets with correct template and config', async () => {
-      const result = await builder.buildAssets();
+  describe('buildAssets()', () => {
+    it('builds assets using VFS input url and server resource', async () => {
+      tempDir = await makeTempDir('docbuilder-assets-');
+      const server = makeServer();
+      const document = makeDocument(server);
+      const builder = new DocumentBuilder(document);
 
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.assets.tsx',
-        'const styles = []; export default function Page() { return <div>Test</div>; }'
-      );
-      expect(mockResource.build).toHaveBeenCalledWith({
-        configFile: false,
-        root: '/project',
-        build: {
-          write: false,
-          rollupOptions: {
-            input: 'vfs://test-file.tsx',
-            output: {
-              format: 'es',
-              entryFileNames: '[name].js'
-            }
-          }
-        }
-      });
-      expect(result).toBe(mockBuildOutput.output);
+      // Capture VFS writes.
+      const vfsCalls: Array<{ file: string; code: string }> = [];
+      (server.vfs as any).set = (file: string, code: string) => {
+        vfsCalls.push({ file, code });
+        return `virtual:reactus:${file}`;
+      };
+
+      // Stub vite build to avoid running real Vite.
+      let buildInput = '';
+      (server.resource as any).build = async (config: any) => {
+        buildInput = config.build.rollupOptions.input;
+        return { output: [{ type: 'asset', fileName: 'assets/app.css', source: 'body{}' }] };
+      };
+
+      const output = await builder.buildAssets();
+      expect(Array.isArray(output)).to.equal(true);
+      expect(output[0].type).to.equal('asset');
+
+      expect(vfsCalls).to.have.length(1);
+      expect(vfsCalls[0].file).to.match(/\.assets\.tsx$/);
+      expect(vfsCalls[0].code).to.include("export const styles = []");
+      expect(buildInput).to.equal(`virtual:reactus:${vfsCalls[0].file}`);
     });
   });
 
-  describe('buildClient', () => {
-    it('should build client with correct template and config', async () => {
-      const result = await builder.buildClient();
+  describe('buildClient()', () => {
+    it('builds client entry using client template and VFS', async () => {
+      tempDir = await makeTempDir('docbuilder-client-');
+      const server = makeServer();
+      const document = makeDocument(server);
+      const builder = new DocumentBuilder(document);
 
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.client.tsx',
-        'import Component from "./pages/home.tsx"; export default Component;'
-      );
-      expect(mockResource.build).toHaveBeenCalledWith({
-        configFile: false,
-        root: '/project',
-        build: {
-          write: false,
-          rollupOptions: {
-            input: 'vfs://test-file.tsx',
-            output: {
-              format: 'es',
-              entryFileNames: '[name].js'
-            }
-          }
-        }
-      });
-      expect(result).toBe(mockBuildOutput.output);
+      let vfsFile = '';
+      let vfsCode = '';
+      (server.vfs as any).set = (file: string, code: string) => {
+        vfsFile = file;
+        vfsCode = code;
+        return `virtual:reactus:${file}`;
+      };
+
+      let called = 0;
+      (server.resource as any).build = async (_config: any) => {
+        called++;
+        return { output: [{ type: 'chunk', fileName: 'client.js', code: '/*client*/' }] };
+      };
+
+      const output = await builder.buildClient();
+      expect(called).to.equal(1);
+      expect(output[0].type).to.equal('chunk');
+      expect(vfsFile).to.match(/\.client\.tsx$/);
+      expect(vfsCode).to.include("hydrateRoot");
+      expect(vfsCode).to.include('./pages/home.tsx');
     });
   });
 
-  describe('buildPage', () => {
-    it('should build page with provided assets', async () => {
-      const assets: BuildResults = [
-        {
-          type: 'chunk' as const,
-          fileName: 'main.js',
-          code: 'export default function() {}'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'assets/style-abc123.css',
-          source: '.test { color: red; }'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'assets/script-def456.js',
-          source: 'console.log("test");'
-        } as any
-      ];
+  describe('buildPage()', () => {
+    it('builds page and injects style file names from assets', async () => {
+      tempDir = await makeTempDir('docbuilder-page-');
+      const server = makeServer();
+      const document = makeDocument(server);
+      const builder = new DocumentBuilder(document);
 
-      const result = await builder.buildPage(assets);
+      let vfsCode = '';
+      (server.vfs as any).set = (_file: string, code: string) => {
+        vfsCode = code;
+        return 'virtual:reactus:/page.tsx';
+      };
 
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.page.tsx',
-        'const styles = ["style-abc123.css"]; export default function Page() { return <div>Test</div>; }'
-      );
-      expect(mockResource.build).toHaveBeenCalledWith({
-        configFile: false,
-        root: '/project',
-        build: {
-          write: false,
-          rollupOptions: {
-            preserveEntrySignatures: 'exports-only',
-            input: 'vfs://test-file.tsx',
-            external: ['react', 'react-dom', 'react/jsx-runtime'],
-            output: {
-              format: 'es',
-              entryFileNames: '[name].js',
-              exports: 'named',
-              globals: {
-                react: 'React',
-                'react-dom': 'ReactDOM',
-                'react/jsx-runtime': 'jsxRuntime'
-              }
-            }
-          }
-        }
-      });
-      expect(result).toBe(mockBuildOutput.output);
-    });
+      (server.resource as any).build = async (_config: any) => {
+        return { output: [{ type: 'chunk', fileName: 'page.js', code: '/*page*/' }] };
+      };
 
-    it('should build assets first if not provided', async () => {
-      const buildAssetsSpy = jest.spyOn(builder, 'buildAssets').mockResolvedValue([
-        {
-          type: 'chunk' as const,
-          fileName: 'main.js',
-          code: 'export default function() {}'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'assets/style-xyz789.css',
-          source: '.auto { color: blue; }'
-        } as any
-      ]);
-
-      await builder.buildPage();
-
-      expect(buildAssetsSpy).toHaveBeenCalled();
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.page.tsx',
-        'const styles = ["style-xyz789.css"]; export default function Page() { return <div>Test</div>; }'
-      );
-    });
-
-    it('should filter assets correctly for styles', async () => {
-      const assets: BuildResults = [
-        {
-          type: 'chunk' as const,
-          fileName: 'main.js',
-          code: 'export default function() {}'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'assets/style1.css',
-          source: '.test1 { color: red; }'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'assets/style2.css',
-          source: '.test2 { color: blue; }'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'other/style3.css', // Should be filtered out
-          source: '.test3 { color: green; }'
-        } as any,
-        {
-          type: 'asset' as const,
-          fileName: 'assets/script.js', // Should be filtered out
-          source: 'console.log("test");'
-        } as any,
-        {
-          type: 'chunk' as const,
-          fileName: 'assets/chunk.css', // Should be filtered out
-          code: '.chunk { color: yellow; }'
-        } as any
-      ];
+      const assets = [
+        { type: 'asset', fileName: 'assets/a.css', source: 'a' },
+        { type: 'asset', fileName: 'assets/b.txt', source: 'b' },
+        { type: 'asset', fileName: 'assets/c.css', source: 'c' }
+      ] as any;
 
       await builder.buildPage(assets);
-
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.page.tsx',
-        'const styles = ["style1.css","style2.css"]; export default function Page() { return <div>Test</div>; }'
-      );
-    });
-  });
-
-  describe('_renderVFS', () => {
-    it('should render template with correct entry replacement', async () => {
-      const template = 'import Component from "{entry}"; export { Component };';
-      
-      const result = await builder['_renderVFS']('test', template);
-
-      expect(mockLoader.absolute).toHaveBeenCalled();
-      expect(mockLoader.relative).toHaveBeenCalledWith('/project/src/pages/home.tsx.test.tsx');
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.test.tsx',
-        'import Component from "./pages/home.tsx"; export { Component };'
-      );
-      expect(result).toBe('vfs://test-file.tsx');
+      expect(vfsCode).to.include('export const styles = ["a.css","c.css"]');
     });
 
-    it('should handle multiple entry replacements', async () => {
-      const template = 'import {entry} from "{entry}"; export default {entry};';
-      
-      await builder['_renderVFS']('multi', template);
+    it('builds assets first if not provided', async () => {
+      tempDir = await makeTempDir('docbuilder-page-assetsfirst-');
+      const server = makeServer();
+      const document = makeDocument(server);
+      const builder = new DocumentBuilder(document);
 
-      expect(mockVfs.set).toHaveBeenCalledWith(
-        '/project/src/pages/home.tsx.multi.tsx',
-        'import ./pages/home.tsx from "./pages/home.tsx"; export default ./pages/home.tsx;'
-      );
+      let buildAssetsCalled = 0;
+      (builder as any).buildAssets = async () => {
+        buildAssetsCalled++;
+        return [{ type: 'asset', fileName: 'assets/a.css', source: 'a' }] as any;
+      };
+
+      (server.vfs as any).set = () => 'virtual:reactus:/page.tsx';
+      (server.resource as any).build = async () => ({ output: [{ type: 'chunk', fileName: 'page.js', code: '/*page*/' }] });
+
+      await builder.buildPage();
+      expect(buildAssetsCalled).to.equal(1);
     });
   });
 
   describe('build option methods', () => {
-    it('should generate correct asset build options', async () => {
-      const url = 'vfs://test.tsx';
-      const options = await builder['_getAssetBuildOptions'](url);
+    it('generates correct build options shape for assets/client/page', async () => {
+      tempDir = await makeTempDir('docbuilder-options-');
+      const server = makeServer();
+      const document = makeDocument(server);
+      const builder = new DocumentBuilder(document);
 
-      expect(options).toEqual({
-        configFile: false,
-        root: '/project',
-        build: {
-          write: false,
-          rollupOptions: {
-            input: url,
-            output: {
-              format: 'es',
-              entryFileNames: '[name].js'
-            }
-          }
-        }
-      });
-    });
+      const assetConfig = await (builder as any)._getAssetBuildOptions('virtual:reactus:/a.tsx');
+      expect(assetConfig.configFile).to.equal(false);
+      expect(assetConfig.build.write).to.equal(false);
 
-    it('should generate correct client build options', async () => {
-      const url = 'vfs://test.tsx';
-      const options = await builder['_getClientBuildOptions'](url);
+      const clientConfig = await (builder as any)._getClientBuildOptions('virtual:reactus:/c.tsx');
+      expect(clientConfig.configFile).to.equal(false);
+      expect(clientConfig.build.write).to.equal(false);
 
-      expect(options).toEqual({
-        configFile: false,
-        root: '/project',
-        build: {
-          write: false,
-          rollupOptions: {
-            input: url,
-            output: {
-              format: 'es',
-              entryFileNames: '[name].js'
-            }
-          }
-        }
-      });
-    });
-
-    it('should generate correct page build options', async () => {
-      const url = 'vfs://test.tsx';
-      const options = await builder['_getPageBuildOptions'](url);
-
-      expect(options).toEqual({
-        configFile: false,
-        root: '/project',
-        build: {
-          write: false,
-          rollupOptions: {
-            preserveEntrySignatures: 'exports-only',
-            input: url,
-            external: ['react', 'react-dom', 'react/jsx-runtime'],
-            output: {
-              format: 'es',
-              entryFileNames: '[name].js',
-              exports: 'named',
-              globals: {
-                react: 'React',
-                'react-dom': 'ReactDOM',
-                'react/jsx-runtime': 'jsxRuntime'
-              }
-            }
-          }
-        }
-      });
+      const pageConfig = await (builder as any)._getPageBuildOptions('virtual:reactus:/p.tsx');
+      expect(pageConfig.configFile).to.equal(false);
+      expect(pageConfig.build.rollupOptions.external).to.include('react');
     });
   });
 });

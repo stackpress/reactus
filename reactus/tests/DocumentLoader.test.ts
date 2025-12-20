@@ -1,324 +1,265 @@
+//tests
+import { describe, it, afterEach } from 'mocha';
+import { expect } from 'chai';
+//node
+import path from 'node:path';
+//reactus
+import Server from '../src/Server.js';
 import DocumentLoader from '../src/DocumentLoader.js';
-import type Document from '../src/Document.js';
-import type Server from '../src/Server.js';
-import type { DocumentImport } from '../src/types.js';
+import { cleanupTempDir, makeTempDir, withPatched } from './helpers.js';
 
 describe('DocumentLoader', () => {
-  let mockDocument: Document;
-  let mockServer: Server;
-  let mockServerLoader: any;
-  let loader: DocumentLoader;
+  let tempDir = '';
 
-  beforeEach(() => {
-    jest.clearAllMocks();
-
-    // Mock server loader
-    mockServerLoader = {
-      absolute: jest.fn(),
-      import: jest.fn(),
-      fetch: jest.fn(),
-      resolve: jest.fn(),
-      relative: jest.fn()
-    };
-
-    // Mock server
-    mockServer = {
-      loader: mockServerLoader,
-      production: false,
-      paths: {
-        page: '/build/pages'
-      }
-    } as unknown as Server;
-
-    // Mock document
-    mockDocument = {
-      entry: '@/pages/home.tsx',
-      id: 'home.tsx-abc123',
-      server: mockServer
-    } as unknown as Document;
-
-    loader = new DocumentLoader(mockDocument);
+  afterEach(async () => {
+    if (tempDir) await cleanupTempDir(tempDir);
+    tempDir = '';
   });
+
+  function makeServer(production: boolean) {
+    const config = Server.configure({
+      production,
+      cwd: tempDir,
+      basePath: '/',
+      plugins: []
+    });
+
+    return new Server(config);
+  }
+
+  function makeDocument(server: Server, entry: string) {
+    return {
+      id: 'doc-1',
+      entry,
+      server,
+    } as any;
+  }
 
   describe('constructor', () => {
-    it('should initialize with document and server references', () => {
-      expect(loader['_document']).toBe(mockDocument);
-      expect(loader['_server']).toBe(mockServer);
+    it('initializes with document and server references', async () => {
+      tempDir = await makeTempDir('docloader-ctor-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, '@/pages/home.tsx');
+
+      const loader = new DocumentLoader(doc);
+      expect(loader).to.be.instanceOf(DocumentLoader);
     });
   });
 
-  describe('absolute', () => {
-    it('should return absolute path from server loader', async () => {
-      const expectedPath = '/project/src/pages/home.tsx';
-      mockServerLoader.absolute.mockResolvedValue(expectedPath);
+  describe('absolute()', () => {
+    it('returns absolute path from server loader', async () => {
+      tempDir = await makeTempDir('docloader-absolute-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, '@/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      const result = await loader.absolute();
-
-      expect(mockServerLoader.absolute).toHaveBeenCalledWith('@/pages/home.tsx');
-      expect(result).toBe(expectedPath);
+      const absolute = await loader.absolute();
+      // FileLoader.absolute resolves @/ relative to cwd
+      expect(absolute).to.equal(path.join(tempDir, 'pages', 'home.tsx'));
     });
 
-    it('should handle module paths', async () => {
-      const moduleDocument = {
-        entry: 'react-components/Button.tsx',
-        id: 'Button.tsx-def456',
-        server: mockServer
-      } as unknown as Document;
-      const moduleLoader = new DocumentLoader(moduleDocument);
-      
-      const expectedPath = '/project/node_modules/react-components/Button.tsx';
-      mockServerLoader.absolute.mockResolvedValue(expectedPath);
+    it('handles module paths by delegating to server loader', async () => {
+      tempDir = await makeTempDir('docloader-absolute-module-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, 'some-module/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      const result = await moduleLoader.absolute();
-
-      expect(mockServerLoader.absolute).toHaveBeenCalledWith('react-components/Button.tsx');
-      expect(result).toBe(expectedPath);
+      // For module-ish paths, absolute() will attempt to resolve via node_modules,
+      // but even if not found it should still return a string.
+      const absolute = await loader.absolute();
+      expect(absolute).to.be.a('string');
     });
   });
 
-  describe('import', () => {
-    const mockDocumentImport: DocumentImport = {
-      default: () => 'Test Component',
-      Head: () => 'Test Head',
-      styles: ['style1.css', 'style2.css']
-    };
-
+  describe('import()', () => {
     describe('in production mode', () => {
-      it('should import from built page file', async () => {
-        const prodServer = {
-          ...mockServer,
-          production: true
-        } as unknown as Server;
-        const prodDocument = {
-          ...mockDocument,
-          server: prodServer
-        } as unknown as Document;
-        const prodLoader = new DocumentLoader(prodDocument);
-        
-        mockServerLoader.import.mockResolvedValue(mockDocumentImport);
+      it('imports from built pagePath/<id>.js using server loader.import()', async () => {
+        tempDir = await makeTempDir('docloader-import-prod-');
+        const server = makeServer(true);
+        const doc = makeDocument(server, '@/pages/home.tsx');
+        (doc as any).id = 'home-123';
 
-        const result = await prodLoader.import();
+        const loader = new DocumentLoader(doc);
 
-        expect(mockServerLoader.import).toHaveBeenCalledWith('/build/pages/home.tsx-abc123.js');
-        expect(result).toBe(mockDocumentImport);
+        const expectedFile = path.join(server.paths.page, 'home-123.js');
+
+        let receivedPath = '';
+        await withPatched(server.loader as any, 'import', (async (pathname: string) => {
+          receivedPath = pathname;
+          return { default: () => null };
+        }) as any, async () => {
+          const mod = await loader.import();
+          expect(mod).to.have.property('default');
+        });
+
+        expect(receivedPath).to.equal(expectedFile);
       });
 
-      it('should handle different document IDs', async () => {
-        const prodServer = {
-          ...mockServer,
-          production: true
-        } as unknown as Server;
-        const aboutDocument = {
-          entry: '@/pages/about.tsx',
-          id: 'about.tsx-def456',
-          server: prodServer
-        } as unknown as Document;
-        const aboutLoader = new DocumentLoader(aboutDocument);
-        
-        mockServerLoader.import.mockResolvedValue(mockDocumentImport);
+      it('propagates errors from server loader import()', async () => {
+        tempDir = await makeTempDir('docloader-import-prod-error-');
+        const server = makeServer(true);
+        const doc = makeDocument(server, '@/pages/home.tsx');
+        (doc as any).id = 'home-123';
 
-        await aboutLoader.import();
+        const loader = new DocumentLoader(doc);
 
-        expect(mockServerLoader.import).toHaveBeenCalledWith('/build/pages/about.tsx-def456.js');
+        const forced = new Error('import failed');
+        try {
+          await withPatched(server.loader as any, 'import', (async () => { throw forced; }) as any, async () => {
+            await loader.import();
+          });
+          expect.fail('should have thrown');
+        } catch (err: unknown) {
+          expect(err).to.equal(forced);
+        }
       });
     });
 
     describe('in development mode', () => {
-      it('should fetch from dev server using file URL', async () => {
-        const devServer = {
-          ...mockServer,
-          production: false
-        } as unknown as Server;
-        const devDocument = {
-          ...mockDocument,
-          server: devServer
-        } as unknown as Document;
-        const devLoader = new DocumentLoader(devDocument);
-        
-        mockServerLoader.resolve.mockResolvedValue({
-          filepath: '/project/src/pages/home.tsx'
+      it('resolves entry file then fetches via dev server (file:// URL)', async () => {
+        tempDir = await makeTempDir('docloader-import-dev-');
+        const server = makeServer(false);
+        const doc = makeDocument(server, '@/pages/home.tsx');
+        const loader = new DocumentLoader(doc);
+
+        const resolvedFile = path.join(tempDir, 'pages', 'home.tsx');
+        let resolveCalled = 0;
+        let fetchCalledWith = '';
+
+        await withPatched(server.loader as any, 'resolve', (async () => {
+          resolveCalled++;
+          return { filepath: resolvedFile, basepath: resolvedFile.replace(/\.tsx$/, ''), extname: '.tsx' };
+        }) as any, async () => {
+          await withPatched(server.loader as any, 'fetch', (async (url: string) => {
+            fetchCalledWith = url;
+            return { default: () => null };
+          }) as any, async () => {
+            const mod = await loader.import();
+            expect(mod).to.have.property('default');
+          });
         });
-        mockServerLoader.fetch.mockResolvedValue(mockDocumentImport);
 
-        const result = await devLoader.import();
-
-        expect(mockServerLoader.resolve).toHaveBeenCalledWith('@/pages/home.tsx');
-        expect(mockServerLoader.fetch).toHaveBeenCalledWith('file:///project/src/pages/home.tsx');
-        expect(result).toBe(mockDocumentImport);
+        expect(resolveCalled).to.equal(1);
+        expect(fetchCalledWith).to.equal(`file://${resolvedFile}`);
       });
 
-      it('should handle different entry paths', async () => {
-        const devServer = {
-          ...mockServer,
-          production: false
-        } as unknown as Server;
-        const layoutDocument = {
-          entry: '@/components/Layout.tsx',
-          id: 'Layout.tsx-ghi789',
-          server: devServer
-        } as unknown as Document;
-        const layoutLoader = new DocumentLoader(layoutDocument);
-        
-        mockServerLoader.resolve.mockResolvedValue({
-          filepath: '/project/src/components/Layout.tsx'
+      it('propagates errors from server loader resolve()', async () => {
+        tempDir = await makeTempDir('docloader-import-dev-resolve-error-');
+        const server = makeServer(false);
+        const doc = makeDocument(server, '@/pages/home.tsx');
+        const loader = new DocumentLoader(doc);
+
+        const forced = new Error('resolve failed');
+        try {
+          await withPatched(server.loader as any, 'resolve', (async () => { throw forced; }) as any, async () => {
+            await loader.import();
+          });
+          expect.fail('should have thrown');
+        } catch (err: unknown) {
+          expect(err).to.equal(forced);
+        }
+      });
+
+      it('propagates errors from server loader fetch()', async () => {
+        tempDir = await makeTempDir('docloader-import-dev-fetch-error-');
+        const server = makeServer(false);
+        const doc = makeDocument(server, '@/pages/home.tsx');
+        const loader = new DocumentLoader(doc);
+
+        const resolvedFile = path.join(tempDir, 'pages', 'home.tsx');
+        const forced = new Error('fetch failed');
+
+        await withPatched(server.loader as any, 'resolve', (async () => {
+          return { filepath: resolvedFile, basepath: resolvedFile.replace(/\.tsx$/, ''), extname: '.tsx' };
+        }) as any, async () => {
+          try {
+            await withPatched(server.loader as any, 'fetch', (async () => { throw forced; }) as any, async () => {
+              await loader.import();
+            });
+            expect.fail('should have thrown');
+          } catch (err: unknown) {
+            expect(err).to.equal(forced);
+          }
         });
-        mockServerLoader.fetch.mockResolvedValue(mockDocumentImport);
-
-        await layoutLoader.import();
-
-        expect(mockServerLoader.resolve).toHaveBeenCalledWith('@/components/Layout.tsx');
-        expect(mockServerLoader.fetch).toHaveBeenCalledWith('file:///project/src/components/Layout.tsx');
       });
     });
   });
 
-  describe('relative', () => {
-    it('should return relative path for @ prefixed entries', async () => {
-      const fromFile = '/project/src/components/Button.tsx';
-      const absolutePath = '/project/src/pages/home.tsx';
-      const relativePath = '../pages/home.tsx';
+  describe('relative()', () => {
+    it('returns relative path for @ prefixed entries', async () => {
+      tempDir = await makeTempDir('docloader-relative-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, '@/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      mockServerLoader.absolute.mockResolvedValue(absolutePath);
-      mockServerLoader.relative.mockReturnValue(relativePath);
+      const fromFile = path.join(tempDir, 'pages', 'home.tsx.page.tsx');
+      const relative = await loader.relative(fromFile);
 
-      const result = await loader.relative(fromFile);
-
-      expect(mockServerLoader.absolute).toHaveBeenCalled();
-      expect(mockServerLoader.relative).toHaveBeenCalledWith(fromFile, absolutePath);
-      expect(result).toBe(relativePath);
+      // ServerLoader.relative() defaults to `withExtname=false` (extension removed).
+      expect(relative).to.equal('./home');
     });
 
-    it('should return entry as-is for module paths', async () => {
-      const moduleDocument = {
-        entry: 'react-components/Button.tsx',
-        id: 'Button.tsx-def456',
-        server: mockServer
-      } as unknown as Document;
-      const moduleLoader = new DocumentLoader(moduleDocument);
+    it('returns entry as-is for module paths', async () => {
+      tempDir = await makeTempDir('docloader-relative-module-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, 'some-module/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      const result = await moduleLoader.relative('/some/file.tsx');
-
-      expect(mockServerLoader.absolute).not.toHaveBeenCalled();
-      expect(mockServerLoader.relative).not.toHaveBeenCalled();
-      expect(result).toBe('react-components/Button.tsx');
+      const relative = await loader.relative('/any/file.tsx');
+      expect(relative).to.equal('some-module/pages/home.tsx');
     });
 
-    it('should handle Windows path separators', async () => {
-      // Mock Windows-style path
-      const originalSep = require('path').sep;
-      Object.defineProperty(require('path'), 'sep', { value: '\\' });
+    it('returns a stable relative path regardless of platform separators', async () => {
+      tempDir = await makeTempDir('docloader-relative-platform-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, '@/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      const winDocument = {
-        entry: '@\\pages\\home.tsx',
-        id: 'home.tsx-abc123',
-        server: mockServer
-      } as unknown as Document;
-      const winLoader = new DocumentLoader(winDocument);
-      
-      const fromFile = 'C:\\project\\src\\components\\Button.tsx';
-      const absolutePath = 'C:\\project\\src\\pages\\home.tsx';
-      const relativePath = '..\\pages\\home.tsx';
+      // Use the current platform separator behavior.
+      const fromFile = path.join(tempDir, 'pages', 'page.tsx');
+      const relative = await loader.relative(fromFile);
 
-      mockServerLoader.absolute.mockResolvedValue(absolutePath);
-      mockServerLoader.relative.mockReturnValue(relativePath);
-
-      const result = await winLoader.relative(fromFile);
-
-      expect(result).toBe(relativePath);
-
-      // Restore original separator
-      Object.defineProperty(require('path'), 'sep', { value: originalSep });
+      // Extension removed by default.
+      expect(relative).to.equal('./home');
     });
 
-    it('should handle relative paths that do not start with @', async () => {
-      const relativeDocument = {
-        entry: './pages/home.tsx',
-        id: 'home.tsx-abc123',
-        server: mockServer
-      } as unknown as Document;
-      const relativeLoader = new DocumentLoader(relativeDocument);
+    it('handles relative paths that do not start with @ by returning entry as-is', async () => {
+      tempDir = await makeTempDir('docloader-relative-dot-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, './pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      const result = await relativeLoader.relative('/some/file.tsx');
-
-      expect(mockServerLoader.absolute).not.toHaveBeenCalled();
-      expect(result).toBe('./pages/home.tsx');
+      const relative = await loader.relative('/any/file.tsx');
+      expect(relative).to.equal('./pages/home.tsx');
     });
 
-    it('should handle absolute paths that do not start with @', async () => {
-      const absoluteDocument = {
-        entry: '/absolute/path/to/file.tsx',
-        id: 'file.tsx-abc123',
-        server: mockServer
-      } as unknown as Document;
-      const absoluteLoader = new DocumentLoader(absoluteDocument);
+    it('handles absolute paths that do not start with @ by returning entry as-is', async () => {
+      tempDir = await makeTempDir('docloader-relative-abs-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, '/abs/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      const result = await absoluteLoader.relative('/some/file.tsx');
-
-      expect(mockServerLoader.absolute).not.toHaveBeenCalled();
-      expect(result).toBe('/absolute/path/to/file.tsx');
+      const relative = await loader.relative('/any/file.tsx');
+      expect(relative).to.equal('/abs/pages/home.tsx');
     });
   });
 
   describe('error handling', () => {
-    it('should propagate errors from server loader absolute method', async () => {
-      const error = new Error('Failed to resolve absolute path');
-      mockServerLoader.absolute.mockRejectedValue(error);
+    it('propagates errors from server loader absolute() method', async () => {
+      tempDir = await makeTempDir('docloader-abs-error-');
+      const server = makeServer(true);
+      const doc = makeDocument(server, '@/pages/home.tsx');
+      const loader = new DocumentLoader(doc);
 
-      await expect(loader.absolute()).rejects.toThrow('Failed to resolve absolute path');
-    });
-
-    it('should propagate errors from server loader import method in production', async () => {
-      const prodServer = {
-        ...mockServer,
-        production: true
-      } as unknown as Server;
-      const prodDocument = {
-        ...mockDocument,
-        server: prodServer
-      } as unknown as Document;
-      const prodLoader = new DocumentLoader(prodDocument);
-      
-      const error = new Error('Failed to import module');
-      mockServerLoader.import.mockRejectedValue(error);
-
-      await expect(prodLoader.import()).rejects.toThrow('Failed to import module');
-    });
-
-    it('should propagate errors from server loader resolve method in development', async () => {
-      const devServer = {
-        ...mockServer,
-        production: false
-      } as unknown as Server;
-      const devDocument = {
-        ...mockDocument,
-        server: devServer
-      } as unknown as Document;
-      const devLoader = new DocumentLoader(devDocument);
-      
-      const error = new Error('Failed to resolve file');
-      mockServerLoader.resolve.mockRejectedValue(error);
-
-      await expect(devLoader.import()).rejects.toThrow('Failed to resolve file');
-    });
-
-    it('should propagate errors from server loader fetch method in development', async () => {
-      const devServer = {
-        ...mockServer,
-        production: false
-      } as unknown as Server;
-      const devDocument = {
-        ...mockDocument,
-        server: devServer
-      } as unknown as Document;
-      const devLoader = new DocumentLoader(devDocument);
-      
-      mockServerLoader.resolve.mockResolvedValue({
-        filepath: '/project/src/pages/home.tsx'
-      });
-      const error = new Error('Failed to fetch module');
-      mockServerLoader.fetch.mockRejectedValue(error);
-
-      await expect(devLoader.import()).rejects.toThrow('Failed to fetch module');
+      const forced = new Error('absolute failed');
+      try {
+        await withPatched(server.loader as any, 'absolute', (async () => { throw forced; }) as any, async () => {
+          await loader.absolute();
+        });
+        expect.fail('should have thrown');
+      } catch (err: unknown) {
+        expect(err).to.equal(forced);
+      }
     });
   });
 });

@@ -1,5 +1,5 @@
 import './page.css';
-import Edit from '../components/Edit';
+import Edit from '../components/Edit.js';
 
 export function Head({ styles = [] }: { styles?: string[] }) {
   return (

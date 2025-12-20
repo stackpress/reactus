@@ -1,6 +1,8 @@
 import './page.css';
+//modules
 import { useState } from 'react';
-import Edit from '../components/Edit';
+//example
+import Edit from '../components/Edit.js';
 
 export function Head({ styles = [] }: { styles?: string[] }) {
   return (

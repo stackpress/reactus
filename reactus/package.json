@@ -202,34 +202,43 @@
     "build:tsc": "yarn build:tsc:cjs && yarn build:tsc:esm",
     "build:tsc:cjs": "tsc -p ./tsconfig.cjs.json",
     "build:tsc:esm": "tsc -p ./tsconfig.esm.json",
-    "report": "jest --coverage",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "report": "nyc report -r lcov",
+    "test": "yarn test:env nyc ts-mocha -r tsx tests/bootstrap.ts tests/*.test.ts tests/*.test.tsx",
+    "test:env": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning --experimental-loader @istanbuljs/esm-loader-hook\""
   },
   "dependencies": {
     "@stackpress/lib": "0.6.2"
   },
   "devDependencies": {
-    "@jest/globals": "^30.1.1",
-    "@types/jest": "^30.0.0",
-    "@types/node": "22.9.3",
-    "@types/react": "19.0.10",
-    "@types/react-dom": "19.0.4",
-    "@vitejs/plugin-react": "4.3.4",
-    "jest": "^30.1.1",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "ts-jest": "^29.4.1",
+    "@istanbuljs/esm-loader-hook": "0.3.0",
+    "@testing-library/dom": "10.4.1",
+    "@testing-library/react": "16.3.1",
+    "@testing-library/user-event": "14.6.1",
+    "@types/chai": "4.3.20",
+    "@types/mocha": "10.0.10",
+    "@types/jsdom": "27.0.0",
+    "@types/node": "25.0.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.2",
+    "chai": "4.5.0",
+    "jsdom": "27.3.0",
+    "mocha": "10.8.2",
+    "mocha-lcov-reporter": "1.3.0",
+    "nyc": "17.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "ts-mocha": "10.0.0",
     "ts-node": "10.9.2",
-    "typescript": "5.7.2"
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
   },
   "peerDevDependencies": {
-    "@vitejs/plugin-react": "4.3.4",
-    "vite": "6.1.1"
+    "@vitejs/plugin-react": "^5.1.2",
+    "vite": "^7.3.0"
   },
   "peerProdDependencies": {
-    "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react": "^19",
+    "react-dom": "^19"
   }
 }

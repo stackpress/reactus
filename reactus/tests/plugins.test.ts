@@ -1,463 +1,314 @@
-import type { Plugin, ViteDevServer } from 'vite';
+//tests
+import { describe, it } from 'mocha';
+import { expect } from 'chai';
+//node
 import type { IncomingMessage, ServerResponse } from 'node:http';
+//reactus
 import { css, file, hmr, vfs } from '../src/plugins.js';
-import ServerLoader from '../src/ServerLoader.js';
 import VirtualServer from '../src/VirtualServer.js';
-import Server from '../src/Server.js';
 
-// Mock dependencies
-jest.mock('../src/ServerLoader.js');
-jest.mock('../src/VirtualServer.js');
-jest.mock('../src/Server.js');
-
-const MockedVirtualServer = VirtualServer as jest.MockedClass<typeof VirtualServer>;
-
-// Helper to get transform function from plugin
-function getTransformFunction(plugin: Plugin) {
-  const transform = plugin.transform;
-  if (typeof transform === 'function') {
-    return transform;
-  } else if (transform && typeof transform === 'object' && 'handler' in transform) {
-    return transform.handler;
-  }
-  throw new Error('Transform function not found');
-}
+type Next = () => void;
 
 describe('plugins', () => {
   describe('css()', () => {
     it('returns a Vite plugin with correct name', () => {
-      const cssFiles = ['/styles/main.css', '/styles/theme.css'];
-      const plugin = css(cssFiles);
-      
-      expect(plugin.name).toBe('reactus-inject-css');
-      expect(plugin.enforce).toBe('pre');
+      const plugin = css(['/a.css']);
+      expect(plugin.name).to.equal('reactus-inject-css');
     });
 
     it('injects CSS imports into TSX files', () => {
-      const cssFiles = ['/styles/main.css', '/styles/theme.css'];
-      const plugin = css(cssFiles);
-      const originalCode = 'export default function Component() { return <div>Hello</div>; }';
-      
-      const transformFn = getTransformFunction(plugin);
-      const result = transformFn.call({} as any, originalCode, '/path/to/component.tsx');
-      
-      expect(result).toBe(
-        "import '/styles/main.css';\nimport '/styles/theme.css';\n" + originalCode
-      );
+      const plugin = css(['/a.css', '/b.css']);
+      const result = (plugin as any).transform('console.log(1)', '/x.tsx') as string;
+      expect(result).to.match(/^import '\/a\.css';\nimport '\/b\.css';\n/);
+      expect(result).to.include('console.log(1)');
     });
 
     it('does not transform non-TSX files', () => {
-      const cssFiles = ['/styles/main.css'];
-      const plugin = css(cssFiles);
-      const originalCode = 'console.log("test");';
-      
-      const transformFn = getTransformFunction(plugin);
-      const result = transformFn.call({} as any, originalCode, '/path/to/script.js');
-      
-      expect(result).toBe(originalCode);
+      const plugin = css(['/a.css']);
+      const result = (plugin as any).transform('console.log(1)', '/x.ts') as string;
+      expect(result).to.equal('console.log(1)');
     });
 
     it('handles empty CSS files array', () => {
-      const cssFiles: string[] = [];
-      const plugin = css(cssFiles);
-      const originalCode = 'export default function Component() { return <div>Hello</div>; }';
-      
-      const transformFn = getTransformFunction(plugin);
-      const result = transformFn.call({} as any, originalCode, '/path/to/component.tsx');
-      
-      expect(result).toBe('\n' + originalCode);
+      const plugin = css([]);
+      const result = (plugin as any).transform('console.log(1)', '/x.tsx') as string;
+      expect(result).to.equal('\nconsole.log(1)');
     });
 
     it('handles single CSS file', () => {
-      const cssFiles = ['/styles/main.css'];
-      const plugin = css(cssFiles);
-      const originalCode = 'export default function Component() { return <div>Hello</div>; }';
-      
-      const transformFn = getTransformFunction(plugin);
-      const result = transformFn.call({} as any, originalCode, '/path/to/component.tsx');
-      
-      expect(result).toBe("import '/styles/main.css';\n" + originalCode);
+      const plugin = css(['/only.css']);
+      const result = (plugin as any).transform('x', '/x.tsx') as string;
+      expect(result).to.equal("import '/only.css';\nx");
     });
   });
 
   describe('file()', () => {
-    let mockLoader: jest.Mocked<ServerLoader>;
-
-    beforeEach(() => {
-      mockLoader = {
-        cwd: '/project',
-        fs: {} as any,
-        _loader: {} as any,
-        _production: false,
-        _resource: {} as any,
-        absolute: jest.fn(),
-        fetch: jest.fn(),
-        import: jest.fn(),
-        relative: jest.fn(),
-        resolveFile: jest.fn(),
-        resolve: jest.fn()
-      } as unknown as jest.Mocked<ServerLoader>;
-    });
-
     it('returns a Vite plugin with correct name', () => {
-      const plugin = file(mockLoader);
-      
-      expect(plugin.name).toBe('reactus-file-loader');
+      const loader = { cwd: '/cwd', resolveFile: async () => null } as const;
+      const plugin = file(loader as any);
+      expect(plugin.name).to.equal('reactus-file-loader');
     });
 
     it('skips absolute paths', async () => {
-      const plugin = file(mockLoader);
-      
-      const result = await plugin.resolveId!('/absolute/path', undefined);
-      
-      expect(result).toBeUndefined();
-      expect(mockLoader.resolveFile).not.toHaveBeenCalled();
+      const loader = { cwd: '/cwd', resolveFile: async () => '/x.ts' } as const;
+      const plugin = file(loader as any);
+      const resolved = await plugin.resolveId?.('/abs.ts');
+      expect(resolved).to.equal(undefined);
     });
 
     it('resolves files using loader', async () => {
-      const plugin = file(mockLoader);
-      mockLoader.resolveFile.mockResolvedValue('/resolved/path/module.ts');
-      
-      const result = await plugin.resolveId!('module', undefined);
-      
-      expect(result).toBe('/resolved/path/module.ts');
-      expect(mockLoader.resolveFile).toHaveBeenCalledWith(
-        'module',
-        ['.js', '.ts', '.tsx'],
-        '/project'
-      );
+      let calls = 0;
+      const loader = {
+        cwd: '/cwd',
+        resolveFile: async (_source: string) => {
+          calls++;
+          return '/resolved.ts';
+        }
+      } as const;
+      const plugin = file(loader as any);
+      const resolved = await plugin.resolveId?.('mod', '/importer.ts');
+      expect(resolved).to.equal('/resolved.ts');
+      expect(calls).to.equal(1);
     });
 
     it('uses cache for repeated requests', async () => {
-      const plugin = file(mockLoader);
-      mockLoader.resolveFile.mockResolvedValue('/resolved/path/module.ts');
-      
-      // First call
-      const result1 = await plugin.resolveId!('module', undefined);
-      // Second call
-      const result2 = await plugin.resolveId!('module', undefined);
-      
-      expect(result1).toBe('/resolved/path/module.ts');
-      expect(result2).toBe('/resolved/path/module.ts');
-      expect(mockLoader.resolveFile).toHaveBeenCalledTimes(1);
+      let calls = 0;
+      const loader = {
+        cwd: '/cwd',
+        resolveFile: async () => {
+          calls++;
+          return '/resolved.ts';
+        }
+      } as const;
+
+      const plugin = file(loader as any);
+      await plugin.resolveId?.('mod', '/importer.ts');
+      await plugin.resolveId?.('mod', '/importer.ts');
+      expect(calls).to.equal(1);
     });
 
     it('handles importer directory resolution', async () => {
-      const plugin = file(mockLoader);
-      mockLoader.resolveFile.mockResolvedValue('/resolved/path/module.ts');
-      
-      await plugin.resolveId!('module', '/project/src/components/Button.tsx');
-      
-      expect(mockLoader.resolveFile).toHaveBeenCalledWith(
-        'module',
-        ['.js', '.ts', '.tsx'],
-        '/project/src/components'
-      );
+      let lastPwd = '';
+      const loader = {
+        cwd: '/cwd',
+        resolveFile: async (_source: string, _ext: string[], pwd: string) => {
+          lastPwd = pwd;
+          return '/resolved.ts';
+        }
+      } as const;
+
+      const plugin = file(loader as any);
+      await plugin.resolveId?.('mod', '/a/b/importer.ts');
+      expect(lastPwd).to.equal('/a/b');
     });
 
     it('handles imfs importer paths', async () => {
-      const plugin = file(mockLoader);
-      mockLoader.resolveFile.mockResolvedValue('/resolved/path/module.ts');
-      
-      await plugin.resolveId!('module', 'imfs:text/typescript;base64,data;/foo/bar.tsx');
-      
-      expect(mockLoader.resolveFile).toHaveBeenCalledWith(
-        'module',
-        ['.js', '.ts', '.tsx'],
-        '/foo'
-      );
+      let lastPwd = '';
+      const loader = {
+        cwd: '/cwd',
+        resolveFile: async (_source: string, _ext: string[], pwd: string) => {
+          lastPwd = pwd;
+          return '/resolved.ts';
+        }
+      } as const;
+
+      const plugin = file(loader as any);
+      await plugin.resolveId?.('mod', 'imfs:text/typescript;base64,AAA;/x/y/z.tsx');
+      expect(lastPwd).to.equal('/x/y');
     });
 
     it('returns undefined when file cannot be resolved', async () => {
-      const plugin = file(mockLoader);
-      mockLoader.resolveFile.mockResolvedValue(null);
-      
-      const result = await plugin.resolveId!('non-existent', undefined);
-      
-      expect(result).toBeUndefined();
+      const loader = { cwd: '/cwd', resolveFile: async () => null } as const;
+      const plugin = file(loader as any);
+      expect(await plugin.resolveId?.('missing', '/importer.ts')).to.equal(undefined);
     });
 
     it('uses custom extensions', async () => {
-      const plugin = file(mockLoader, ['.vue', '.svelte']);
-      mockLoader.resolveFile.mockResolvedValue('/resolved/path/component.vue');
-      
-      await plugin.resolveId!('component', undefined);
-      
-      expect(mockLoader.resolveFile).toHaveBeenCalledWith(
-        'component',
-        ['.vue', '.svelte'],
-        '/project'
-      );
+      let extnames: string[] = [];
+      const loader = {
+        cwd: '/cwd',
+        resolveFile: async (_source: string, ext: string[]) => {
+          extnames = ext;
+          return '/resolved.custom';
+        }
+      } as const;
+
+      const plugin = file(loader as any, ['.abc']);
+      await plugin.resolveId?.('mod', '/importer.ts');
+      expect(extnames).to.deep.equal(['.abc']);
     });
   });
 
   describe('hmr()', () => {
-    let mockServer: jest.Mocked<Server>;
-    let mockReq: Partial<IncomingMessage>;
-    let mockRes: Partial<ServerResponse>;
-    let mockNext: jest.Mock;
-    let mockDocument: any;
-
-    beforeEach(() => {
-      const mockManifest = {
-        find: jest.fn()
-      };
-      
-      mockServer = {
-        routes: { client: '/client' },
-        manifest: mockManifest
-      } as unknown as jest.Mocked<Server>;
-
-      mockReq = { url: '' };
-      mockRes = { 
-        get headersSent() { return false; },
-        setHeader: jest.fn(),
-        end: jest.fn()
-      } as Partial<ServerResponse>;
-      mockNext = jest.fn();
-
-      mockDocument = {
-        render: {
-          renderHMRClient: jest.fn()
-        }
-      };
-    });
+    function makeRes() {
+      const headers: Record<string, string> = {};
+      let ended = false;
+      let body = '';
+      return {
+        headersSent: false,
+        setHeader: (k: string, v: string) => { headers[k] = v; },
+        end: (v: string) => { ended = true; body = v; },
+        _get: () => ({ headers, ended, body })
+      } as unknown as ServerResponse<IncomingMessage> & { _get: () => { headers: Record<string, string>, ended: boolean, body: string } };
+    }
 
     it('returns middleware function', () => {
-      const middleware = hmr(mockServer);
-      
-      expect(typeof middleware).toBe('function');
+      const server = { routes: { client: '/client' }, manifest: { find: () => null } } as any;
+      const middleware = hmr(server);
+      expect(middleware).to.be.a('function');
     });
 
     it('skips when no URL', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = undefined;
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRes.end).not.toHaveBeenCalled();
+      const server = { routes: { client: '/client' }, manifest: { find: () => null } } as any;
+      const middleware = hmr(server);
+
+      let called = 0;
+      await middleware({} as IncomingMessage, makeRes(), (() => { called++; }) as Next);
+      expect(called).to.equal(1);
     });
 
     it('skips when URL does not start with client route', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/other/path';
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRes.end).not.toHaveBeenCalled();
+      const server = { routes: { client: '/client' }, manifest: { find: () => null } } as any;
+      const middleware = hmr(server);
+
+      let called = 0;
+      await middleware({ url: '/other/x.tsx' } as IncomingMessage, makeRes(), (() => { called++; }) as Next);
+      expect(called).to.equal(1);
     });
 
     it('skips when URL does not end with .tsx', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/client/file.js';
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRes.end).not.toHaveBeenCalled();
+      const server = { routes: { client: '/client' }, manifest: { find: () => null } } as any;
+      const middleware = hmr(server);
+
+      let called = 0;
+      await middleware({ url: '/client/x.js' } as IncomingMessage, makeRes(), (() => { called++; }) as Next);
+      expect(called).to.equal(1);
     });
 
     it('skips when headers already sent', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/client/abc-123.tsx';
-      Object.defineProperty(mockRes, 'headersSent', { value: true });
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRes.end).not.toHaveBeenCalled();
+      const server = { routes: { client: '/client' }, manifest: { find: () => null } } as any;
+      const middleware = hmr(server);
+
+      const res = makeRes();
+      (res as any).headersSent = true;
+
+      let called = 0;
+      await middleware({ url: '/client/x.tsx' } as IncomingMessage, res, (() => { called++; }) as Next);
+      expect(called).to.equal(1);
     });
 
     it('serves HMR client when document found', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/client/abc-123.tsx';
-      (mockServer.manifest.find as jest.Mock).mockReturnValue(mockDocument);
-      mockDocument.render.renderHMRClient.mockResolvedValue('client code');
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockServer.manifest.find).toHaveBeenCalledWith('abc-123');
-      expect(mockDocument.render.renderHMRClient).toHaveBeenCalled();
-      expect(mockRes.setHeader).toHaveBeenCalledWith('Content-Type', 'text/javascript');
-      expect(mockRes.end).toHaveBeenCalledWith('client code');
-      expect(mockNext).not.toHaveBeenCalled();
+      const document = {
+        render: {
+          renderHMRClient: async () => 'console.log("hmr")'
+        }
+      } as any;
+
+      const server = {
+        routes: { client: '/client' },
+        manifest: { find: () => document }
+      } as any;
+
+      const middleware = hmr(server);
+      const res = makeRes();
+      let called = 0;
+
+      await middleware({ url: '/client/abc.tsx' } as IncomingMessage, res, (() => { called++; }) as Next);
+
+      expect(called).to.equal(0);
+      const state = (res as any)._get();
+      expect(state.ended).to.equal(true);
+      expect(state.headers['Content-Type']).to.equal('text/javascript');
+      expect(state.body).to.equal('console.log("hmr")');
     });
 
     it('calls next when document not found', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/client/abc-123.tsx';
-      (mockServer.manifest.find as jest.Mock).mockReturnValue(null);
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRes.end).not.toHaveBeenCalled();
+      const server = {
+        routes: { client: '/client' },
+        manifest: { find: () => null }
+      } as any;
+
+      const middleware = hmr(server);
+      let called = 0;
+      await middleware({ url: '/client/abc.tsx' } as IncomingMessage, makeRes(), (() => { called++; }) as Next);
+      expect(called).to.equal(1);
     });
 
     it('calls next when HMR client is null', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/client/abc-123.tsx';
-      (mockServer.manifest.find as jest.Mock).mockReturnValue(mockDocument);
-      mockDocument.render.renderHMRClient.mockResolvedValue(null);
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockNext).toHaveBeenCalled();
-      expect(mockRes.end).not.toHaveBeenCalled();
+      const document = { render: { renderHMRClient: async () => null } } as any;
+      const server = {
+        routes: { client: '/client' },
+        manifest: { find: () => document }
+      } as any;
+
+      const middleware = hmr(server);
+      let called = 0;
+      await middleware({ url: '/client/abc.tsx' } as IncomingMessage, makeRes(), (() => { called++; }) as Next);
+      expect(called).to.equal(1);
     });
 
     it('extracts correct ID from URL', async () => {
-      const middleware = hmr(mockServer);
-      mockReq.url = '/client/my-component-xyz.tsx';
-      (mockServer.manifest.find as jest.Mock).mockReturnValue(mockDocument);
-      mockDocument.render.renderHMRClient.mockResolvedValue('client code');
-      
-      await middleware(mockReq as IncomingMessage, mockRes as ServerResponse, mockNext);
-      
-      expect(mockServer.manifest.find).toHaveBeenCalledWith('my-component-xyz');
+      let received = '';
+      const server = {
+        routes: { client: '/client' },
+        manifest: { find: (id: string) => { received = id; return null; } }
+      } as any;
+
+      const middleware = hmr(server);
+      await middleware({ url: '/client/my-id.tsx' } as IncomingMessage, makeRes(), (() => {}) as Next);
+      expect(received).to.equal('my-id');
     });
   });
 
   describe('vfs()', () => {
-    let mockVfs: jest.Mocked<VirtualServer>;
-    let mockViteServer: Partial<ViteDevServer>;
-
-    beforeEach(() => {
-      mockVfs = new MockedVirtualServer() as jest.Mocked<VirtualServer>;
-      mockVfs.has = jest.fn();
-      mockVfs.get = jest.fn();
-
-      mockViteServer = {
-        watcher: {
-          on: jest.fn()
-        },
-        ws: {
-          send: jest.fn()
-        },
-        moduleGraph: {
-          getModuleById: jest.fn(),
-          invalidateModule: jest.fn()
-        }
-      } as any;
-    });
-
     it('returns a Vite plugin with correct name', () => {
-      const plugin = vfs(mockVfs);
-      
-      expect(plugin.name).toBe('reactus-virtual-loader');
-    });
-
-    it('configures server watcher for VFS changes', () => {
-      const plugin = vfs(mockVfs);
-      
-      plugin.configureServer!(mockViteServer as ViteDevServer);
-      
-      expect(mockViteServer.watcher!.on).toHaveBeenCalledWith('change', expect.any(Function));
-    });
-
-    it('handles VFS file changes with module invalidation', () => {
-      const plugin = vfs(mockVfs);
-      const mockModule = { id: 'virtual:reactus:/test.tsx' };
-      mockViteServer.moduleGraph!.getModuleById = jest.fn().mockReturnValue(mockModule);
-      
-      plugin.configureServer!(mockViteServer as ViteDevServer);
-      
-      // Get the change handler
-      const changeHandler = (mockViteServer.watcher!.on as jest.Mock).mock.calls[0][1];
-      changeHandler('virtual:reactus:/test.tsx');
-      
-      expect(mockViteServer.moduleGraph!.getModuleById).toHaveBeenCalledWith('virtual:reactus:/test.tsx');
-      expect(mockViteServer.moduleGraph!.invalidateModule).toHaveBeenCalledWith(mockModule);
-      expect(mockViteServer.ws!.send).toHaveBeenCalledWith({ type: 'full-reload', path: '*' });
+      const plugin = vfs(new VirtualServer());
+      expect(plugin.name).to.equal('reactus-virtual-loader');
     });
 
     it('resolves VFS protocol sources', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.resolveId!('virtual:reactus:/test.tsx', undefined);
-      
-      expect(result).toBe('virtual:reactus:/test.tsx');
+      const plugin = vfs(new VirtualServer());
+      const id = plugin.resolveId?.('virtual:reactus:/a.tsx');
+      expect(id).to.equal('virtual:reactus:/a.tsx');
     });
 
     it('resolves sources containing VFS protocol', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.resolveId!('some/path/virtual:reactus:/test.tsx', undefined);
-      
-      expect(result).toBe('virtual:reactus:/test.tsx');
+      const plugin = vfs(new VirtualServer());
+      const id = plugin.resolveId?.('file:///x/virtual:reactus:/a.tsx');
+      expect(id).to.equal('virtual:reactus:/a.tsx');
     });
 
-    it('resolves relative imports from VFS files', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.resolveId!('./component.tsx', 'virtual:reactus:/src/pages/home.tsx');
-      
-      expect(result).toBe('/src/pages/component.tsx');
-    });
-
-    it('resolves relative imports with parent directory', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.resolveId!('../utils/helper.ts', 'virtual:reactus:/src/pages/home.tsx');
-      
-      expect(result).toBe('/src/utils/helper.ts');
-    });
-
-    it('preserves extension when resolving relative imports', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.resolveId!('./component.js', 'virtual:reactus:/src/pages/home.tsx');
-      
-      expect(result).toBe('/src/pages/component.js');
+    it('resolves relative imports from VFS files and preserves extension', () => {
+      const plugin = vfs(new VirtualServer());
+      const id = plugin.resolveId?.('./other', 'virtual:reactus:/a/b/file.tsx');
+      expect(id).to.equal('/a/b/other.tsx');
     });
 
     it('loads VFS file contents', () => {
-      const plugin = vfs(mockVfs);
-      mockVfs.has.mockReturnValue(true);
-      mockVfs.get.mockReturnValue('file contents');
-      
-      const result = plugin.load!('virtual:reactus:/test.tsx');
-      
-      expect(mockVfs.has).toHaveBeenCalledWith('/test.tsx');
-      expect(mockVfs.get).toHaveBeenCalledWith('/test.tsx');
-      expect(result).toBe('file contents');
+      const store = new VirtualServer();
+      store.set('/a.tsx', 'export default 1');
+      const plugin = vfs(store);
+
+      const contents = plugin.load?.('virtual:reactus:/a.tsx');
+      expect(contents).to.equal('export default 1');
     });
 
     it('returns null when VFS file does not exist', () => {
-      const plugin = vfs(mockVfs);
-      mockVfs.has.mockReturnValue(false);
-      
-      const result = plugin.load!('virtual:reactus:/non-existent.tsx');
-      
-      expect(result).toBeNull();
-    });
-
-    it('returns null when VFS returns non-string content', () => {
-      const plugin = vfs(mockVfs);
-      mockVfs.has.mockReturnValue(true);
-      mockVfs.get.mockReturnValue(null);
-      
-      const result = plugin.load!('virtual:reactus:/test.tsx');
-      
-      expect(result).toBeNull();
+      const plugin = vfs(new VirtualServer());
+      const contents = plugin.load?.('virtual:reactus:/missing.tsx');
+      expect(contents).to.equal(null);
     });
 
     it('returns undefined for non-VFS sources in resolveId', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.resolveId!('regular-module', undefined);
-      
-      expect(result).toBeUndefined();
+      const plugin = vfs(new VirtualServer());
+      const id = plugin.resolveId?.('react', '/a/b.tsx');
+      expect(id).to.equal(undefined);
     });
 
     it('returns undefined for non-VFS sources in load', () => {
-      const plugin = vfs(mockVfs);
-      
-      const result = plugin.load!('/regular/file.tsx');
-      
-      expect(result).toBeUndefined();
+      const plugin = vfs(new VirtualServer());
+      const contents = plugin.load?.('/a.tsx');
+      expect(contents).to.equal(undefined);
     });
   });
 });

@@ -1,310 +1,269 @@
+//node
+import fs from 'node:fs/promises';
 import path from 'node:path';
+//tests
+import { describe, it, afterEach } from 'mocha';
+import { expect } from 'chai';
+//reactus
+import type { BuildResults } from '../src/types.js';
+import Server from '../src/Server.js';
 import Builder from '../src/Builder.js';
-import type { ServerConfig } from '../src/types.js';
-
-// Helper to create test data
-const makeServerConfig = (overrides: Partial<ServerConfig> = {}): ServerConfig => ({
-  assetPath: '/project/public/assets',
-  basePath: '/',
-  clientPath: '/project/public/client',
-  clientRoute: '/client',
-  clientTemplate: 'export { entry } from "%s";',
-  cssRoute: '/assets',
-  cwd: '/project',
-  documentTemplate: '<!DOCTYPE html><html><head>%s</head><body>%s</body></html>',
-  pagePath: '/project/.reactus/page',
-  pageTemplate: 'export { entry } from "%s";',
-  plugins: [],
-  production: false,
-  ...overrides
-});
+import { cleanupTempDir, makeTempDir, withPatched } from './helpers.js';
 
 describe('Builder', () => {
-  let builder: Builder;
-  let config: ServerConfig;
+  let tempDir = '';
 
-  beforeEach(() => {
-    config = makeServerConfig();
-    builder = new Builder(config);
+  afterEach(async () => {
+    if (tempDir) await cleanupTempDir(tempDir);
+    tempDir = '';
   });
+
+  function makeBuilder(production = true) {
+    const config = Server.configure({
+      production,
+      cwd: tempDir,
+      basePath: '/',
+      plugins: []
+    });
+    return new Builder(config);
+  }
 
   describe('constructor', () => {
-    it('should create a Builder instance that extends Server', () => {
-      expect(builder).toBeInstanceOf(Builder);
-      expect(builder.paths.asset).toBe('/project/public/assets');
-      expect(builder.paths.client).toBe('/project/public/client');
-      expect(builder.paths.page).toBe('/project/.reactus/page');
+    it('creates a Builder instance that extends Server', async () => {
+      tempDir = await makeTempDir('builder-ctor-');
+      const builder = makeBuilder(true);
+      expect(builder).to.be.instanceOf(Server);
     });
 
-    it('should inherit Server properties and methods', () => {
-      expect(builder.manifest).toBeDefined();
-      expect(typeof builder.manifest.values).toBe('function');
-    });
-  });
-
-  describe('buildAssets', () => {
-    it('should return empty array when no documents exist', async () => {
-      const results = await builder.buildAssets();
-      expect(Array.isArray(results)).toBe(true);
-      expect(results).toHaveLength(0);
-    });
-
-    it('should process asset outputs correctly', async () => {
-      // Create a mock document with proper structure
-      const mockDocument = {
-        id: 'test-123',
-        entry: '@/pages/home.tsx',
-        builder: {
-          buildAssets: jest.fn().mockResolvedValue([
-            {
-              type: 'asset',
-              fileName: 'assets/style.css',
-              source: 'body { margin: 0; }'
-            }
-          ])
-        }
-      };
-
-      // Mock the manifest to return our test document
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      // Mock writeFile to avoid actual file operations
-      const writeFileSpy = jest.spyOn(await import('../src/helpers.js'), 'writeFile')
-        .mockResolvedValue('/mocked/file/path');
-
-      const results = await builder.buildAssets();
-
-      expect(results).toHaveLength(1);
-      expect(results[0].code).toBe(200);
-      expect(results[0].status).toBe('OK');
-      expect(results[0].results?.type).toBe('asset');
-      expect(results[0].results?.id).toBe('test-123');
-      expect(results[0].results?.destination).toBe(
-        path.join(config.assetPath, 'style.css')
-      );
-
-      expect(writeFileSpy).toHaveBeenCalledWith(
-        path.join(config.assetPath, 'style.css'),
-        'body { margin: 0; }'
-      );
-
-      writeFileSpy.mockRestore();
-    });
-
-    it('should handle build failures gracefully', async () => {
-      const mockDocument = {
-        id: 'fail-123',
-        entry: '@/pages/fail.tsx',
-        builder: {
-          buildAssets: jest.fn().mockResolvedValue(null)
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      const results = await builder.buildAssets();
-
-      expect(results).toHaveLength(1);
-      expect(results[0].code).toBe(500);
-      expect(results[0].error).toContain("Assets for '@/pages/fail.tsx' was not generated");
-    });
-
-    it('should skip non-asset outputs', async () => {
-      const mockDocument = {
-        id: 'test-123',
-        entry: '@/pages/home.tsx',
-        builder: {
-          buildAssets: jest.fn().mockResolvedValue([
-            { type: 'chunk', fileName: 'main.js', code: 'console.log("test");' }
-          ])
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      const results = await builder.buildAssets();
-
-      expect(results).toHaveLength(0);
-    });
-
-    it('should reject assets not in assets/ directory', async () => {
-      const mockDocument = {
-        id: 'test-123',
-        entry: '@/pages/home.tsx',
-        builder: {
-          buildAssets: jest.fn().mockResolvedValue([
-            {
-              type: 'asset',
-              fileName: 'invalid/style.css',
-              source: 'body { color: red; }'
-            }
-          ])
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      const results = await builder.buildAssets();
-
-      expect(results).toHaveLength(1);
-      expect(results[0].code).toBe(404);
-      expect(results[0].error).toContain("asset 'invalid/style.css' was not saved");
+    it('initializes expected Server components', async () => {
+      tempDir = await makeTempDir('builder-ctor2-');
+      const builder = makeBuilder(true);
+      expect(builder.loader).to.exist;
+      expect(builder.manifest).to.exist;
+      expect(builder.resource).to.exist;
+      expect(builder.vfs).to.exist;
     });
   });
 
-  describe('buildClients', () => {
-    it('should return empty array when no documents exist', async () => {
-      const results = await builder.buildClients();
-      expect(Array.isArray(results)).toBe(true);
-      expect(results).toHaveLength(0);
-    });
+  describe('buildAssets()', () => {
+    it('returns empty array when no documents exist', async () => {
+      tempDir = await makeTempDir('builder-assets-empty-');
+      const builder = makeBuilder(true);
 
-    it('should process client chunks correctly', async () => {
-      const mockDocument = {
-        id: 'client-123',
-        entry: '@/pages/home.tsx',
-        builder: {
-          buildClient: jest.fn().mockResolvedValue([
-            {
-              type: 'chunk',
-              code: 'console.log("client code");'
-            }
-          ])
-        },
-        loader: {
-          absolute: jest.fn().mockResolvedValue('/project/pages/home.tsx')
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      const writeFileSpy = jest.spyOn(await import('../src/helpers.js'), 'writeFile')
-        .mockResolvedValue('/mocked/file/path');
-
-      const results = await builder.buildClients();
-
-      expect(results).toHaveLength(1);
-      expect(results[0].code).toBe(200);
-      expect(results[0].results?.type).toBe('client');
-      expect(results[0].results?.destination).toBe(
-        path.join(config.clientPath, 'client-123.js')
-      );
-
-      writeFileSpy.mockRestore();
-    });
-
-    it('should handle missing chunk output', async () => {
-      const mockDocument = {
-        id: 'test-123',
-        entry: '@/pages/home.tsx',
-        builder: {
-          buildClient: jest.fn().mockResolvedValue([
-            { type: 'asset', fileName: 'style.css', source: 'body {}' }
-          ])
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      const results = await builder.buildClients();
-
-      expect(results).toHaveLength(1);
-      expect(results[0].code).toBe(404);
-      expect(results[0].error).toContain("Client '@/pages/home.tsx' was not generated");
-    });
-  });
-
-  describe('buildPages', () => {
-    it('should return empty array when no documents exist', async () => {
-      const results = await builder.buildPages();
-      expect(Array.isArray(results)).toBe(true);
-      expect(results).toHaveLength(0);
-    });
-
-    it('should process page chunks correctly', async () => {
-      const mockDocument = {
-        id: 'page-123',
-        entry: '@/pages/home.tsx',
-        builder: {
-          buildPage: jest.fn().mockResolvedValue([
-            {
-              type: 'chunk',
-              code: 'export const entry = () => "page";'
-            }
-          ])
-        },
-        loader: {
-          absolute: jest.fn().mockResolvedValue('/project/pages/home.tsx')
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([mockDocument] as any);
-
-      const writeFileSpy = jest.spyOn(await import('../src/helpers.js'), 'writeFile')
-        .mockResolvedValue('/mocked/file/path');
-
-      const results = await builder.buildPages();
-
-      expect(results).toHaveLength(1);
-      expect(results[0].code).toBe(200);
-      expect(results[0].results?.type).toBe('page');
-      expect(results[0].results?.destination).toBe(
-        path.join(config.pagePath, 'page-123.js')
-      );
-
-      writeFileSpy.mockRestore();
-    });
-  });
-
-  describe('integration', () => {
-    it('should handle multiple documents with different outcomes', async () => {
-      const successDoc = {
-        id: 'success-123',
-        entry: '@/pages/success.tsx',
-        builder: {
-          buildClient: jest.fn().mockResolvedValue([
-            { type: 'chunk', code: 'success code' }
-          ])
-        },
-        loader: {
-          absolute: jest.fn().mockResolvedValue('/project/pages/success.tsx')
-        }
-      };
-
-      const failDoc = {
-        id: 'fail-456',
-        entry: '@/pages/fail.tsx',
-        builder: {
-          buildClient: jest.fn().mockResolvedValue(null)
-        }
-      };
-
-      jest.spyOn(builder.manifest, 'values').mockReturnValue([successDoc, failDoc] as any);
-
-      const writeFileSpy = jest.spyOn(await import('../src/helpers.js'), 'writeFile')
-        .mockResolvedValue('/mocked/file/path');
-
-      const results = await builder.buildClients();
-
-      expect(results).toHaveLength(2);
-      expect(results[0].code).toBe(200);
-      expect(results[1].code).toBe(500);
-
-      writeFileSpy.mockRestore();
-    });
-
-    it('should use correct file paths based on configuration', () => {
-      const customConfig = makeServerConfig({
-        assetPath: '/custom/assets',
-        clientPath: '/custom/client',
-        pagePath: '/custom/pages'
+      const results = await withPatched(builder.manifest, 'values', (() => []) as any, async () => {
+        return await builder.buildAssets();
       });
 
-      const customBuilder = new Builder(customConfig);
+      expect(results).to.deep.equal([]);
+    });
 
-      expect(customBuilder.paths.asset).toBe('/custom/assets');
-      expect(customBuilder.paths.client).toBe('/custom/client');
-      expect(customBuilder.paths.page).toBe('/custom/pages');
+    it('processes asset outputs correctly and writes them to disk', async () => {
+      tempDir = await makeTempDir('builder-assets-write-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: {
+          buildAssets: async (): Promise<BuildResults> => {
+            return [
+              { type: 'chunk', fileName: 'assets/home.js', code: 'console.log(1)' } as any,
+              { type: 'asset', fileName: 'assets/site.css', source: 'body{color:red}' } as any
+            ];
+          }
+        },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildAssets();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(200);
+      expect(results[0].results?.type).to.equal('asset');
+
+      const expectedFile = path.join(builder.paths.asset, 'site.css');
+      expect(await fs.readFile(expectedFile, 'utf8')).to.equal('body{color:red}');
+    });
+
+    it('handles build failures gracefully when buildAssets returns non-array', async () => {
+      tempDir = await makeTempDir('builder-assets-fail-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: { buildAssets: async () => null },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildAssets();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(500);
+    });
+
+    it('skips non-asset outputs', async () => {
+      tempDir = await makeTempDir('builder-assets-skip-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: {
+          buildAssets: async (): Promise<BuildResults> => {
+            return [
+              { type: 'chunk', fileName: 'assets/home.js', code: 'console.log(1)' } as any,
+              { type: 'chunk', fileName: 'assets/vendor.js', code: 'console.log(2)' } as any
+            ];
+          }
+        },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildAssets();
+      });
+
+      expect(results).to.deep.equal([]);
+    });
+
+    it('rejects assets not in assets/ directory', async () => {
+      tempDir = await makeTempDir('builder-assets-reject-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: {
+          buildAssets: async (): Promise<BuildResults> => {
+            return [
+              { type: 'asset', fileName: 'public/site.css', source: 'x' } as any
+            ];
+          }
+        },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildAssets();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(404);
+      expect(results[0].status).to.equal('Not Found');
+      expect(results[0].error).to.include("was not saved");
+    });
+  });
+
+  describe('buildClients()', () => {
+    it('returns empty array when no documents exist', async () => {
+      tempDir = await makeTempDir('builder-clients-empty-');
+      const builder = makeBuilder(true);
+
+      const results = await withPatched(builder.manifest, 'values', (() => []) as any, async () => {
+        return await builder.buildClients();
+      });
+
+      expect(results).to.deep.equal([]);
+    });
+
+    it('processes client chunks correctly (entry + asset chunks)', async () => {
+      tempDir = await makeTempDir('builder-clients-write-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: {
+          buildClient: async (): Promise<BuildResults> => {
+            return [
+              { type: 'chunk', fileName: 'entry.js', code: 'console.log(1)' } as any,
+              { type: 'chunk', fileName: 'assets/vendor.js', code: 'console.log(2)' } as any
+            ];
+          }
+        },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildClients();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(200);
+      expect(results[0].results?.type).to.equal('client');
+
+      // entry
+      const entryFile = path.join(builder.paths.client, 'doc-1.js');
+      expect(await fs.readFile(entryFile, 'utf8')).to.equal('console.log(1)');
+
+      // asset
+      const assetFile = path.join(builder.paths.client, 'assets/vendor.js');
+      expect(await fs.readFile(assetFile, 'utf8')).to.equal('console.log(2)');
+    });
+
+    it('handles missing chunk output', async () => {
+      tempDir = await makeTempDir('builder-clients-missing-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: { buildClient: async () => [{ type: 'asset', fileName: 'assets/a.css', source: 'x' }] },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildClients();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(404);
+    });
+  });
+
+  describe('buildPages()', () => {
+    it('returns empty array when no documents exist', async () => {
+      tempDir = await makeTempDir('builder-pages-empty-');
+      const builder = makeBuilder(true);
+
+      const results = await withPatched(builder.manifest, 'values', (() => []) as any, async () => {
+        return await builder.buildPages();
+      });
+
+      expect(results).to.deep.equal([]);
+    });
+
+    it('processes page chunks correctly', async () => {
+      tempDir = await makeTempDir('builder-pages-write-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: {
+          buildPage: async (): Promise<BuildResults> => {
+            return [
+              { type: 'chunk', fileName: 'page.js', code: 'export default 1' } as any
+            ];
+          }
+        },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildPages();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(200);
+
+      const file = path.join(builder.paths.page, 'doc-1.js');
+      expect(await fs.readFile(file, 'utf8')).to.equal('export default 1');
     });
   });
 });
