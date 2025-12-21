@@ -9,6 +9,7 @@ import type {
 //common
 import type Server from './Server.js';
 import { css, file, hmr, vfs } from './plugins.js';
+import { include } from '@stackpress/lib';
 
 export type ResourceConfig = {
   //base path (used in vite)
@@ -107,11 +108,11 @@ export default class ServerResource {
   }
 
   /**
-     * Returns the default vite plugins
-     */
+   * Returns the default vite plugins
+   */
   public async plugins() {
     //add react plugin
-    const react = await import('@vitejs/plugin-react');
+    const react = await include('@vitejs/plugin-react');
     //add css?
     const injectCSS = this._server.paths.css 
       ? css(this._server.paths.css) 

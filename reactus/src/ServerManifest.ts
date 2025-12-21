@@ -145,18 +145,18 @@ export default class ServerManifest {
       //ie. module
       entry = entry.substring(moduleIndex + 13);
     }
-    if (!entry.startsWith(path.sep) 
-      && !entry.startsWith(`.${path.sep}`) 
-      && !entry.startsWith(`..${path.sep}`)
-    ) {
-      return entry;
-    }
     //if the entry is a url
     //ie. file:///path/to/file
     if (entry.startsWith('file://')) {
       //dont make it a url
       //ie. /path/to/file
       entry = entry.slice(7);
+    }
+    if (!entry.startsWith(path.sep) 
+      && !entry.startsWith(`.${path.sep}`) 
+      && !entry.startsWith(`..${path.sep}`)
+    ) {
+      return entry;
     }
     //if the entry is a project path ie. @/file
     if (entry.startsWith(`@${path.sep}`)) {
