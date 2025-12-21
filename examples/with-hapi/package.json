@@ -1,0 +1,29 @@
+{
+  "type": "module",
+  "name": "reactus-with-hapi",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsx scripts/build.ts",
+    "dev": "tsx scripts/develop.ts",
+    "start": "tsx scripts/start.ts"
+  },
+  "dependencies": {
+    "@hapi/hapi": "21.4.4",
+    "@hapi/inert": "7.1.0",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "reactus": "0.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "25.0.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.2",
+    "ts-node": "10.9.2",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "vite": "7.3.0"
+  }
+}
+  

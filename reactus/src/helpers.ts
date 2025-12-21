@@ -34,7 +34,7 @@ export function id(content: string, length = HASH_LENGTH) {
   }
   //Trim to desired length
   return hash.padStart(length, '0').slice(0, length);
-}
+};
 
 /**
  * Renders JSX element to string
@@ -43,7 +43,7 @@ export function renderJSX(element?: ElementType, props: UnknownNest = {}) {
   return element ? renderToString(
     jsx(StrictMode, { children: jsx(element, { ...props }) })
   ): '';
-}
+};
 
 /**
  * Creates folder if necessary and writes file
@@ -60,4 +60,4 @@ export async function writeFile(
   //now cache the tsx code
   await fs.writeFile(file, contents);
   return file;
-}
+};

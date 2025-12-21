@@ -9,23 +9,23 @@
     "start": "node --no-warnings=ExperimentalWarning --experimental-specifier-resolution=node --loader ts-node/esm scripts/start.ts"
   },
   "dependencies": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "reactus": "0.2.10",
-    "sirv": "3.0.1"
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "reactus": "0.6.5",
+    "sirv": "3.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "4.0.15",
-    "@tailwindcss/vite": "4.0.15",
-    "@types/node": "22.9.3",
-    "@types/react": "19.0.10",
-    "@types/react-dom": "19.0.4",
-    "@vitejs/plugin-react": "4.3.4",
-    "autoprefixer": "10.4.21",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "tailwindcss": "4.0.15", 
-    "typescript": "5.7.2",
-    "vite": "6.1.1"
+    "@tailwindcss/postcss": "4.1.18",
+    "@tailwindcss/vite": "4.1.18",
+    "@types/node": "25.0.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.2",
+    "autoprefixer": "10.4.23",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "tailwindcss": "4.1.18", 
+    "typescript": "5.9.3",
+    "vite": "7.3.0"
   }
 }

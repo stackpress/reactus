@@ -141,3 +141,6 @@ esm
 examples/*/public/assets
 examples/*/public/client
 .build
+
+# AI
+.clinerules
