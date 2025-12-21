@@ -10,6 +10,7 @@
     "fastify": "yarn --cwd examples/with-fastify",
     "hapi": "yarn --cwd examples/with-hapi",
     "http": "yarn --cwd examples/with-http",
+    "koa": "yarn --cwd examples/with-koa",
     "nest": "yarn --cwd examples/with-nest",
     "restify": "yarn --cwd examples/with-restify",
     "tailwind": "yarn --cwd examples/with-tailwind",
