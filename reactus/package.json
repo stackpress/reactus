@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "reactus",
-  "version": "0.6.5",
+  "version": "0.6.6",
   "license": "Apache-2.0",
   "description": "reactive React template engine",
   "author": "Chris <chris@incept.asia>",
@@ -207,7 +207,7 @@
     "test:env": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning --experimental-loader @istanbuljs/esm-loader-hook\""
   },
   "dependencies": {
-    "@stackpress/lib": "0.6.5"
+    "@stackpress/lib": "0.6.6"
   },
   "devDependencies": {
     "@istanbuljs/esm-loader-hook": "0.3.0",

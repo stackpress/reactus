@@ -10,7 +10,7 @@
   "dependencies": {
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "reactus": "0.6.5",
+    "reactus": "0.6.6",
     "sirv": "3.0.2"
   },
   "devDependencies": {
