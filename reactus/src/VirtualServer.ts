@@ -1,6 +1,6 @@
 //stackpress
 import type { CallableMap } from '@stackpress/lib/types';
-import map from '@stackpress/lib/map';
+import { map } from '@stackpress/lib/Map';
 //common
 import { VFS_PROTOCOL } from './constants.js';
 
