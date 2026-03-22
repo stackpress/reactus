@@ -13,7 +13,7 @@
     "@hapi/inert": "7.1.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "reactus": "0.7.1"
+    "reactus": "0.7.2"
   },
   "devDependencies": {
     "@types/node": "25.0.3",
