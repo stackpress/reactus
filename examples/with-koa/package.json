@@ -14,7 +14,7 @@
     "koa-static": "5.0.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "reactus": "0.8.1"
+    "reactus": "0.8.2"
   },
   "devDependencies": {
     "@types/koa": "3.0.1",
