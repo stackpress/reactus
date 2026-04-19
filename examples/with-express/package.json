@@ -3,7 +3,6 @@
   "name": "reactus-with-express",
   "version": "1.0.0",
   "private": true,
-  
   "scripts": {
     "dev": "tsx scripts/develop.ts",
     "build": "tsx scripts/build.ts",
@@ -11,15 +10,15 @@
   },
   "dependencies": {
     "express": "5.2.1",
-    "react": "19.2.3",
-    "react-dom": "19.2.3",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
     "reactus": "0.8.1",
     "sirv": "3.0.2"
   },
   "devDependencies": {
     "@types/express": "5.0.6",
-    "@types/node": "25.0.3",
-    "@types/react": "19.2.7",
+    "@types/node": "25.3.5",
+    "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "5.1.2",
     "ts-node": "10.9.2",
