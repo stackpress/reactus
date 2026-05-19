@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1"
+      name="viewport"
+    />
+    <title>Reactus | Reactus</title>
+    <meta
+      content="Reactive React template engine for server-rendered mini-apps with Vite-powered development, client hydration, and full control over your Node server."
+      name="description"
+    />
+    <link href="./assets/favicon.ico" rel="icon" sizes="any" />
+    <link href="./assets/icon.png" rel="apple-touch-icon" />
+    <link href="./styles/site.css" rel="stylesheet" />
+    <script defer src="./scripts/site.js"></script>
+    <link href="https://www.stackpress.io/reactus" rel="canonical" />
+    <meta content="Reactus" property="og:title" />
+    <meta
+      content="Reactive React template engine for server-rendered mini-apps with Vite-powered development, client hydration, and full control over your Node server."
+      property="og:description"
+    />
+    <meta content="website" property="og:type" />
+    <meta content="https://www.stackpress.io/reactus" property="og:url" />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" property="og:image" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="Reactus" name="twitter:title" />
+    <meta
+      content="Reactive React template engine for server-rendered mini-apps with Vite-powered development, client hydration, and full control over your Node server."
+      name="twitter:description"
+    />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" name="twitter:image" />
+    <meta content="index,follow" name="robots" />
+  </head>
+  <body class="route-home">
+    <div class="site-shell">
+      <div aria-hidden="true" class="site-aura site-aura-one"></div>
+      <div aria-hidden="true" class="site-aura site-aura-two"></div>
+      <header class="site-header">
+        <a
+          class="brand"
+          href="./"
+          title="Go to the Reactus homepage"
+        >
+          <img
+            alt="Reactus logo"
+            class="brand-logo"
+            height="48"
+            src="./assets/logo.png"
+            width="48"
+          />
+          <span class="brand-copy">
+            <span class="brand-kicker">REACTOR DOCS</span>
+            <span class="brand-name">Reactus</span>
+          </span>
+        </a>
+        <nav aria-label="Primary" class="header-nav"><a class="header-link" href="./" title="Go to the Reactus homepage">
+  Home
+</a>
+<a class="header-link" href="./getting-started/" title="Open the getting started guide">
+  Getting started
+</a>
+<a class="header-link" href="./guides/framework-integration/" title="Browse the integration guides">
+  Guides
+</a>
+<a class="header-link" href="./api/" title="Browse the API reference">
+  API
+</a>
+<a class="header-link" href="https://github.com/stackpress/reactus" title="Open the Reactus GitHub repository">
+  GitHub
+</a></nav>
+        <button
+          aria-label="Toggle color theme"
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+        >
+          <span aria-hidden="true" class="theme-toggle-ring"></span>
+          <span class="theme-toggle-label">Theme</span>
+        </button>
+      </header>
+      <div class="page-frame">
+        
+        <main class="page-main"><div class="page-home">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="hero-kicker">REACTOR DOCS</p>
+      <h1>Reactus</h1>
+      <p class="hero-tagline">Reactive React template engine for server-rendered "mini-apps".</p>
+      <p class="hero-body">Reactive React template engine for server-rendered mini-apps with Vite-powered development, client hydration, and full control over your Node server.</p>
+      <div class="hero-actions"><a class="button-primary" href="./getting-started/" title="Open the getting started guide">
+  Start with one page
+</a>
+<a class="button-secondary" href="./guides/framework-integration/" title="Open the framework integration guide">
+  See framework integration
+</a></div>
+      <dl class="hero-metrics"><div class="hero-metric"><dt>Published guides</dt><dd>5</dd></div><div class="hero-metric"><dt>API reference pages</dt><dd>14</dd></div><div class="hero-metric"><dt>Supported server styles</dt><dd>6</dd></div></dl>
+    </div>
+    <div class="hero-visual">
+      <div aria-hidden="true" class="reactor">
+        <span class="reactor-core"></span>
+        <span class="reactor-ring reactor-ring-one"></span>
+        <span class="reactor-ring reactor-ring-two"></span>
+        <span class="reactor-ring reactor-ring-three"></span>
+        <span class="reactor-pulse reactor-pulse-one"></span>
+        <span class="reactor-pulse reactor-pulse-two"></span>
+      </div>
+      <div class="hero-code-panel">
+        <div class="hero-code-header">
+          <span class="hero-code-title">Hydratable page</span>
+          <span class="hero-code-file">pages/home.tsx</span>
+        </div>
+        <figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">tsx</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-tsx" data-raw="import { useState } from &#39;react&#39;;
+
+type HomePageProps = {
+  title: string;
+};
+
+export function Head() {
+  return &lt;title&gt;Reactus&lt;/title&gt;;
+}
+
+export default function HomePage({ title }: HomePageProps) {
+  const [count, setCount] = useState(0);
+
+  return (
+    &lt;main&gt;
+      &lt;h1&gt;{title}&lt;/h1&gt;
+      &lt;p&gt;Rendered by Reactus.&lt;/p&gt;
+      &lt;button onClick={() =&gt; setCount(count + 1)}&gt;
+        Count: {count}
+      &lt;/button&gt;
+    &lt;/main&gt;
+  );
+}"><span class="token-keyword">import</span> <span class="token-operator">{</span> useState <span class="token-operator">}</span> <span class="token-keyword">from</span> <span class="token-string">'react'</span>;
+
+<span class="token-keyword">type</span> <span class="token-property">HomePageProps</span> <span class="token-operator">=</span> <span class="token-operator">{</span>
+  title<span class="token-operator">:</span> string;
+<span class="token-operator">}</span>;
+
+<span class="token-keyword">export</span> <span class="token-keyword">function</span> <span class="token-property">Head</span><span class="token-operator">(</span><span class="token-operator">)</span> <span class="token-operator">{</span>
+  <span class="token-keyword">return</span> <span class="token-operator">&lt;</span>title<span class="token-operator">&gt;</span><span class="token-property">Reactus</span><span class="token-operator">&lt;</span><span class="token-operator">/</span>title<span class="token-operator">&gt;</span>;
+<span class="token-operator">}</span>
+
+<span class="token-keyword">export</span> <span class="token-keyword">default</span> <span class="token-keyword">function</span> <span class="token-property">HomePage</span><span class="token-operator">(</span><span class="token-operator">{</span> title <span class="token-operator">}</span><span class="token-operator">:</span> <span class="token-property">HomePageProps</span><span class="token-operator">)</span> <span class="token-operator">{</span>
+  <span class="token-keyword">const</span> <span class="token-operator">[</span>count<span class="token-operator">,</span> setCount<span class="token-operator">]</span> <span class="token-operator">=</span> <span class="token-function">useState</span><span class="token-operator">(</span><span class="token-number">0</span><span class="token-operator">)</span>;
+
+  <span class="token-keyword">return</span> <span class="token-operator">(</span>
+    <span class="token-operator">&lt;</span>main<span class="token-operator">&gt;</span>
+      <span class="token-operator">&lt;</span>h1<span class="token-operator">&gt;</span><span class="token-operator">{</span>title<span class="token-operator">}</span><span class="token-operator">&lt;</span><span class="token-operator">/</span>h1<span class="token-operator">&gt;</span>
+      <span class="token-operator">&lt;</span>p<span class="token-operator">&gt;</span><span class="token-property">Rendered</span> by <span class="token-property">Reactus</span><span class="token-operator">.</span><span class="token-operator">&lt;</span><span class="token-operator">/</span>p<span class="token-operator">&gt;</span>
+      <span class="token-operator">&lt;</span>button onClick<span class="token-operator">=</span><span class="token-operator">{</span><span class="token-operator">(</span><span class="token-operator">)</span> <span class="token-operator">=</span><span class="token-operator">&gt;</span> <span class="token-function">setCount</span><span class="token-operator">(</span>count <span class="token-operator">+</span> <span class="token-number">1</span><span class="token-operator">)</span><span class="token-operator">}</span><span class="token-operator">&gt;</span>
+        <span class="token-property">Count</span><span class="token-operator">:</span> <span class="token-operator">{</span>count<span class="token-operator">}</span>
+      <span class="token-operator">&lt;</span><span class="token-operator">/</span>button<span class="token-operator">&gt;</span>
+    <span class="token-operator">&lt;</span><span class="token-operator">/</span>main<span class="token-operator">&gt;</span>
+  <span class="token-operator">)</span>;
+<span class="token-operator">}</span></code></pre>
+</figure>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel-grid">
+    <article class="panel panel-glow">
+      <p class="panel-kicker">Why teams use it</p>
+      <h2>Render React without surrendering your server.</h2>
+      <ul class="feature-list"><li>server-rendered React without standing up a separate frontend app</li><li>client hydration for interactive pages</li><li>Vite plugins and React fast refresh in development</li><li>low level engine access and total control of the build step</li></ul>
+    </article>
+    <article class="panel">
+      <p class="panel-kicker">What it does not add</p>
+      <h2>Keep the framework surface area under control.</h2>
+      <ul class="feature-list feature-list-muted"><li>a client-side router</li><li>a data layer or state architecture</li><li>an opinionated full-stack framework</li><li>React server components</li></ul>
+    </article>
+  </section>
+
+  <section class="panel-grid panel-grid-frameworks">
+    <article class="panel">
+      <p class="panel-kicker">Framework fit</p>
+      <h2>Drop Reactus into the server you already run.</h2>
+      <div class="pill-list"><span class="pill">ExpressJS</span><span class="pill">Fastify</span><span class="pill">Hapi</span><span class="pill">Koa</span><span class="pill">NestJS</span><span class="pill">Restify</span></div>
+    </article>
+    <article class="panel">
+      <p class="panel-kicker">Recommended path</p>
+      <h2>Move from first render to lower-level API details.</h2>
+      <ol class="path-list"><li><a href="./getting-started/" title="Open the getting started guide">Getting started</a></li><li><a href="./explanation/mental-model/" title="Open the mental model guide">Mental model</a></li><li><a href="./guides/framework-integration/" title="Open the framework integration guide">Framework integration</a></li><li><a href="./api/" title="Open the API reference">API reference</a></li></ol>
+    </article>
+  </section>
+
+  <section class="documentation-map">
+    <div class="section-heading">
+      <p class="panel-kicker">Documentation map</p>
+      <h2>Pick the next page based on the task in front of you.</h2>
+    </div>
+    <div class="doc-card-grid">
+      <article class="doc-card">
+  <p class="doc-card-label">Start</p>
+  <h3><a href="./getting-started/" title="Open Getting started">Getting started</a></h3>
+  <p>build one page, render it on the server, and verify hydration works.</p>
+</article>
+<article class="doc-card">
+  <p class="doc-card-label">Concept</p>
+  <h3><a href="./explanation/mental-model/" title="Open Mental model">Mental model</a></h3>
+  <p>understand how documents, manifests, builds, and runtime rendering fit together.</p>
+</article>
+<article class="doc-card">
+  <p class="doc-card-label">Guide</p>
+  <h3><a href="./guides/development-server/" title="Open Development server guide">Development server guide</a></h3>
+  <p>use `dev()` with `node:http` or another server.</p>
+</article>
+<article class="doc-card">
+  <p class="doc-card-label">Guide</p>
+  <h3><a href="./guides/build-and-serve/" title="Open Build and serve guide">Build and serve guide</a></h3>
+  <p>prebuild assets and page modules for production.</p>
+</article>
+<article class="doc-card">
+  <p class="doc-card-label">Guide</p>
+  <h3><a href="./guides/framework-integration/" title="Open Framework integration guide">Framework integration guide</a></h3>
+  <p>wire Reactus into Express, Fastify, or similar servers.</p>
+</article>
+<article class="doc-card">
+  <p class="doc-card-label">Guide</p>
+  <h3><a href="./guides/css-frameworks/" title="Open CSS frameworks guide">CSS frameworks guide</a></h3>
+  <p>add global CSS, Tailwind, or UnoCSS.</p>
+</article>
+<article class="doc-card">
+  <p class="doc-card-label">Reference</p>
+  <h3><a href="./api/" title="Open API reference">API reference</a></h3>
+  <p>look up config types, wrapper APIs, and lower-level classes.</p>
+</article>
+    </div>
+  </section>
+</div>
+</main>
+        
+      </div>
+      <footer class="site-footer">
+        <p class="footer-copy">
+          <span>Reactus</span>
+          <span>Reactive React template engine for server-rendered "mini-apps".</span>
+        </p>
+        <p class="footer-meta">
+          <span>Published from `specs/`</span>
+          <span>https://www.stackpress.io/reactus</span>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

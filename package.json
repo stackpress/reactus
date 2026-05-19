@@ -16,7 +16,10 @@
     "tailwind": "yarn --cwd examples/with-tailwind",
     "unocss": "yarn --cwd examples/with-unocss",
     "report": "yarn --cwd reactus report",
-    "test": "yarn --cwd reactus test"
+    "test": "yarn --cwd reactus test",
+    "www:build": "/Users/cblanquera/.nvm/versions/node/v22.14.0/bin/node ./www/build.mjs",
+    "www:serve": "/Users/cblanquera/.nvm/versions/node/v22.14.0/bin/node ./www/serve.mjs",
+    "www:check": "/Users/cblanquera/.nvm/versions/node/v22.14.0/bin/node ./www/check.mjs"
   },
   "devDependencies": {
     "nyc": "17.1.0"

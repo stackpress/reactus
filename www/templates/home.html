@@ -1,0 +1,65 @@
+<div class="page-home">
+  <section class="hero">
+    <div class="hero-copy">
+      <p class="hero-kicker">{{A:site.kicker}}</p>
+      <h1>{{site.name}}</h1>
+      <p class="hero-tagline">{{site.tagline}}</p>
+      <p class="hero-body">{{site.description}}</p>
+      <div class="hero-actions">{{actionsHtml}}</div>
+      <dl class="hero-metrics">{{metricsHtml}}</dl>
+    </div>
+    <div class="hero-visual">
+      <div aria-hidden="true" class="reactor">
+        <span class="reactor-core"></span>
+        <span class="reactor-ring reactor-ring-one"></span>
+        <span class="reactor-ring reactor-ring-two"></span>
+        <span class="reactor-ring reactor-ring-three"></span>
+        <span class="reactor-pulse reactor-pulse-one"></span>
+        <span class="reactor-pulse reactor-pulse-two"></span>
+      </div>
+      <div class="hero-code-panel">
+        <div class="hero-code-header">
+          <span class="hero-code-title">{{example.label}}</span>
+          <span class="hero-code-file">{{example.file}}</span>
+        </div>
+        {{example.code}}
+      </div>
+    </div>
+  </section>
+
+  <section class="panel-grid">
+    <article class="panel panel-glow">
+      <p class="panel-kicker">Why teams use it</p>
+      <h2>Render React without surrendering your server.</h2>
+      <ul class="feature-list">{{strengthsHtml}}</ul>
+    </article>
+    <article class="panel">
+      <p class="panel-kicker">What it does not add</p>
+      <h2>Keep the framework surface area under control.</h2>
+      <ul class="feature-list feature-list-muted">{{nonGoalsHtml}}</ul>
+    </article>
+  </section>
+
+  <section class="panel-grid panel-grid-frameworks">
+    <article class="panel">
+      <p class="panel-kicker">Framework fit</p>
+      <h2>Drop Reactus into the server you already run.</h2>
+      <div class="pill-list">{{frameworksHtml}}</div>
+    </article>
+    <article class="panel">
+      <p class="panel-kicker">Recommended path</p>
+      <h2>Move from first render to lower-level API details.</h2>
+      <ol class="path-list">{{journeyHtml}}</ol>
+    </article>
+  </section>
+
+  <section class="documentation-map">
+    <div class="section-heading">
+      <p class="panel-kicker">Documentation map</p>
+      <h2>Pick the next page based on the task in front of you.</h2>
+    </div>
+    <div class="doc-card-grid">
+      {{highlightsHtml}}
+    </div>
+  </section>
+</div>

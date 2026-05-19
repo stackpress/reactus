@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1"
+      name="viewport"
+    />
+    <title>API Reference | Reactus</title>
+    <meta
+      content="Use this section when you already know the task and need exact API details."
+      name="description"
+    />
+    <link href="../assets/favicon.ico" rel="icon" sizes="any" />
+    <link href="../assets/icon.png" rel="apple-touch-icon" />
+    <link href="../styles/site.css" rel="stylesheet" />
+    <script defer src="../scripts/site.js"></script>
+    <link href="https://www.stackpress.io/reactus/api/" rel="canonical" />
+    <meta content="API Reference" property="og:title" />
+    <meta
+      content="Use this section when you already know the task and need exact API details."
+      property="og:description"
+    />
+    <meta content="website" property="og:type" />
+    <meta content="https://www.stackpress.io/reactus/api/" property="og:url" />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" property="og:image" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="API Reference" name="twitter:title" />
+    <meta
+      content="Use this section when you already know the task and need exact API details."
+      name="twitter:description"
+    />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" name="twitter:image" />
+    <meta content="index,follow" name="robots" />
+  </head>
+  <body class="route-doc">
+    <div class="site-shell">
+      <div aria-hidden="true" class="site-aura site-aura-one"></div>
+      <div aria-hidden="true" class="site-aura site-aura-two"></div>
+      <header class="site-header">
+        <a
+          class="brand"
+          href="../"
+          title="Go to the Reactus homepage"
+        >
+          <img
+            alt="Reactus logo"
+            class="brand-logo"
+            height="48"
+            src="../assets/logo.png"
+            width="48"
+          />
+          <span class="brand-copy">
+            <span class="brand-kicker">REACTOR DOCS</span>
+            <span class="brand-name">Reactus</span>
+          </span>
+        </a>
+        <nav aria-label="Primary" class="header-nav"><a class="header-link" href="../" title="Go to the Reactus homepage">
+  Home
+</a>
+<a class="header-link" href="../getting-started/" title="Open the getting started guide">
+  Getting started
+</a>
+<a class="header-link" href="../guides/framework-integration/" title="Browse the integration guides">
+  Guides
+</a>
+<a class="header-link" href="../api/" title="Browse the API reference">
+  API
+</a>
+<a class="header-link" href="https://github.com/stackpress/reactus" title="Open the Reactus GitHub repository">
+  GitHub
+</a></nav>
+        <button
+          aria-label="Toggle color theme"
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+        >
+          <span aria-hidden="true" class="theme-toggle-ring"></span>
+          <span class="theme-toggle-label">Theme</span>
+        </button>
+      </header>
+      <div class="page-frame">
+        <aside class="page-sidebar">
+          <div class="sidebar-card">
+            <p class="sidebar-label">Documentation</p>
+            <section class="sidebar-group">
+  <p class="sidebar-group-title">Start here</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../" title="Go to the Reactus homepage">
+    Overview
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../getting-started/" title="Open Getting Started">
+    Getting Started
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Concepts</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../explanation/mental-model/" title="Open Mental Model">
+    Mental Model
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Guides</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../guides/development-server/" title="Open Development Server">
+    Development Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../guides/build-and-serve/" title="Open Build And Serve">
+    Build And Serve
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../guides/framework-integration/" title="Open Framework Integration">
+    Framework Integration
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../guides/css-frameworks/" title="Open CSS Frameworks">
+    CSS Frameworks
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../guides/spa-style-routing/" title="Open SPA-Style Routing">
+    SPA-Style Routing
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">API reference</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link is-current" href="../api/" title="Open the API reference overview">
+    API Reference
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/build/" title="Open build()">
+    build()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/Builder/" title="Open Builder">
+    Builder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/configuration/" title="Open Configuration Types">
+    Configuration Types
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/dev/" title="Open dev()">
+    dev()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/Document/" title="Open Document">
+    Document
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/DocumentBuilder/" title="Open DocumentBuilder">
+    DocumentBuilder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/DocumentLoader/" title="Open DocumentLoader">
+    DocumentLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/DocumentRender/" title="Open DocumentRender">
+    DocumentRender
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/engine/" title="Open engine() Default Export">
+    engine() Default Export
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/serve/" title="Open serve()">
+    serve()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/Server/" title="Open Server">
+    Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/ServerLoader/" title="Open ServerLoader">
+    ServerLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/ServerManifest/" title="Open ServerManifest">
+    ServerManifest
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/ServerResource/" title="Open ServerResource">
+    ServerResource
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../api/VirtualServer/" title="Open VirtualServer">
+    VirtualServer
+  </a>
+</li></ul>
+</section>
+
+          </div>
+        </aside>
+        <main class="page-main"><article class="doc-page">
+  <header class="doc-hero">
+    <p class="doc-eyebrow">API Reference</p>
+    <h1>API Reference</h1>
+    <p class="doc-summary">Use this section when you already know the task and need exact API details.</p>
+    <div class="doc-meta">
+      <a
+        class="doc-meta-link"
+        href="../guides/spa-style-routing/"
+        title="Open SPA-Style Routing"
+      >
+        Previous: SPA-Style Routing
+      </a>
+      <a
+        class="doc-meta-link"
+        href="../api/build/"
+        title="Open build()"
+      >
+        Next: build()
+      </a>
+    </div>
+  </header>
+  <div class="doc-content"><p>Use this section when you already know the task and need exact API details.</p>
+<h2 id="top-level-wrappers">Top-level wrappers</h2>
+<ul><li><a href="./dev/" title="Open dev()">dev()</a></li><li><a href="./build/" title="Open build()">build()</a></li><li><a href="./serve/" title="Open serve()">serve()</a></li><li><a href="./engine/" title="Open engine() default export">engine() default export</a></li></ul>
+<h2 id="configuration">Configuration</h2>
+<ul><li><a href="./configuration/" title="Open Configuration types">Configuration types</a></li></ul>
+<h2 id="core-classes">Core classes</h2>
+<ul><li><a href="./Server/" title="Open Server">Server</a></li><li><a href="./Builder/" title="Open Builder">Builder</a></li><li><a href="./Document/" title="Open Document">Document</a></li></ul>
+<h2 id="document-helpers">Document helpers</h2>
+<ul><li><a href="./DocumentBuilder/" title="Open DocumentBuilder">DocumentBuilder</a></li><li><a href="./DocumentLoader/" title="Open DocumentLoader">DocumentLoader</a></li><li><a href="./DocumentRender/" title="Open DocumentRender">DocumentRender</a></li></ul>
+<h2 id="runtime-helpers">Runtime helpers</h2>
+<ul><li><a href="./ServerLoader/" title="Open ServerLoader">ServerLoader</a></li><li><a href="./ServerManifest/" title="Open ServerManifest">ServerManifest</a></li><li><a href="./ServerResource/" title="Open ServerResource">ServerResource</a></li><li><a href="./VirtualServer/" title="Open VirtualServer">VirtualServer</a></li></ul>
+<h2 id="package-exports">Package exports</h2>
+<p>The root package exports:</p>
+<ul><li>wrapper functions: <code>dev</code>, <code>build</code>, <code>serve</code></li><li>default export: <code>engine</code></li><li>classes such as <code>Server</code>, <code>Builder</code>, <code>Document</code>, <code>DocumentBuilder</code>, <code>DocumentLoader</code>, and <code>DocumentRender</code></li><li>runtime helpers such as <code>ServerLoader</code>, <code>ServerManifest</code>, <code>ServerResource</code>, and <code>VirtualServer</code></li><li>constants, helpers, and plugin helpers from the root module</li></ul>
+<p>Most application code should start with <code>dev()</code>, <code>build()</code>, or <code>serve()</code>. The lower-level classes are most useful when you need tighter control.</p></div>
+  <nav aria-label="Page navigation" class="doc-pager">
+    <a
+  class="pager-link pager-previous"
+  href="../guides/spa-style-routing/"
+  title="Open SPA-Style Routing"
+>
+  <span class="pager-kicker">PREVIOUS</span>
+  <strong>SPA-Style Routing</strong>
+</a>
+
+<a
+  class="pager-link pager-next"
+  href="../api/build/"
+  title="Open build()"
+>
+  <span class="pager-kicker">NEXT</span>
+  <strong>build()</strong>
+</a>
+
+  </nav>
+</article>
+</main>
+        <aside class="page-toc">
+          <div class="toc-card">
+            <p class="toc-label">On this page</p>
+            <ol class="toc-list"><li class="toc-item toc-level-2">
+  <a href="#top-level-wrappers" title="Jump to Top-level wrappers">
+    Top-level wrappers
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#configuration" title="Jump to Configuration">
+    Configuration
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#core-classes" title="Jump to Core classes">
+    Core classes
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#document-helpers" title="Jump to Document helpers">
+    Document helpers
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#runtime-helpers" title="Jump to Runtime helpers">
+    Runtime helpers
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#package-exports" title="Jump to Package exports">
+    Package exports
+  </a>
+</li></ol>
+
+          </div>
+        </aside>
+      </div>
+      <footer class="site-footer">
+        <p class="footer-copy">
+          <span>Reactus</span>
+          <span>Reactive React template engine for server-rendered "mini-apps".</span>
+        </p>
+        <p class="footer-meta">
+          <span>Published from `specs/`</span>
+          <span>https://www.stackpress.io/reactus</span>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

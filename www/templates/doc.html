@@ -1,0 +1,31 @@
+<article class="doc-page">
+  <header class="doc-hero">
+    <p class="doc-eyebrow">{{page.sectionLabel}}</p>
+    <h1>{{page.title}}</h1>
+    <p class="doc-summary">{{page.description}}</p>
+    <div class="doc-meta">
+      {{#?:page.previous}}
+      <a
+        class="doc-meta-link"
+        href="{{page.previous.href}}"
+        title="{{page.previous.title}}"
+      >
+        Previous: {{page.previous.label}}
+      </a>
+      {{/?:page.previous}}
+      {{#?:page.next}}
+      <a
+        class="doc-meta-link"
+        href="{{page.next.href}}"
+        title="{{page.next.title}}"
+      >
+        Next: {{page.next.label}}
+      </a>
+      {{/?:page.next}}
+    </div>
+  </header>
+  <div class="doc-content">{{page.content}}</div>
+  <nav aria-label="Page navigation" class="doc-pager">
+    {{pager}}
+  </nav>
+</article>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1"
+      name="viewport"
+    />
+    <title>ServerManifest | Reactus</title>
+    <meta
+      content="ServerManifest tracks the set of documents known to a Server or Builder."
+      name="description"
+    />
+    <link href="../../assets/favicon.ico" rel="icon" sizes="any" />
+    <link href="../../assets/icon.png" rel="apple-touch-icon" />
+    <link href="../../styles/site.css" rel="stylesheet" />
+    <script defer src="../../scripts/site.js"></script>
+    <link href="https://www.stackpress.io/reactus/api/ServerManifest/" rel="canonical" />
+    <meta content="ServerManifest" property="og:title" />
+    <meta
+      content="ServerManifest tracks the set of documents known to a Server or Builder."
+      property="og:description"
+    />
+    <meta content="website" property="og:type" />
+    <meta content="https://www.stackpress.io/reactus/api/ServerManifest/" property="og:url" />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" property="og:image" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="ServerManifest" name="twitter:title" />
+    <meta
+      content="ServerManifest tracks the set of documents known to a Server or Builder."
+      name="twitter:description"
+    />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" name="twitter:image" />
+    <meta content="index,follow" name="robots" />
+  </head>
+  <body class="route-doc">
+    <div class="site-shell">
+      <div aria-hidden="true" class="site-aura site-aura-one"></div>
+      <div aria-hidden="true" class="site-aura site-aura-two"></div>
+      <header class="site-header">
+        <a
+          class="brand"
+          href="../../"
+          title="Go to the Reactus homepage"
+        >
+          <img
+            alt="Reactus logo"
+            class="brand-logo"
+            height="48"
+            src="../../assets/logo.png"
+            width="48"
+          />
+          <span class="brand-copy">
+            <span class="brand-kicker">REACTOR DOCS</span>
+            <span class="brand-name">Reactus</span>
+          </span>
+        </a>
+        <nav aria-label="Primary" class="header-nav"><a class="header-link" href="../../" title="Go to the Reactus homepage">
+  Home
+</a>
+<a class="header-link" href="../../getting-started/" title="Open the getting started guide">
+  Getting started
+</a>
+<a class="header-link" href="../../guides/framework-integration/" title="Browse the integration guides">
+  Guides
+</a>
+<a class="header-link" href="../../api/" title="Browse the API reference">
+  API
+</a>
+<a class="header-link" href="https://github.com/stackpress/reactus" title="Open the Reactus GitHub repository">
+  GitHub
+</a></nav>
+        <button
+          aria-label="Toggle color theme"
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+        >
+          <span aria-hidden="true" class="theme-toggle-ring"></span>
+          <span class="theme-toggle-label">Theme</span>
+        </button>
+      </header>
+      <div class="page-frame">
+        <aside class="page-sidebar">
+          <div class="sidebar-card">
+            <p class="sidebar-label">Documentation</p>
+            <section class="sidebar-group">
+  <p class="sidebar-group-title">Start here</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../" title="Go to the Reactus homepage">
+    Overview
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../getting-started/" title="Open Getting Started">
+    Getting Started
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Concepts</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../explanation/mental-model/" title="Open Mental Model">
+    Mental Model
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Guides</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../guides/development-server/" title="Open Development Server">
+    Development Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/build-and-serve/" title="Open Build And Serve">
+    Build And Serve
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/framework-integration/" title="Open Framework Integration">
+    Framework Integration
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/css-frameworks/" title="Open CSS Frameworks">
+    CSS Frameworks
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/spa-style-routing/" title="Open SPA-Style Routing">
+    SPA-Style Routing
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">API reference</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../api/" title="Open the API reference overview">
+    API Reference
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/build/" title="Open build()">
+    build()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Builder/" title="Open Builder">
+    Builder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/configuration/" title="Open Configuration Types">
+    Configuration Types
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/dev/" title="Open dev()">
+    dev()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Document/" title="Open Document">
+    Document
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentBuilder/" title="Open DocumentBuilder">
+    DocumentBuilder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentLoader/" title="Open DocumentLoader">
+    DocumentLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentRender/" title="Open DocumentRender">
+    DocumentRender
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/engine/" title="Open engine() Default Export">
+    engine() Default Export
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/serve/" title="Open serve()">
+    serve()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Server/" title="Open Server">
+    Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerLoader/" title="Open ServerLoader">
+    ServerLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link is-current" href="../../api/ServerManifest/" title="Open ServerManifest">
+    ServerManifest
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerResource/" title="Open ServerResource">
+    ServerResource
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/VirtualServer/" title="Open VirtualServer">
+    VirtualServer
+  </a>
+</li></ul>
+</section>
+
+          </div>
+        </aside>
+        <main class="page-main"><article class="doc-page">
+  <header class="doc-hero">
+    <p class="doc-eyebrow">API Reference</p>
+    <h1>ServerManifest</h1>
+    <p class="doc-summary">ServerManifest tracks the set of documents known to a Server or Builder.</p>
+    <div class="doc-meta">
+      <a
+        class="doc-meta-link"
+        href="../../api/ServerLoader/"
+        title="Open ServerLoader"
+      >
+        Previous: ServerLoader
+      </a>
+      <a
+        class="doc-meta-link"
+        href="../../api/ServerResource/"
+        title="Open ServerResource"
+      >
+        Next: ServerResource
+      </a>
+    </div>
+  </header>
+  <div class="doc-content"><p><code>ServerManifest</code> tracks the set of documents known to a <code>Server</code> or <code>Builder</code>.</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="const manifest = engine.server.manifest;"><span class="token-keyword">const</span> manifest <span class="token-operator">=</span> engine<span class="token-operator">.</span>server<span class="token-operator">.</span>manifest;</code></pre>
+</figure>
+<h2 id="property">Property</h2>
+<table>
+  <thead>
+    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody><tr><td><code>size</code></td><td><code>number</code></td><td>Number of tracked documents.</td></tr></tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="set-entry"><code>set(entry)</code></h3>
+<p>Add an entry to the manifest and return its <code>Document</code>.</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="const document = await manifest.set(&#39;@/pages/home&#39;);"><span class="token-keyword">const</span> document <span class="token-operator">=</span> <span class="token-keyword">await</span> manifest<span class="token-operator">.</span><span class="token-function">set</span><span class="token-operator">(</span><span class="token-string">'@/pages/home'</span><span class="token-operator">)</span>;</code></pre>
+</figure>
+<h3 id="get-entry"><code>get(entry)</code></h3>
+<p>Return the matching <code>Document</code> or <code>null</code>.</p>
+<h3 id="has-entry"><code>has(entry)</code></h3>
+<p>Return <code>true</code> when the manifest already contains the entry.</p>
+<h3 id="find-id"><code>find(id)</code></h3>
+<p>Return a <code>Document</code> by generated document id.</p>
+<h3 id="entries"><code>entries()</code></h3>
+<p>Return an array created from the tracked documents. This helper is intended for iteration and mirrors the manifest order.</p>
+<h3 id="values"><code>values()</code></h3>
+<p>Return the tracked documents.</p>
+<h3 id="map-callback-and-foreach-callback"><code>map(callback)</code> and <code>forEach(callback)</code></h3>
+<p>Iterate across the tracked documents.</p>
+<h3 id="tojson"><code>toJSON()</code></h3>
+<p>Return a hash of <code>document.id -&gt; document.entry</code>.</p>
+<h3 id="load-hash"><code>load(hash)</code></h3>
+<p>Load entries from an object hash.</p>
+<h3 id="open-file"><code>open(file)</code></h3>
+<p>Read a manifest JSON file from disk and load it.</p>
+<h3 id="save-file"><code>save(file)</code></h3>
+<p>Write the current manifest hash to disk.</p>
+<h2 id="related">Related</h2>
+<ul><li><a href="../Document/" title="Open Document">Document</a></li><li><a href="../build/" title="Open build()">build()</a></li></ul></div>
+  <nav aria-label="Page navigation" class="doc-pager">
+    <a
+  class="pager-link pager-previous"
+  href="../../api/ServerLoader/"
+  title="Open ServerLoader"
+>
+  <span class="pager-kicker">PREVIOUS</span>
+  <strong>ServerLoader</strong>
+</a>
+
+<a
+  class="pager-link pager-next"
+  href="../../api/ServerResource/"
+  title="Open ServerResource"
+>
+  <span class="pager-kicker">NEXT</span>
+  <strong>ServerResource</strong>
+</a>
+
+  </nav>
+</article>
+</main>
+        <aside class="page-toc">
+          <div class="toc-card">
+            <p class="toc-label">On this page</p>
+            <ol class="toc-list"><li class="toc-item toc-level-2">
+  <a href="#property" title="Jump to Property">
+    Property
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#methods" title="Jump to Methods">
+    Methods
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#set-entry" title="Jump to set(entry)">
+    set(entry)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#get-entry" title="Jump to get(entry)">
+    get(entry)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#has-entry" title="Jump to has(entry)">
+    has(entry)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#find-id" title="Jump to find(id)">
+    find(id)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#entries" title="Jump to entries()">
+    entries()
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#values" title="Jump to values()">
+    values()
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#map-callback-and-foreach-callback" title="Jump to map(callback) and forEach(callback)">
+    map(callback) and forEach(callback)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#tojson" title="Jump to toJSON()">
+    toJSON()
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#load-hash" title="Jump to load(hash)">
+    load(hash)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#open-file" title="Jump to open(file)">
+    open(file)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#save-file" title="Jump to save(file)">
+    save(file)
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#related" title="Jump to Related">
+    Related
+  </a>
+</li></ol>
+
+          </div>
+        </aside>
+      </div>
+      <footer class="site-footer">
+        <p class="footer-copy">
+          <span>Reactus</span>
+          <span>Reactive React template engine for server-rendered "mini-apps".</span>
+        </p>
+        <p class="footer-meta">
+          <span>Published from `specs/`</span>
+          <span>https://www.stackpress.io/reactus</span>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

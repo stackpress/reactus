@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1"
+      name="viewport"
+    />
+    <title>Build And Serve | Reactus</title>
+    <meta
+      content="Use this guide when you want to prebuild Reactus files and then render from those build artifacts in production."
+      name="description"
+    />
+    <link href="../../assets/favicon.ico" rel="icon" sizes="any" />
+    <link href="../../assets/icon.png" rel="apple-touch-icon" />
+    <link href="../../styles/site.css" rel="stylesheet" />
+    <script defer src="../../scripts/site.js"></script>
+    <link href="https://www.stackpress.io/reactus/guides/build-and-serve/" rel="canonical" />
+    <meta content="Build And Serve" property="og:title" />
+    <meta
+      content="Use this guide when you want to prebuild Reactus files and then render from those build artifacts in production."
+      property="og:description"
+    />
+    <meta content="website" property="og:type" />
+    <meta content="https://www.stackpress.io/reactus/guides/build-and-serve/" property="og:url" />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" property="og:image" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="Build And Serve" name="twitter:title" />
+    <meta
+      content="Use this guide when you want to prebuild Reactus files and then render from those build artifacts in production."
+      name="twitter:description"
+    />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" name="twitter:image" />
+    <meta content="index,follow" name="robots" />
+  </head>
+  <body class="route-doc">
+    <div class="site-shell">
+      <div aria-hidden="true" class="site-aura site-aura-one"></div>
+      <div aria-hidden="true" class="site-aura site-aura-two"></div>
+      <header class="site-header">
+        <a
+          class="brand"
+          href="../../"
+          title="Go to the Reactus homepage"
+        >
+          <img
+            alt="Reactus logo"
+            class="brand-logo"
+            height="48"
+            src="../../assets/logo.png"
+            width="48"
+          />
+          <span class="brand-copy">
+            <span class="brand-kicker">REACTOR DOCS</span>
+            <span class="brand-name">Reactus</span>
+          </span>
+        </a>
+        <nav aria-label="Primary" class="header-nav"><a class="header-link" href="../../" title="Go to the Reactus homepage">
+  Home
+</a>
+<a class="header-link" href="../../getting-started/" title="Open the getting started guide">
+  Getting started
+</a>
+<a class="header-link" href="../../guides/framework-integration/" title="Browse the integration guides">
+  Guides
+</a>
+<a class="header-link" href="../../api/" title="Browse the API reference">
+  API
+</a>
+<a class="header-link" href="https://github.com/stackpress/reactus" title="Open the Reactus GitHub repository">
+  GitHub
+</a></nav>
+        <button
+          aria-label="Toggle color theme"
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+        >
+          <span aria-hidden="true" class="theme-toggle-ring"></span>
+          <span class="theme-toggle-label">Theme</span>
+        </button>
+      </header>
+      <div class="page-frame">
+        <aside class="page-sidebar">
+          <div class="sidebar-card">
+            <p class="sidebar-label">Documentation</p>
+            <section class="sidebar-group">
+  <p class="sidebar-group-title">Start here</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../" title="Go to the Reactus homepage">
+    Overview
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../getting-started/" title="Open Getting Started">
+    Getting Started
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Concepts</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../explanation/mental-model/" title="Open Mental Model">
+    Mental Model
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Guides</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../guides/development-server/" title="Open Development Server">
+    Development Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link is-current" href="../../guides/build-and-serve/" title="Open Build And Serve">
+    Build And Serve
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/framework-integration/" title="Open Framework Integration">
+    Framework Integration
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/css-frameworks/" title="Open CSS Frameworks">
+    CSS Frameworks
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/spa-style-routing/" title="Open SPA-Style Routing">
+    SPA-Style Routing
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">API reference</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../api/" title="Open the API reference overview">
+    API Reference
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/build/" title="Open build()">
+    build()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Builder/" title="Open Builder">
+    Builder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/configuration/" title="Open Configuration Types">
+    Configuration Types
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/dev/" title="Open dev()">
+    dev()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Document/" title="Open Document">
+    Document
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentBuilder/" title="Open DocumentBuilder">
+    DocumentBuilder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentLoader/" title="Open DocumentLoader">
+    DocumentLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentRender/" title="Open DocumentRender">
+    DocumentRender
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/engine/" title="Open engine() Default Export">
+    engine() Default Export
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/serve/" title="Open serve()">
+    serve()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Server/" title="Open Server">
+    Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerLoader/" title="Open ServerLoader">
+    ServerLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerManifest/" title="Open ServerManifest">
+    ServerManifest
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerResource/" title="Open ServerResource">
+    ServerResource
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/VirtualServer/" title="Open VirtualServer">
+    VirtualServer
+  </a>
+</li></ul>
+</section>
+
+          </div>
+        </aside>
+        <main class="page-main"><article class="doc-page">
+  <header class="doc-hero">
+    <p class="doc-eyebrow">Guide</p>
+    <h1>Build And Serve</h1>
+    <p class="doc-summary">Use this guide when you want to prebuild Reactus files and then render from those build artifacts in production.</p>
+    <div class="doc-meta">
+      <a
+        class="doc-meta-link"
+        href="../../guides/development-server/"
+        title="Open Development Server"
+      >
+        Previous: Development Server
+      </a>
+      <a
+        class="doc-meta-link"
+        href="../../guides/framework-integration/"
+        title="Open Framework Integration"
+      >
+        Next: Framework Integration
+      </a>
+    </div>
+  </header>
+  <div class="doc-content"><p>Use this guide when you want to prebuild Reactus files and then render from those build artifacts in production.</p>
+<h2 id="build-files-with-build">Build files with <code>build()</code></h2>
+<p>Create a build script.</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="import path from &#39;node:path&#39;;
+import { build } from &#39;reactus&#39;;
+
+async function runBuild() {
+  const cwd = process.cwd();
+  const engine = build({
+    cwd,
+    assetPath: path.join(cwd, &#39;public/assets&#39;),
+    clientPath: path.join(cwd, &#39;public/client&#39;),
+    pagePath: path.join(cwd, &#39;.build/pages&#39;)
+  });
+
+  await engine.set(&#39;@/pages/home&#39;);
+  await engine.set(&#39;@/pages/about&#39;);
+
+  await engine.buildAllClients();
+  await engine.buildAllAssets();
+  await engine.buildAllPages();
+}
+
+runBuild().catch((error) =&gt; {
+  console.error(error);
+  process.exit(1);
+});"><span class="token-keyword">import</span> path <span class="token-keyword">from</span> <span class="token-string">'node:path'</span>;
+<span class="token-keyword">import</span> <span class="token-operator">{</span> build <span class="token-operator">}</span> <span class="token-keyword">from</span> <span class="token-string">'reactus'</span>;
+
+<span class="token-keyword">async</span> <span class="token-keyword">function</span> <span class="token-function">runBuild</span><span class="token-operator">(</span><span class="token-operator">)</span> <span class="token-operator">{</span>
+  <span class="token-keyword">const</span> cwd <span class="token-operator">=</span> process<span class="token-operator">.</span><span class="token-function">cwd</span><span class="token-operator">(</span><span class="token-operator">)</span>;
+  <span class="token-keyword">const</span> engine <span class="token-operator">=</span> <span class="token-function">build</span><span class="token-operator">(</span><span class="token-operator">{</span>
+    cwd<span class="token-operator">,</span>
+    assetPath<span class="token-operator">:</span> path<span class="token-operator">.</span><span class="token-function">join</span><span class="token-operator">(</span>cwd<span class="token-operator">,</span> <span class="token-string">'public/assets'</span><span class="token-operator">)</span><span class="token-operator">,</span>
+    clientPath<span class="token-operator">:</span> path<span class="token-operator">.</span><span class="token-function">join</span><span class="token-operator">(</span>cwd<span class="token-operator">,</span> <span class="token-string">'public/client'</span><span class="token-operator">)</span><span class="token-operator">,</span>
+    pagePath<span class="token-operator">:</span> path<span class="token-operator">.</span><span class="token-function">join</span><span class="token-operator">(</span>cwd<span class="token-operator">,</span> <span class="token-string">'.build/pages'</span><span class="token-operator">)</span>
+  <span class="token-operator">}</span><span class="token-operator">)</span>;
+
+  <span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">set</span><span class="token-operator">(</span><span class="token-string">'@/pages/home'</span><span class="token-operator">)</span>;
+  <span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">set</span><span class="token-operator">(</span><span class="token-string">'@/pages/about'</span><span class="token-operator">)</span>;
+
+  <span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">buildAllClients</span><span class="token-operator">(</span><span class="token-operator">)</span>;
+  <span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">buildAllAssets</span><span class="token-operator">(</span><span class="token-operator">)</span>;
+  <span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">buildAllPages</span><span class="token-operator">(</span><span class="token-operator">)</span>;
+<span class="token-operator">}</span>
+
+<span class="token-function">runBuild</span><span class="token-operator">(</span><span class="token-operator">)</span><span class="token-operator">.</span><span class="token-function">catch</span><span class="token-operator">(</span><span class="token-operator">(</span>error<span class="token-operator">)</span> <span class="token-operator">=</span><span class="token-operator">&gt;</span> <span class="token-operator">{</span>
+  console<span class="token-operator">.</span><span class="token-function">error</span><span class="token-operator">(</span>error<span class="token-operator">)</span>;
+  process<span class="token-operator">.</span><span class="token-function">exit</span><span class="token-operator">(</span><span class="token-number">1</span><span class="token-operator">)</span>;
+<span class="token-operator">}</span><span class="token-operator">)</span>;</code></pre>
+</figure>
+<h2 id="what-gets-written">What gets written</h2>
+<p>The build step writes three kinds of output:</p>
+<ul><li>assets such as CSS and emitted asset files</li><li>browser client entries used for hydration</li><li>server page modules used by <code>serve()</code></li></ul>
+<h2 id="build-entries-from-another-package-or-workspace">Build entries from another package or workspace</h2>
+<p>The examples also show a second entry style:</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="await engine.set(&#39;reactus-with-plugin/pages/contact&#39;);
+await engine.set(&#39;reactus-with-plugin/pages/how&#39;);"><span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">set</span><span class="token-operator">(</span><span class="token-string">'reactus-with-plugin/pages/contact'</span><span class="token-operator">)</span>;
+<span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">set</span><span class="token-operator">(</span><span class="token-string">'reactus-with-plugin/pages/how'</span><span class="token-operator">)</span>;</code></pre>
+</figure>
+<p>Use this when your rendered pages come from another workspace package instead of the current project's <code>@/pages/...</code> tree.</p>
+<h2 id="serve-the-built-output">Serve the built output</h2>
+<p>After the build, switch to <code>serve()</code>.</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="import { createServer } from &#39;node:http&#39;;
+import path from &#39;node:path&#39;;
+import sirv from &#39;sirv&#39;;
+import { serve } from &#39;reactus&#39;;
+
+async function start() {
+  const cwd = process.cwd();
+  const engine = serve({
+    cwd,
+    clientRoute: &#39;/client&#39;,
+    cssRoute: &#39;/assets&#39;,
+    pagePath: path.join(cwd, &#39;.build/pages&#39;)
+  });
+
+  const assets = sirv(path.join(cwd, &#39;public&#39;), {
+    maxAge: 31536000,
+    immutable: true
+  });
+
+  const server = createServer(async (req, res) =&gt; {
+    if (req.url === &#39;/&#39;) {
+      res.setHeader(&#39;Content-Type&#39;, &#39;text/html&#39;);
+      res.end(await engine.render(&#39;@/pages/home&#39;));
+      return;
+    }
+
+    assets(req, res);
+    if (res.headersSent) return;
+
+    res.statusCode = 404;
+    res.end(&#39;404 Not Found&#39;);
+  });
+
+  server.listen(3000);
+}"><span class="token-keyword">import</span> <span class="token-operator">{</span> createServer <span class="token-operator">}</span> <span class="token-keyword">from</span> <span class="token-string">'node:http'</span>;
+<span class="token-keyword">import</span> path <span class="token-keyword">from</span> <span class="token-string">'node:path'</span>;
+<span class="token-keyword">import</span> sirv <span class="token-keyword">from</span> <span class="token-string">'sirv'</span>;
+<span class="token-keyword">import</span> <span class="token-operator">{</span> serve <span class="token-operator">}</span> <span class="token-keyword">from</span> <span class="token-string">'reactus'</span>;
+
+<span class="token-keyword">async</span> <span class="token-keyword">function</span> <span class="token-function">start</span><span class="token-operator">(</span><span class="token-operator">)</span> <span class="token-operator">{</span>
+  <span class="token-keyword">const</span> cwd <span class="token-operator">=</span> process<span class="token-operator">.</span><span class="token-function">cwd</span><span class="token-operator">(</span><span class="token-operator">)</span>;
+  <span class="token-keyword">const</span> engine <span class="token-operator">=</span> <span class="token-function">serve</span><span class="token-operator">(</span><span class="token-operator">{</span>
+    cwd<span class="token-operator">,</span>
+    clientRoute<span class="token-operator">:</span> <span class="token-string">'/client'</span><span class="token-operator">,</span>
+    cssRoute<span class="token-operator">:</span> <span class="token-string">'/assets'</span><span class="token-operator">,</span>
+    pagePath<span class="token-operator">:</span> path<span class="token-operator">.</span><span class="token-function">join</span><span class="token-operator">(</span>cwd<span class="token-operator">,</span> <span class="token-string">'.build/pages'</span><span class="token-operator">)</span>
+  <span class="token-operator">}</span><span class="token-operator">)</span>;
+
+  <span class="token-keyword">const</span> assets <span class="token-operator">=</span> <span class="token-function">sirv</span><span class="token-operator">(</span>path<span class="token-operator">.</span><span class="token-function">join</span><span class="token-operator">(</span>cwd<span class="token-operator">,</span> <span class="token-string">'public'</span><span class="token-operator">)</span><span class="token-operator">,</span> <span class="token-operator">{</span>
+    maxAge<span class="token-operator">:</span> <span class="token-number">31536000</span><span class="token-operator">,</span>
+    immutable<span class="token-operator">:</span> true
+  <span class="token-operator">}</span><span class="token-operator">)</span>;
+
+  <span class="token-keyword">const</span> server <span class="token-operator">=</span> <span class="token-function">createServer</span><span class="token-operator">(</span><span class="token-keyword">async</span> <span class="token-operator">(</span>req<span class="token-operator">,</span> res<span class="token-operator">)</span> <span class="token-operator">=</span><span class="token-operator">&gt;</span> <span class="token-operator">{</span>
+    <span class="token-keyword">if</span> <span class="token-operator">(</span>req<span class="token-operator">.</span>url <span class="token-operator">=</span><span class="token-operator">=</span><span class="token-operator">=</span> <span class="token-string">'/'</span><span class="token-operator">)</span> <span class="token-operator">{</span>
+      res<span class="token-operator">.</span><span class="token-function">setHeader</span><span class="token-operator">(</span><span class="token-string">'Content-Type'</span><span class="token-operator">,</span> <span class="token-string">'text/html'</span><span class="token-operator">)</span>;
+      res<span class="token-operator">.</span><span class="token-function">end</span><span class="token-operator">(</span><span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">render</span><span class="token-operator">(</span><span class="token-string">'@/pages/home'</span><span class="token-operator">)</span><span class="token-operator">)</span>;
+      <span class="token-keyword">return</span>;
+    <span class="token-operator">}</span>
+
+    <span class="token-function">assets</span><span class="token-operator">(</span>req<span class="token-operator">,</span> res<span class="token-operator">)</span>;
+    <span class="token-keyword">if</span> <span class="token-operator">(</span>res<span class="token-operator">.</span>headersSent<span class="token-operator">)</span> <span class="token-keyword">return</span>;
+
+    res<span class="token-operator">.</span>statusCode <span class="token-operator">=</span> <span class="token-number">404</span>;
+    res<span class="token-operator">.</span><span class="token-function">end</span><span class="token-operator">(</span><span class="token-string">'404 Not Found'</span><span class="token-operator">)</span>;
+  <span class="token-operator">}</span><span class="token-operator">)</span>;
+
+  server<span class="token-operator">.</span><span class="token-function">listen</span><span class="token-operator">(</span><span class="token-number">3000</span><span class="token-operator">)</span>;
+<span class="token-operator">}</span></code></pre>
+</figure>
+<h2 id="render-built-css-through-head">Render built CSS through <code>Head()</code></h2>
+<p>When a built page emits CSS, Reactus passes the generated stylesheet URLs into the page's <code>Head()</code> component as <code>styles</code>.</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">tsx</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-tsx" data-raw="export function Head({ styles = [] }: { styles?: string[] }) {
+  return (
+    &lt;&gt;
+      &lt;title&gt;Contact Us&lt;/title&gt;
+      {styles.map((href, index) =&gt; (
+        &lt;link key={index} rel=&quot;stylesheet&quot; href={href} /&gt;
+      ))}
+    &lt;/&gt;
+  );
+}"><span class="token-keyword">export</span> <span class="token-keyword">function</span> <span class="token-property">Head</span><span class="token-operator">(</span><span class="token-operator">{</span> styles <span class="token-operator">=</span> <span class="token-operator">[</span><span class="token-operator">]</span> <span class="token-operator">}</span><span class="token-operator">:</span> <span class="token-operator">{</span> styles?<span class="token-operator">:</span> string<span class="token-operator">[</span><span class="token-operator">]</span> <span class="token-operator">}</span><span class="token-operator">)</span> <span class="token-operator">{</span>
+  <span class="token-keyword">return</span> <span class="token-operator">(</span>
+    <span class="token-operator">&lt;</span><span class="token-operator">&gt;</span>
+      <span class="token-operator">&lt;</span>title<span class="token-operator">&gt;</span><span class="token-property">Contact</span> <span class="token-property">Us</span><span class="token-operator">&lt;</span><span class="token-operator">/</span>title<span class="token-operator">&gt;</span>
+      <span class="token-operator">{</span>styles<span class="token-operator">.</span><span class="token-function">map</span><span class="token-operator">(</span><span class="token-operator">(</span>href<span class="token-operator">,</span> index<span class="token-operator">)</span> <span class="token-operator">=</span><span class="token-operator">&gt;</span> <span class="token-operator">(</span>
+        <span class="token-operator">&lt;</span>link key<span class="token-operator">=</span><span class="token-operator">{</span>index<span class="token-operator">}</span> rel<span class="token-operator">=</span><span class="token-string">&quot;stylesheet&quot;</span> href<span class="token-operator">=</span><span class="token-operator">{</span>href<span class="token-operator">}</span> <span class="token-operator">/</span><span class="token-operator">&gt;</span>
+      <span class="token-operator">)</span><span class="token-operator">)</span><span class="token-operator">}</span>
+    <span class="token-operator">&lt;</span><span class="token-operator">/</span><span class="token-operator">&gt;</span>
+  <span class="token-operator">)</span>;
+<span class="token-operator">}</span></code></pre>
+</figure>
+<p>This keeps CSS injection explicit at the page level while still letting <code>build()</code> compute the final asset file names for you.</p>
+<h2 id="keep-the-responsibilities-clear">Keep the responsibilities clear</h2>
+<p><code>build()</code> prepares files.</p>
+<p><code>serve()</code> renders HTML against the built page modules.</p>
+<p>Your production server still needs to:</p>
+<ul><li>serve static files from disk</li><li>route requests</li><li>decide cache headers and deployment behavior</li></ul>
+<h2 id="save-and-load-a-manifest-when-useful">Save and load a manifest when useful</h2>
+<p>If you want to persist the known entries between runs, use the manifest helpers on the wrapper:</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="await engine.save(&#39;./dist/manifest.json&#39;);
+await engine.open(&#39;./dist/manifest.json&#39;);"><span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">save</span><span class="token-operator">(</span><span class="token-string">'./dist/manifest.json'</span><span class="token-operator">)</span>;
+<span class="token-keyword">await</span> engine<span class="token-operator">.</span><span class="token-function">open</span><span class="token-operator">(</span><span class="token-string">'./dist/manifest.json'</span><span class="token-operator">)</span>;</code></pre>
+</figure>
+<p>These call through to <code>ServerManifest</code>.</p>
+<h2 id="next-steps">Next steps</h2>
+<ul><li>Read <a href="../../api/build/" title="Open API reference for @@PLACEHOLDER0@@">API reference for </a>.</li><li>Read <a href="../../api/serve/" title="Open API reference for @@PLACEHOLDER0@@">API reference for </a>.</li><li>Read <a href="../../api/ServerManifest/" title="Open ServerManifest">ServerManifest</a> if you need manifest persistence.</li></ul></div>
+  <nav aria-label="Page navigation" class="doc-pager">
+    <a
+  class="pager-link pager-previous"
+  href="../../guides/development-server/"
+  title="Open Development Server"
+>
+  <span class="pager-kicker">PREVIOUS</span>
+  <strong>Development Server</strong>
+</a>
+
+<a
+  class="pager-link pager-next"
+  href="../../guides/framework-integration/"
+  title="Open Framework Integration"
+>
+  <span class="pager-kicker">NEXT</span>
+  <strong>Framework Integration</strong>
+</a>
+
+  </nav>
+</article>
+</main>
+        <aside class="page-toc">
+          <div class="toc-card">
+            <p class="toc-label">On this page</p>
+            <ol class="toc-list"><li class="toc-item toc-level-2">
+  <a href="#build-files-with-build" title="Jump to Build files with build()">
+    Build files with build()
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#what-gets-written" title="Jump to What gets written">
+    What gets written
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#build-entries-from-another-package-or-workspace" title="Jump to Build entries from another package or workspace">
+    Build entries from another package or workspace
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#serve-the-built-output" title="Jump to Serve the built output">
+    Serve the built output
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#render-built-css-through-head" title="Jump to Render built CSS through Head()">
+    Render built CSS through Head()
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#keep-the-responsibilities-clear" title="Jump to Keep the responsibilities clear">
+    Keep the responsibilities clear
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#save-and-load-a-manifest-when-useful" title="Jump to Save and load a manifest when useful">
+    Save and load a manifest when useful
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#next-steps" title="Jump to Next steps">
+    Next steps
+  </a>
+</li></ol>
+
+          </div>
+        </aside>
+      </div>
+      <footer class="site-footer">
+        <p class="footer-copy">
+          <span>Reactus</span>
+          <span>Reactive React template engine for server-rendered "mini-apps".</span>
+        </p>
+        <p class="footer-meta">
+          <span>Published from `specs/`</span>
+          <span>https://www.stackpress.io/reactus</span>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

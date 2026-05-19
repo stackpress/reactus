@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1"
+      name="viewport"
+    />
+    <title>ServerLoader | Reactus</title>
+    <meta
+      content="ServerLoader is the lower-level file and module loader used by Reactus."
+      name="description"
+    />
+    <link href="../../assets/favicon.ico" rel="icon" sizes="any" />
+    <link href="../../assets/icon.png" rel="apple-touch-icon" />
+    <link href="../../styles/site.css" rel="stylesheet" />
+    <script defer src="../../scripts/site.js"></script>
+    <link href="https://www.stackpress.io/reactus/api/ServerLoader/" rel="canonical" />
+    <meta content="ServerLoader" property="og:title" />
+    <meta
+      content="ServerLoader is the lower-level file and module loader used by Reactus."
+      property="og:description"
+    />
+    <meta content="website" property="og:type" />
+    <meta content="https://www.stackpress.io/reactus/api/ServerLoader/" property="og:url" />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" property="og:image" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="ServerLoader" name="twitter:title" />
+    <meta
+      content="ServerLoader is the lower-level file and module loader used by Reactus."
+      name="twitter:description"
+    />
+    <meta content="https://www.stackpress.io/reactus/assets/icon.png" name="twitter:image" />
+    <meta content="index,follow" name="robots" />
+  </head>
+  <body class="route-doc">
+    <div class="site-shell">
+      <div aria-hidden="true" class="site-aura site-aura-one"></div>
+      <div aria-hidden="true" class="site-aura site-aura-two"></div>
+      <header class="site-header">
+        <a
+          class="brand"
+          href="../../"
+          title="Go to the Reactus homepage"
+        >
+          <img
+            alt="Reactus logo"
+            class="brand-logo"
+            height="48"
+            src="../../assets/logo.png"
+            width="48"
+          />
+          <span class="brand-copy">
+            <span class="brand-kicker">REACTOR DOCS</span>
+            <span class="brand-name">Reactus</span>
+          </span>
+        </a>
+        <nav aria-label="Primary" class="header-nav"><a class="header-link" href="../../" title="Go to the Reactus homepage">
+  Home
+</a>
+<a class="header-link" href="../../getting-started/" title="Open the getting started guide">
+  Getting started
+</a>
+<a class="header-link" href="../../guides/framework-integration/" title="Browse the integration guides">
+  Guides
+</a>
+<a class="header-link" href="../../api/" title="Browse the API reference">
+  API
+</a>
+<a class="header-link" href="https://github.com/stackpress/reactus" title="Open the Reactus GitHub repository">
+  GitHub
+</a></nav>
+        <button
+          aria-label="Toggle color theme"
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+        >
+          <span aria-hidden="true" class="theme-toggle-ring"></span>
+          <span class="theme-toggle-label">Theme</span>
+        </button>
+      </header>
+      <div class="page-frame">
+        <aside class="page-sidebar">
+          <div class="sidebar-card">
+            <p class="sidebar-label">Documentation</p>
+            <section class="sidebar-group">
+  <p class="sidebar-group-title">Start here</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../" title="Go to the Reactus homepage">
+    Overview
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../getting-started/" title="Open Getting Started">
+    Getting Started
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Concepts</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../explanation/mental-model/" title="Open Mental Model">
+    Mental Model
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">Guides</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../guides/development-server/" title="Open Development Server">
+    Development Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/build-and-serve/" title="Open Build And Serve">
+    Build And Serve
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/framework-integration/" title="Open Framework Integration">
+    Framework Integration
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/css-frameworks/" title="Open CSS Frameworks">
+    CSS Frameworks
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../guides/spa-style-routing/" title="Open SPA-Style Routing">
+    SPA-Style Routing
+  </a>
+</li></ul>
+</section>
+
+<section class="sidebar-group">
+  <p class="sidebar-group-title">API reference</p>
+  <ul class="sidebar-list"><li>
+  <a class="sidebar-link" href="../../api/" title="Open the API reference overview">
+    API Reference
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/build/" title="Open build()">
+    build()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Builder/" title="Open Builder">
+    Builder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/configuration/" title="Open Configuration Types">
+    Configuration Types
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/dev/" title="Open dev()">
+    dev()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Document/" title="Open Document">
+    Document
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentBuilder/" title="Open DocumentBuilder">
+    DocumentBuilder
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentLoader/" title="Open DocumentLoader">
+    DocumentLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/DocumentRender/" title="Open DocumentRender">
+    DocumentRender
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/engine/" title="Open engine() Default Export">
+    engine() Default Export
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/serve/" title="Open serve()">
+    serve()
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/Server/" title="Open Server">
+    Server
+  </a>
+</li>
+<li>
+  <a class="sidebar-link is-current" href="../../api/ServerLoader/" title="Open ServerLoader">
+    ServerLoader
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerManifest/" title="Open ServerManifest">
+    ServerManifest
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/ServerResource/" title="Open ServerResource">
+    ServerResource
+  </a>
+</li>
+<li>
+  <a class="sidebar-link" href="../../api/VirtualServer/" title="Open VirtualServer">
+    VirtualServer
+  </a>
+</li></ul>
+</section>
+
+          </div>
+        </aside>
+        <main class="page-main"><article class="doc-page">
+  <header class="doc-hero">
+    <p class="doc-eyebrow">API Reference</p>
+    <h1>ServerLoader</h1>
+    <p class="doc-summary">ServerLoader is the lower-level file and module loader used by Reactus.</p>
+    <div class="doc-meta">
+      <a
+        class="doc-meta-link"
+        href="../../api/Server/"
+        title="Open Server"
+      >
+        Previous: Server
+      </a>
+      <a
+        class="doc-meta-link"
+        href="../../api/ServerManifest/"
+        title="Open ServerManifest"
+      >
+        Next: ServerManifest
+      </a>
+    </div>
+  </header>
+  <div class="doc-content"><p><code>ServerLoader</code> is the lower-level file and module loader used by Reactus.</p>
+<figure class="code-block">
+  <div class="code-block-header">
+    <span class="code-block-title">ts</span>
+    <button class="copy-button" data-copy-code type="button">Copy</button>
+  </div>
+  <pre><code class="language-ts" data-raw="import { ServerLoader } from &#39;reactus&#39;;"><span class="token-keyword">import</span> <span class="token-operator">{</span> <span class="token-property">ServerLoader</span> <span class="token-operator">}</span> <span class="token-keyword">from</span> <span class="token-string">'reactus'</span>;</code></pre>
+</figure>
+<p>Most applications do not create this class directly. You usually reach it through <code>server.loader</code>.</p>
+<h2 id="properties">Properties</h2>
+<table>
+  <thead>
+    <tr><th>Property</th><th>Type</th><th>Description</th></tr>
+  </thead>
+  <tbody><tr><td><code>cwd</code></td><td><code>string</code></td><td>Working directory used for resolution.</td></tr><tr><td><code>fs</code></td><td><code>FileSystem</code></td><td>File system implementation used by the loader.</td></tr></tbody>
+</table>
+<h2 id="methods">Methods</h2>
+<h3 id="absolute-pathname-pwd"><code>absolute(pathname, pwd?)</code></h3>
+<p>Return an absolute path without asserting that the file is a valid entry module.</p>
+<h3 id="fetch-url"><code>fetch(url)</code></h3>
+<p>Load a module through the Vite dev server.</p>
+<h3 id="import-pathname-extnames"><code>import(pathname, extnames?)</code></h3>
+<p>Import a module path.</p>
+<p>In production mode, or when the resolved extension is <code>.js</code>, this uses native module import. Otherwise it loads through Vite.</p>
+<h3 id="relative-pathname-require-withextname"><code>relative(pathname, require, withExtname?)</code></h3>
+<p>Return the relative path between two file paths.</p>
+<h3 id="resolvefile-pathname-extnames-pwd-exists"><code>resolveFile(pathname, extnames?, pwd?, exists?)</code></h3>
+<p>Resolve a file path using the underlying file loader.</p>
+<h3 id="resolve-pathname-extnames"><code>resolve(pathname, extnames?)</code></h3>
+<p>Resolve an entry path to:</p>
+<ul><li><code>filepath</code></li><li><code>basepath</code></li><li><code>extname</code></li></ul>
+<h2 id="related">Related</h2>
+<ul><li><a href="../Server/" title="Open Server">Server</a></li><li><a href="../DocumentLoader/" title="Open DocumentLoader">DocumentLoader</a></li></ul></div>
+  <nav aria-label="Page navigation" class="doc-pager">
+    <a
+  class="pager-link pager-previous"
+  href="../../api/Server/"
+  title="Open Server"
+>
+  <span class="pager-kicker">PREVIOUS</span>
+  <strong>Server</strong>
+</a>
+
+<a
+  class="pager-link pager-next"
+  href="../../api/ServerManifest/"
+  title="Open ServerManifest"
+>
+  <span class="pager-kicker">NEXT</span>
+  <strong>ServerManifest</strong>
+</a>
+
+  </nav>
+</article>
+</main>
+        <aside class="page-toc">
+          <div class="toc-card">
+            <p class="toc-label">On this page</p>
+            <ol class="toc-list"><li class="toc-item toc-level-2">
+  <a href="#properties" title="Jump to Properties">
+    Properties
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#methods" title="Jump to Methods">
+    Methods
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#absolute-pathname-pwd" title="Jump to absolute(pathname, pwd?)">
+    absolute(pathname, pwd?)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#fetch-url" title="Jump to fetch(url)">
+    fetch(url)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#import-pathname-extnames" title="Jump to import(pathname, extnames?)">
+    import(pathname, extnames?)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#relative-pathname-require-withextname" title="Jump to relative(pathname, require, withExtname?)">
+    relative(pathname, require, withExtname?)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#resolvefile-pathname-extnames-pwd-exists" title="Jump to resolveFile(pathname, extnames?, pwd?, exists?)">
+    resolveFile(pathname, extnames?, pwd?, exists?)
+  </a>
+</li>
+<li class="toc-item toc-level-3">
+  <a href="#resolve-pathname-extnames" title="Jump to resolve(pathname, extnames?)">
+    resolve(pathname, extnames?)
+  </a>
+</li>
+<li class="toc-item toc-level-2">
+  <a href="#related" title="Jump to Related">
+    Related
+  </a>
+</li></ol>
+
+          </div>
+        </aside>
+      </div>
+      <footer class="site-footer">
+        <p class="footer-copy">
+          <span>Reactus</span>
+          <span>Reactive React template engine for server-rendered "mini-apps".</span>
+        </p>
+        <p class="footer-meta">
+          <span>Published from `specs/`</span>
+          <span>https://www.stackpress.io/reactus</span>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="system">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      content="width=device-width, initial-scale=1"
+      name="viewport"
+    />
+    <title>{{page.title}} | {{site.name}}</title>
+    <meta
+      content="{{|:page.description site.description}}"
+      name="description"
+    />
+    <link href="{{root}}assets/favicon.ico" rel="icon" sizes="any" />
+    <link href="{{root}}assets/icon.png" rel="apple-touch-icon" />
+    <link href="{{root}}styles/site.css" rel="stylesheet" />
+    <script defer src="{{root}}scripts/site.js"></script>
+    <link href="{{page.canonicalUrl}}" rel="canonical" />
+    <meta content="{{page.title}}" property="og:title" />
+    <meta
+      content="{{|:page.description site.description}}"
+      property="og:description"
+    />
+    <meta content="website" property="og:type" />
+    <meta content="{{page.canonicalUrl}}" property="og:url" />
+    <meta content="{{site.previewImage}}" property="og:image" />
+    <meta content="summary_large_image" name="twitter:card" />
+    <meta content="{{page.title}}" name="twitter:title" />
+    <meta
+      content="{{|:page.description site.description}}"
+      name="twitter:description"
+    />
+    <meta content="{{site.previewImage}}" name="twitter:image" />
+    {{#?:page.home}}
+    <meta content="index,follow" name="robots" />
+    {{|}}
+    <meta content="index,follow" name="robots" />
+    {{/?:page.home}}
+  </head>
+  <body class="{{page.bodyClass}}">
+    <div class="site-shell">
+      <div aria-hidden="true" class="site-aura site-aura-one"></div>
+      <div aria-hidden="true" class="site-aura site-aura-two"></div>
+      <header class="site-header">
+        <a
+          class="brand"
+          href="{{root}}"
+          title="Go to the Reactus homepage"
+        >
+          <img
+            alt="Reactus logo"
+            class="brand-logo"
+            height="48"
+            src="{{root}}assets/logo.png"
+            width="48"
+          />
+          <span class="brand-copy">
+            <span class="brand-kicker">{{A:site.kicker}}</span>
+            <span class="brand-name">{{site.name}}</span>
+          </span>
+        </a>
+        <nav aria-label="Primary" class="header-nav">{{headerNav}}</nav>
+        <button
+          aria-label="Toggle color theme"
+          class="theme-toggle"
+          data-theme-toggle
+          type="button"
+        >
+          <span aria-hidden="true" class="theme-toggle-ring"></span>
+          <span class="theme-toggle-label">Theme</span>
+        </button>
+      </header>
+      <div class="page-frame">
+        {{#?:page.showSidebar}}
+        <aside class="page-sidebar">
+          <div class="sidebar-card">
+            <p class="sidebar-label">Documentation</p>
+            {{sidebar}}
+          </div>
+        </aside>
+        {{/?:page.showSidebar}}
+        <main class="page-main">{{content}}</main>
+        {{#?:page.showToc}}
+        <aside class="page-toc">
+          <div class="toc-card">
+            <p class="toc-label">On this page</p>
+            {{toc}}
+          </div>
+        </aside>
+        {{/?:page.showToc}}
+      </div>
+      <footer class="site-footer">
+        <p class="footer-copy">
+          <span>{{site.name}}</span>
+          <span>{{site.tagline}}</span>
+        </p>
+        <p class="footer-meta">
+          <span>Published from `specs/`</span>
+          <span>{{site.canonical}}</span>
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
