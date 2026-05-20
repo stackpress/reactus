@@ -2361,17 +2361,17 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
+"@stackpress/lib@0.10.1":
+  version "0.10.1"
+  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.10.1.tgz#3702d571a9cdce9935349e71ccad0f379dd4482f"
+  integrity sha512-w8LQBnrIBgVQk1Sph2aQLcHcvtiKkHYze1DgtezfvMogETwF9z8NSxmwH6rBibzkqq1fC2MyeH3rx/drm1tnqw==
+  dependencies:
+    "@inquirer/prompts" "8.1.0"
+
 "@stackpress/lib@0.6.5":
   version "0.6.5"
   resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.6.5.tgz#e56dad3e03aa2bce8570354468f793d6371e5cb6"
   integrity sha512-Ns9G9VPW9wfQNWw53zLb08ETRlgH9Qqv44n26r1IAdw/iN5BLFSETlbum6sVc2Dk+mzHIpY3UYG97IuXuOJpwg==
-  dependencies:
-    "@inquirer/prompts" "8.1.0"
-
-"@stackpress/lib@0.9.2":
-  version "0.9.2"
-  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.9.2.tgz#8133272252cdf28dd61c4bdcd23da4950edd626d"
-  integrity sha512-VIG21iazbpafkiKKMfu+VHXkvTmm3TgzHWY7VXbWLhpf2bwKxcFVUxvvRtMPlYXpEeRsK4pc5O1HB73UlpVS/A==
   dependencies:
     "@inquirer/prompts" "8.1.0"
 
