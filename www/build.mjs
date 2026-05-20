@@ -15,7 +15,7 @@ const site = {
     "Reactive React template engine for server-rendered mini-apps with " +
     "Vite-powered development, client hydration, and full control over " +
     "your Node server.",
-  kicker: "Reactor docs",
+  kicker: "Reactive Template Engine",
   name: "Reactus",
   previewImage: `${siteUrl}/assets/icon.png`,
   tagline:
@@ -409,7 +409,22 @@ function createHomePage(pages) {
     "Reactus is the template engine for server frameworks."
   );
   const startHere = extractLinkedBullets(readme.file, "Start here");
-  const sampleCode = extractCodeBlock(gettingStarted.file, 1);
+  const samplePage = extractCodeBlock(gettingStarted.file, 1);
+  const sampleServer = extractCodeBlock(gettingStarted.file, 2);
+  const examples = [
+    {
+      code: renderCodeBlock(samplePage.code, samplePage.lang),
+      file: "pages/home.tsx",
+      id: "home-page-example",
+      label: "Hydratable page"
+    },
+    {
+      code: renderCodeBlock(sampleServer.code, sampleServer.lang),
+      file: "scripts/develop.ts",
+      id: "home-server-example",
+      label: "Basic server"
+    }
+  ];
 
   return {
     actionsHtml: renderActionList([
@@ -427,9 +442,27 @@ function createHomePage(pages) {
       }
     ]),
     example: {
-      code: renderCodeBlock(sampleCode.code, sampleCode.lang),
-      file: "pages/home.tsx",
-      label: "Hydratable page"
+      panels: examples.map((item, index) => {
+        const hidden = index === 0 ? "" : " hidden";
+        return [
+          `<section class="hero-code-example"${hidden} data-example-panel id="${escapeHtml(item.id)}" role="tabpanel">`,
+          `  <div class="hero-code-meta">`,
+          `    <span class="hero-code-title">${escapeHtml(item.label)}</span>`,
+          `    <span class="hero-code-file">${escapeHtml(item.file)}</span>`,
+          `  </div>`,
+          `  ${item.code}`,
+          `</section>`
+        ].join("\n");
+      }).join("\n"),
+      tabs: examples.map((item, index) => {
+        const selected = index === 0 ? "true" : "false";
+        const tabIndex = index === 0 ? "0" : "-1";
+        return [
+          `<button aria-controls="${escapeHtml(item.id)}" aria-selected="${selected}" class="hero-code-tab" data-example-tab role="tab" tabindex="${tabIndex}" type="button">`,
+          `  <span>${escapeHtml(item.label)}</span>`,
+          `</button>`
+        ].join("\n");
+      }).join("\n")
     },
     frameworksHtml: frameworks
       .map(item => `<span class="pill">${escapeHtml(item)}</span>`)
@@ -470,13 +503,6 @@ function createHomePage(pages) {
       }
     ].map(item => {
       return `<li><a href="${escapeHtml(item.href)}" title="${escapeHtml(item.title)}">${escapeHtml(item.label)}</a></li>`;
-    }).join(""),
-    metricsHtml: [
-      { label: "Published guides", value: "5" },
-      { label: "API reference pages", value: "14" },
-      { label: "Supported server styles", value: String(frameworks.length) }
-    ].map(item => {
-      return `<div class="hero-metric"><dt>${escapeHtml(item.label)}</dt><dd>${escapeHtml(item.value)}</dd></div>`;
     }).join(""),
     nonGoalsHtml: nonGoals
       .map(item => `<li>${escapeHtml(item)}</li>`)

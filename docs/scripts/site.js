@@ -45,19 +45,48 @@ async function copyCode(button) {
   }
 }
 
+function selectExampleTab(button) {
+  const tabList = button.closest("[role='tablist']");
+  if (!tabList) {
+    return;
+  }
+
+  const tabs = Array.from(tabList.querySelectorAll("[data-example-tab]"));
+  const panels = tabs
+    .map(tab => document.getElementById(tab.getAttribute("aria-controls") || ""))
+    .filter(Boolean);
+
+  tabs.forEach(tab => {
+    const active = tab === button;
+    tab.setAttribute("aria-selected", active ? "true" : "false");
+    tab.tabIndex = active ? 0 : -1;
+  });
+
+  panels.forEach(panel => {
+    panel.hidden = panel.id !== button.getAttribute("aria-controls");
+  });
+}
+
 document.addEventListener("click", (event) => {
   const target = event.target;
   if (!(target instanceof HTMLElement)) {
     return;
   }
 
-  if (target.matches("[data-theme-toggle]")) {
+  const themeToggle = target.closest("[data-theme-toggle]");
+  if (themeToggle instanceof HTMLButtonElement) {
     cycleTheme();
     return;
   }
 
   if (target.matches("[data-copy-code]")) {
     copyCode(target);
+    return;
+  }
+
+  const tab = target.closest("[data-example-tab]");
+  if (tab instanceof HTMLButtonElement) {
+    selectExampleTab(tab);
   }
 });
 

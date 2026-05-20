@@ -1,15 +1,7 @@
 <div class="page-home">
   <section class="hero">
     <div class="hero-copy">
-      <p class="hero-kicker">{{A:site.kicker}}</p>
-      <h1>{{site.name}}</h1>
-      <p class="hero-tagline">{{site.tagline}}</p>
-      <p class="hero-body">{{site.description}}</p>
-      <div class="hero-actions">{{actionsHtml}}</div>
-      <dl class="hero-metrics">{{metricsHtml}}</dl>
-    </div>
-    <div class="hero-visual">
-      <div aria-hidden="true" class="reactor">
+      <div aria-hidden="true" class="reactor reactor-inline">
         <span class="reactor-core"></span>
         <span class="reactor-ring reactor-ring-one"></span>
         <span class="reactor-ring reactor-ring-two"></span>
@@ -17,12 +9,17 @@
         <span class="reactor-pulse reactor-pulse-one"></span>
         <span class="reactor-pulse reactor-pulse-two"></span>
       </div>
+      <p class="hero-body">{{site.description}}</p>
+      <div class="hero-actions">{{actionsHtml}}</div>
+    </div>
+    <div class="hero-visual">
       <div class="hero-code-panel">
         <div class="hero-code-header">
-          <span class="hero-code-title">{{example.label}}</span>
-          <span class="hero-code-file">{{example.file}}</span>
+          <div aria-label="Homepage example tabs" class="hero-code-tabs" role="tablist">
+            {{example.tabs}}
+          </div>
         </div>
-        {{example.code}}
+        {{example.panels}}
       </div>
     </div>
   </section>

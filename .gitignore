@@ -144,3 +144,4 @@ examples/*/public/client
 
 # AI
 .clinerules
+.playwright

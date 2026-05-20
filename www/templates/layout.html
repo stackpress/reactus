@@ -55,8 +55,8 @@
             width="48"
           />
           <span class="brand-copy">
-            <span class="brand-kicker">{{A:site.kicker}}</span>
             <span class="brand-name">{{site.name}}</span>
+            <span class="brand-kicker">{{A:site.kicker}}</span>
           </span>
         </a>
         <nav aria-label="Primary" class="header-nav">{{headerNav}}</nav>
@@ -90,13 +90,11 @@
         {{/?:page.showToc}}
       </div>
       <footer class="site-footer">
-        <p class="footer-copy">
-          <span>{{site.name}}</span>
-          <span>{{site.tagline}}</span>
-        </p>
+        <p class="footer-copy">By the stackpress team</p>
         <p class="footer-meta">
-          <span>Published from `specs/`</span>
-          <span>{{site.canonical}}</span>
+          <a href="https://stackpress.io" rel="noreferrer" target="_blank" title="Open stackpress.io">stackpress.io</a>
+          <span>|</span>
+          <a href="https://github.com/stackpress/reactus" rel="noreferrer" target="_blank" title="Open the Reactus GitHub repository">GitHub</a>
         </p>
       </footer>
     </div>

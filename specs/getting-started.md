@@ -33,15 +33,11 @@ Create `pages/home.tsx`.
 ```tsx
 import { useState } from 'react';
 
-type HomePageProps = {
-  title: string;
-};
-
 export function Head() {
   return <title>Reactus</title>;
 }
 
-export default function HomePage({ title }: HomePageProps) {
+export default function HomePage({ title }: { title: string }) {
   const [count, setCount] = useState(0);
 
   return (
