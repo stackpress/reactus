@@ -367,6 +367,18 @@ pre {
   margin: 12px 0 18px;
 }
 
+.hero-copy .badges {
+  padding-top: 20px;
+}
+
+.hero-copy .badges a {
+  text-decoration: none;
+}
+
+.hero-copy .badges a img {
+  display: inline-block;
+}
+
 .doc-summary {
   color: var(--text-soft);
   font-size: 1.15rem;
