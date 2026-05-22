@@ -224,6 +224,55 @@ describe('Builder', () => {
       expect(results).to.have.length(1);
       expect(results[0].code).to.equal(404);
     });
+
+    it('handles non-array client output', async () => {
+      tempDir = await makeTempDir('builder-clients-non-array-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: { buildClient: async () => null },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildClients();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(500);
+    });
+
+    it('skips top-level chunk assets outside subdirectories', async () => {
+      tempDir = await makeTempDir('builder-clients-top-level-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: {
+          buildClient: async (): Promise<BuildResults> => {
+            return [
+              { type: 'chunk', fileName: 'entry.js', code: 'console.log(1)' } as any,
+              { type: 'chunk', fileName: 'vendor.js', code: 'console.log(2)' } as any
+            ];
+          }
+        },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildClients();
+      });
+
+      expect(results[0].results?.source).to.equal(path.join(tempDir, 'pages', 'home.tsx'));
+      const skippedAsset = path.join(builder.paths.client, 'vendor.js');
+      await fs.access(skippedAsset).then(
+        () => expect.fail('vendor.js should not be written'),
+        () => undefined
+      );
+    });
   });
 
   describe('buildPages()', () => {
@@ -264,6 +313,45 @@ describe('Builder', () => {
 
       const file = path.join(builder.paths.page, 'doc-1.js');
       expect(await fs.readFile(file, 'utf8')).to.equal('export default 1');
+      expect(results[0].results?.source).to.equal(path.join(tempDir, 'pages', 'home.tsx'));
+    });
+
+    it('handles non-array page output', async () => {
+      tempDir = await makeTempDir('builder-pages-non-array-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: { buildPage: async () => null },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildPages();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(500);
+    });
+
+    it('handles missing page chunk output', async () => {
+      tempDir = await makeTempDir('builder-pages-missing-');
+      const builder = makeBuilder(true);
+
+      const doc = {
+        id: 'doc-1',
+        entry: '@/pages/home.tsx',
+        builder: { buildPage: async () => [{ type: 'asset', fileName: 'assets/a.css', source: 'x' }] },
+        loader: { absolute: async () => path.join(tempDir, 'pages', 'home.tsx') }
+      } as any;
+
+      const results = await withPatched(builder.manifest, 'values', (() => [doc]) as any, async () => {
+        return await builder.buildPages();
+      });
+
+      expect(results).to.have.length(1);
+      expect(results[0].code).to.equal(404);
     });
   });
 });

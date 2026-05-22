@@ -1,6 +1,9 @@
 //tests
 import { describe, it, afterEach } from 'mocha';
 import { expect } from 'chai';
+//node
+import fs from 'node:fs/promises';
+import path from 'node:path';
 //reactus
 import Server from '../src/Server.js';
 import ServerResource from '../src/ServerResource.js';
@@ -68,24 +71,22 @@ describe('ServerResource', () => {
     it('returns plugins with CSS when cssFiles exist', async () => {
       tempDir = await makeTempDir('resource-plugins-css-');
       const server = makeServer(['/global.css']);
+      const plugins = (await server.resource.plugins()).flat() as any[];
+      const names = plugins.filter(Boolean).map(plugin => plugin.name);
 
-      // Avoid importing the real Vite react plugin.
-      const resource = server.resource as any;
-      resource.plugins = async () => ['css', 'vfs', 'file', 'react'] as any;
-
-      const plugins = await resource.plugins();
-      expect(plugins).to.deep.equal(['css', 'vfs', 'file', 'react']);
+      expect(names).to.include('reactus-inject-css');
+      expect(names).to.include('reactus-virtual-loader');
+      expect(names).to.include('reactus-file-loader');
+      expect(names.some(name => name.startsWith('vite:react'))).to.equal(true);
     });
 
     it('returns plugins without CSS when cssFiles do not exist', async () => {
       tempDir = await makeTempDir('resource-plugins-nocss-');
       const server = makeServer(undefined);
-
-      const resource = server.resource as any;
-      resource.plugins = async () => ['vfs', 'file', 'react'] as any;
-
-      const plugins = await resource.plugins();
-      expect(plugins).to.deep.equal(['vfs', 'file', 'react']);
+      const plugins = (await server.resource.plugins()).flat();
+      expect(plugins.every(plugin => plugin !== null)).to.equal(true);
+      const names = (plugins as any[]).map(plugin => plugin.name);
+      expect(names).to.not.include('reactus-inject-css');
     });
   });
 
@@ -153,32 +154,65 @@ describe('ServerResource', () => {
   });
 
   describe('build()', () => {
-    it('calls vite build with merged config (smoke)', async () => {
+    it('calls vite build with merged config and plugin output', async () => {
       tempDir = await makeTempDir('resource-build-');
       const server = makeServer();
+      const entry = path.join(tempDir, 'entry.js');
+      await fs.writeFile(entry, 'export default "ok";');
 
       const resource = server.resource;
-      // Don’t run real Vite. Patch module import via patching resource.plugins + dynamic import.
-      // Instead, patch `build()` method itself to ensure it passes through config/plugins.
-      const config = { configFile: false, build: { write: false } } as any;
-
-      let received: any = null;
-      await withPatched(resource as any, 'plugins', (async () => ['p1']) as any, async () => {
-        // Patch the runtime import('vite') by patching global import via a wrapper is hard;
-        // so we assert by patching build() directly.
-        const original = (resource as any).build.bind(resource);
-        try {
-          (resource as any).build = async (cfg: any) => {
-            received = cfg;
-            return [];
-          };
-          await (resource as any).build(config);
-        } finally {
-          (resource as any).build = original;
+      let started = 0;
+      const config = {
+        configFile: false,
+        build: {
+          write: false,
+          rollupOptions: {
+            input: entry
+          }
         }
+      } as any;
+
+      await withPatched(resource as any, 'plugins', (async () => [{
+        name: 'capture-plugin',
+        buildStart() {
+          started++;
+        }
+      }]) as any, async () => {
+        const result = await resource.build(config);
+        expect(result).to.have.property('output');
       });
 
-      expect(received).to.equal(config);
+      expect(started).to.equal(1);
+    });
+
+    it('creates a vite dev server with the expected config wiring', async () => {
+      tempDir = await makeTempDir('resource-create-server-');
+      const server = new Server(Server.configure({
+        production: false,
+        cwd: tempDir,
+        basePath: '/app/',
+        plugins: [],
+        watchIgnore: ['**/*.tmp'],
+        optimizeDeps: { exclude: ['react'] }
+      }));
+
+      const resource = server.resource as any;
+      const devServer = await withPatched(resource, 'plugins', (async () => [{ name: 'test-plugin' }]) as any, async () => {
+        return await resource._createServer();
+      });
+
+      try {
+        expect(devServer.config.base).to.equal('/app/');
+        expect(devServer.config.root).to.equal(tempDir);
+        expect(devServer.config.mode).to.equal('development');
+        expect(devServer.config.appType).to.equal('custom');
+        expect(devServer.config.server.middlewareMode).to.equal(true);
+        expect(devServer.config.server.watch.ignored).to.deep.equal(['**/*.tmp']);
+        expect(devServer.config.optimizeDeps.exclude).to.deep.equal(['react']);
+        expect(devServer.config.plugins.some((plugin: { name: string }) => plugin.name === 'test-plugin')).to.equal(true);
+      } finally {
+        await devServer.close();
+      }
     });
   });
 });

@@ -310,5 +310,72 @@ describe('plugins', () => {
       const contents = plugin.load?.('/a.tsx');
       expect(contents).to.equal(undefined);
     });
+
+    it('registers a watcher and reloads changed VFS modules', () => {
+      const plugin = vfs(new VirtualServer());
+
+      let onEvent = '';
+      let onHandler: ((filePath: string) => void) | null = null;
+      let invalidated: unknown = null;
+      let sent: unknown = null;
+      const module = { id: 'module' };
+
+      plugin.configureServer?.({
+        watcher: {
+          on: (event: string, handler: (filePath: string) => void) => {
+            onEvent = event;
+            onHandler = handler;
+          }
+        },
+        moduleGraph: {
+          getModuleById: (filePath: string) => filePath.endsWith('/page.tsx') ? module : null,
+          invalidateModule: (mod: unknown) => {
+            invalidated = mod;
+          }
+        },
+        ws: {
+          send: (message: unknown) => {
+            sent = message;
+          }
+        }
+      } as any);
+
+      expect(onEvent).to.equal('change');
+      onHandler?.('virtual:reactus:/tmp/page.tsx');
+      expect(invalidated).to.equal(module);
+      expect(sent).to.deep.equal({ type: 'full-reload', path: '*' });
+    });
+
+    it('ignores non-VFS changes and missing modules in watcher updates', () => {
+      const plugin = vfs(new VirtualServer());
+
+      let onHandler: ((filePath: string) => void) | null = null;
+      let invalidated = 0;
+      let sent = 0;
+
+      plugin.configureServer?.({
+        watcher: {
+          on: (_event: string, handler: (filePath: string) => void) => {
+            onHandler = handler;
+          }
+        },
+        moduleGraph: {
+          getModuleById: () => null,
+          invalidateModule: () => {
+            invalidated++;
+          }
+        },
+        ws: {
+          send: () => {
+            sent++;
+          }
+        }
+      } as any);
+
+      onHandler?.('/tmp/page.tsx');
+      onHandler?.('virtual:reactus:/tmp/missing.tsx');
+      expect(invalidated).to.equal(0);
+      expect(sent).to.equal(0);
+    });
   });
 });

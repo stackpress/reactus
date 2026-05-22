@@ -1,77 +1,105 @@
+//node
+import fs from 'node:fs/promises';
+import path from 'node:path';
 //tests
-import { describe, it, beforeEach, afterEach } from 'mocha';
+import { describe, it, afterEach } from 'mocha';
 import { expect } from 'chai';
 //modules
-import type { ServerConfig } from '../../src/server/types.js';
-import Server from '../../src/server/Server.js';
 import FileLoader from '@stackpress/lib/FileLoader';
+import NodeFS from '@stackpress/lib/NodeFS';
+//server
+import Server from '../../src/server/Server.js';
+import { configure } from '../../src/server/helpers.js';
+import { cleanupTempDir, makeTempDir } from '../helpers.js';
 
 describe('server/Server', () => {
-  beforeEach(() => {});
+  let tempDir = '';
 
-  afterEach(() => {});
-
-  describe('constructor', () => {
-    it('initializes FileLoader with correct parameters', () => {});
-
-    it('sets up routes correctly', () => {});
-
-    it('sets up paths correctly', () => {});
-
-    it('sets up templates correctly', () => {});
-
-    it('uses default cwd when not provided', () => {});
+  afterEach(async () => {
+    if (tempDir) await cleanupTempDir(tempDir);
+    tempDir = '';
   });
 
-  describe('getters', () => {
-    describe('cwd', () => {});
+  describe('constructor and getters', () => {
+    it('initializes FileLoader and default paths, routes, and templates', async () => {
+      tempDir = await makeTempDir('legacy-server-ctor-');
+      const server = new Server(configure({ cwd: tempDir }));
 
-    describe('fs', () => {});
+      expect(server.loader).to.be.instanceOf(FileLoader);
+      expect(server.cwd).to.equal(tempDir);
+      expect(server.paths.page).to.equal(path.join(tempDir, '.reactus/page'));
+      expect(server.routes.client).to.equal('/client');
+      expect(server.routes.css).to.equal('/assets');
+      expect(server.templates.document).to.be.a('string');
+    });
 
-    describe('paths', () => {});
+    it('uses custom configuration values and file system', () => {
+      const fs = new NodeFS();
+      const server = new Server(configure({
+        cwd: '/tmp/project',
+        clientRoute: '/scripts',
+        cssRoute: '/styles',
+        pagePath: '/tmp/page',
+        documentTemplate: '<html/>',
+        fs
+      }));
 
-    describe('routes', () => {});
-
-    describe('templates', () => {});
-  });
-
-  describe('import()', () => {
-    it('resolves and imports file with default extensions', async () => {});
-
-    it('uses custom extensions when provided', async () => {});
-
-    it('throws error when file cannot be resolved', async () => {});
-
-    it('throws error when import fails', async () => {});
-
-    it('returns typed import result', async () => {});
+      expect(server.fs).to.equal(fs);
+      expect(server.routes.client).to.equal('/scripts');
+      expect(server.routes.css).to.equal('/styles');
+      expect(server.paths.page).to.equal('/tmp/page');
+      expect(server.templates.document).to.equal('<html/>');
+    });
   });
 
   describe('resolve()', () => {
-    beforeEach(() => {});
+    it('resolves a file and returns metadata with default extensions', async () => {
+      tempDir = await makeTempDir('legacy-server-resolve-');
+      const pageDir = path.join(tempDir, '.reactus/page');
+      await fs.mkdir(pageDir, { recursive: true });
+      await fs.writeFile(path.join(pageDir, 'home.js'), 'export default "ok";');
 
-    it('resolves file and returns metadata with default extensions', async () => {});
+      const server = new Server(configure({ cwd: tempDir }));
+      const meta = await server.resolve(path.join(pageDir, 'home'));
 
-    it('uses custom extensions when provided', async () => {});
+      expect(meta.filepath).to.equal(path.join(pageDir, 'home.js'));
+      expect(meta.basepath).to.equal(path.join(pageDir, 'home'));
+      expect(meta.extname).to.equal('.js');
+    });
 
-    it('handles files without extensions', async () => {});
+    it('uses custom extensions and throws when a file cannot be resolved', async () => {
+      tempDir = await makeTempDir('legacy-server-resolve-custom-');
+      const pageDir = path.join(tempDir, '.reactus/page');
+      await fs.mkdir(pageDir, { recursive: true });
+      await fs.writeFile(path.join(pageDir, 'home.mjs'), 'export default "ok";');
 
-    it('throws error when file cannot be resolved', async () => {});
+      const server = new Server(configure({ cwd: tempDir }));
+      const meta = await server.resolve(path.join(pageDir, 'home'), ['.mjs']);
+      expect(meta.extname).to.equal('.mjs');
 
-    it('handles complex file paths', async () => {});
-
-    it('handles multiple extensions correctly', async () => {});
+      try {
+        await server.resolve(path.join(pageDir, 'missing'));
+        expect.fail('should have thrown');
+      } catch (error: unknown) {
+        expect(error).to.be.instanceOf(Error);
+      }
+    });
   });
 
-  describe('integration scenarios', () => {
-    it('import and resolve work together', async () => {});
+  describe('import()', () => {
+    it('imports a resolved page module with default and custom extensions', async () => {
+      tempDir = await makeTempDir('legacy-server-import-');
+      const pageDir = path.join(tempDir, '.reactus/page');
+      await fs.mkdir(pageDir, { recursive: true });
+      await fs.writeFile(path.join(pageDir, 'home.js'), 'export default { value: "home" };');
+      await fs.writeFile(path.join(pageDir, 'custom.mjs'), 'export default { value: "custom" };');
 
-    it('handles different server configurations', () => {});
+      const server = new Server(configure({ cwd: tempDir }));
+      const home = await server.import<{ default: { value: string } }>(path.join(pageDir, 'home'));
+      const custom = await server.import<{ default: { value: string } }>(path.join(pageDir, 'custom'), ['.mjs']);
 
-    it('maintains immutability of configuration objects', () => {});
-
-    it('handles file resolution with various path formats', async () => {});
-
-    it('preserves loader configuration across operations', () => {});
+      expect(home.default).to.deep.equal({ value: 'home' });
+      expect(custom.default).to.deep.equal({ value: 'custom' });
+    });
   });
 });

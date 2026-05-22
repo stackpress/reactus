@@ -1,59 +1,75 @@
 //tests
-import { describe, it, beforeEach, afterEach } from 'mocha';
+import { describe, it } from 'mocha';
 import { expect } from 'chai';
-//node
-import path from 'node:path';
+//modules
+import React from 'react';
 //reactus
 import Document from '../../src/server/Document.js';
-import Server from '../../src/server/Server.js';
-import { id, renderJSX } from '../../src/server/helpers.js';
+import { id } from '../../src/server/helpers.js';
 
 describe('server/Document', () => {
-  beforeEach(() => {});
-
-  afterEach(() => {});
+  function makeServer() {
+    return {
+      paths: { page: '/tmp/page' },
+      routes: { client: '/client', css: '/assets' },
+      templates: {
+        document: '<html><head><!--document-head--></head><body><!--document-body--><script><!--document-props--></script><script src="<!--document-client-->"></script></body></html>'
+      },
+      import: async (_file: string) => ({
+        default: (props: { message?: string }) => React.createElement('div', null, props.message || 'hello'),
+        Head: (props: { styles?: string[] }) => React.createElement('head', null, (props.styles || []).join(',')),
+        styles: ['site.css']
+      })
+    } as any;
+  }
 
   describe('id getter', () => {
-    it('generates ID using entry and hash', () => {});
-
-    it('handles different entry formats', () => {});
-
-    it('handles entries without extensions', () => {});
+    it('generates IDs using the entry basename and hash', () => {
+      const document = new Document('@/pages/home.tsx', makeServer());
+      expect(document.id).to.equal(`home.tsx-${id('@/pages/home.tsx', 8)}`);
+    });
   });
 
   describe('import()', () => {
-    it('imports page component from correct path', async () => {});
+    it('imports the generated page file from the server page path', async () => {
+      let imported = '';
+      const server = {
+        ...makeServer(),
+        import: async (file: string) => {
+          imported = file;
+          return { default: 'page' };
+        }
+      } as any;
+      const document = new Document('@/pages/home.tsx', server);
 
-    it('handles import errors', async () => {});
+      expect(await document.import()).to.deep.equal({ default: 'page' });
+      expect(imported).to.equal(`/tmp/page/${document.id}.js`);
+    });
   });
 
   describe('renderMarkup()', () => {
-    beforeEach(() => {});
+    it('renders document markup, props, client route, and css routes', async () => {
+      const document = new Document('@/pages/home.tsx', makeServer());
+      const html = await document.renderMarkup({ message: 'hello "world"' });
 
-    it('renders complete HTML markup with all components', async () => {});
+      expect(html).to.include('hello &quot;world&quot;');
+      expect(html).to.include('/client/' + document.id + '.js');
+      expect(html).to.include('/assets/site.css');
+      expect(html).to.include('{"message":"hello \\"world\\""}');
+    });
 
-    it('handles empty props', async () => {});
+    it('handles missing Head and styles gracefully', async () => {
+      const server = {
+        ...makeServer(),
+        import: async () => ({
+          default: () => React.createElement('div', null, 'body')
+        })
+      } as any;
+      const document = new Document('@/pages/home.tsx', server);
+      const html = await document.renderMarkup();
 
-    it('handles missing Head component', async () => {});
-
-    it('handles missing styles array', async () => {});
-
-    it('handles empty styles array', async () => {});
-
-    it('handles null render results', async () => {});
-
-    it('properly escapes JSON props', async () => {});
-
-    it('generates correct client route', async () => {});
-
-    it('generates correct CSS routes', async () => {});
-  });
-
-  describe('integration scenarios', () => {
-    it('handles complex entry paths', () => {});
-
-    it('maintains consistent ID generation', () => {});
-
-    it('handles server configuration changes', async () => {});
+      expect(html).to.include('body');
+      expect(html).to.not.include('/assets/');
+    });
   });
 });
