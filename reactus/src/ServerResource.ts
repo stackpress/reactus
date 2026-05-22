@@ -118,13 +118,13 @@ export default class ServerResource {
       ? css(this._server.paths.css) 
       : null;
     //add the imfs plugin
-    return [ 
+    return [
       injectCSS,
       vfs(this._server.vfs), 
       file(this._server.loader), 
       react.default(),
       ...this._plugins,
-    ] as PluginOption[];
+    ].filter(Boolean) as PluginOption[];
   }
 
   /**

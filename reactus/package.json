@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "reactus",
-  "version": "0.10.1",
+  "version": "0.10.3",
   "license": "Apache-2.0",
   "description": "reactive React template engine",
   "author": "Chris <chris@incept.asia>",
@@ -203,11 +203,11 @@
     "build:tsc:cjs": "tsc -p ./tsconfig.cjs.json",
     "build:tsc:esm": "tsc -p ./tsconfig.esm.json",
     "report": "nyc report -r lcov",
-    "test": "yarn test:env nyc ts-mocha -r tsx tests/bootstrap.ts tests/*.test.ts tests/*.test.tsx",
+    "test": "yarn test:env nyc --all --check-coverage --statements 90 --lines 90 --functions 90 --extension .ts --extension .tsx --include 'src/**/*.ts' --exclude 'src/types.ts' --exclude 'src/server/types.ts' ts-mocha -r tsx tests/bootstrap.ts 'tests/**/*.test.ts' 'tests/**/*.test.tsx'",
     "test:env": "NODE_OPTIONS=\"--disable-warning=ExperimentalWarning --experimental-loader @istanbuljs/esm-loader-hook\""
   },
   "dependencies": {
-    "@stackpress/lib": "0.10.1"
+    "@stackpress/lib": "0.10.3"
   },
   "devDependencies": {
     "@istanbuljs/esm-loader-hook": "0.3.0",
