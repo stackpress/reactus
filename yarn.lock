@@ -2222,10 +2222,10 @@
   dependencies:
     "@sinonjs/commons" "^3.0.0"
 
-"@stackpress/lib@0.10.7":
-  version "0.10.7"
-  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.10.7.tgz#38af9964092c1c085fcf5bbcaf28679c7fd58231"
-  integrity sha512-5Xw1wfmNn8P6htjpDpBvRPFNRiD4NQ4MNH96s5SaPQpbaUjMAj/Z0Bf9dBt6b1IjwpMB7UI2PdGRU6ayhCU1Og==
+"@stackpress/lib@0.10.8":
+  version "0.10.8"
+  resolved "https://registry.yarnpkg.com/@stackpress/lib/-/lib-0.10.8.tgz#cbea5ad398cebfde26d52a7f6150ad222e912d16"
+  integrity sha512-AJZkkvd87Drtd8Qp4usIZGFy2B1ZDg9qHiQSvbxjDRH8kHaKVpezupet+2f11Qy13q7m0SWxdh43tO9qgu0HOA==
 
 "@swc/cli@0.6.0":
   version "0.6.0"
